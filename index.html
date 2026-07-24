@@ -2466,12 +2466,15 @@
             }
         }
 
+        const BACKEND_URL = 'https://question-bank-x5pu.onrender.com';
+
         async function safeFetchJson(url, options) {
+            const targetUrl = (url.startsWith('/') && !url.startsWith('//')) ? `${BACKEND_URL}${url}` : url;
             let response;
             try {
-                response = await fetch(url, options);
+                response = await fetch(targetUrl, options);
             } catch (e) {
-                throw new Error(`Network error calling ${url}. Please check server connectivity.`);
+                throw new Error(`Network error calling ${targetUrl}. Please check server connectivity at ${BACKEND_URL}.`);
             }
             const text = await response.text();
             let data;
@@ -2479,7 +2482,7 @@
                 data = JSON.parse(text);
             } catch {
                 if (!response.ok) {
-                    throw new Error(`Server returned HTTP ${response.status} (${response.statusText || 'Not Found'}). Please verify the backend server (server.js) is running and reachable.`);
+                    throw new Error(`Server returned HTTP ${response.status} (${response.statusText || 'Not Found'}). Please verify the backend server at ${BACKEND_URL} is running and reachable.`);
                 }
                 throw new Error(`Unexpected server response: ${text.slice(0, 100)}`);
             }
