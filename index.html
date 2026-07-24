@@ -2699,69 +2699,34 @@
             document.getElementById('navLinks').classList.toggle('active');
         });
 
-        // Real-time Live Active Users Presence Tracker
-        const PRESENCE_COLLECTION = 'presences';
-        const presenceSessionId = sessionStorage.getItem('qb_presence_id') || ('pres_' + Math.random().toString(36).substring(2, 10));
+        // Real-Time Live Active Users Presence Tracker
+        const presenceSessionId = sessionStorage.getItem('qb_presence_id') || ('pres_' + Math.random().toString(36).substring(2, 12));
         sessionStorage.setItem('qb_presence_id', presenceSessionId);
 
-        async function reportPresence() {
+        async function pingLivePresence() {
             try {
-                if (typeof doc === 'function' && typeof setDoc === 'function' && db) {
-                    const docRef = doc(db, PRESENCE_COLLECTION, presenceSessionId);
-                    await setDoc(docRef, {
-                        lastSeen: serverTimestamp(),
-                        timestamp: Date.now()
-                    }, { merge: true });
-                }
-            } catch (e) {
-                console.warn('Presence report skipped:', e);
-            }
-        }
-
-        function listenToLiveActiveUsers() {
-            try {
-                if (typeof collection === 'function' && typeof onSnapshot === 'function' && db) {
-                    const presRef = collection(db, PRESENCE_COLLECTION);
-                    onSnapshot(presRef, (snapshot) => {
-                        const now = Date.now();
-                        let activeCount = 0;
-                        snapshot.forEach(docSnap => {
-                            const data = docSnap.data();
-                            const ts = data.timestamp || (data.lastSeen && data.lastSeen.seconds ? data.lastSeen.seconds * 1000 : 0);
-                            if (ts && (now - ts) < 45000) {
-                                activeCount++;
-                            }
-                        });
+                const res = await fetch(`${BACKEND_URL}/api/presence/heartbeat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId: presenceSessionId })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && typeof data.activeUsers === 'number') {
                         const countEl = document.getElementById('activeUserCount');
-                        if (countEl) countEl.textContent = Math.max(1, activeCount);
-                    }, (err) => {
-                        console.warn('Presence snapshot fallback:', err);
-                        updateDynamicActiveUserCount();
-                    });
-                } else {
-                    updateDynamicActiveUserCount();
+                        if (countEl) countEl.textContent = data.activeUsers;
+                    }
                 }
             } catch (e) {
-                console.warn('Presence listener error:', e);
-                updateDynamicActiveUserCount();
+                console.warn('Presence ping failed:', e);
             }
-        }
-
-        function updateDynamicActiveUserCount() {
-            const hour = new Date().getHours();
-            const base = (hour >= 8 && hour <= 23) ? 5 : 2;
-            const variance = Math.floor(Math.random() * 3);
-            const activeCount = Math.max(1, base + variance);
-            const countEl = document.getElementById('activeUserCount');
-            if (countEl) countEl.textContent = activeCount;
         }
 
         // Init
         initTheme();
         listenForApprovedPapers();
-        reportPresence();
-        setInterval(reportPresence, 15000);
-        listenToLiveActiveUsers();
+        pingLivePresence();
+        setInterval(pingLivePresence, 10000);
         handleRouteChange();
 
         // Hide loader after app initializes
