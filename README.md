@@ -2,7 +2,7 @@
 
 A single-page web app where UIU CSE students can search, browse, and download past exam questions, solutions, and notes — organized by semester and course.
 
-**Live:** *(add your deployed link here)*
+**Live:** *[UIU CSE Question Bank](https://question-bank-orpin-psi.vercel.app/)*
 **Backend:** [`question-bank-x5pu.onrender.com`](https://question-bank-x5pu.onrender.com)
 
 ## Features
