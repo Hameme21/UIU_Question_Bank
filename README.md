@@ -45,4 +45,4 @@ Found a bug or want to add missing course materials? Open an issue or submit a p
 
 ## License
 
-*(add a license here if you'd like this to be open source, e.g. MIT)*
+Licensed under the Apache License, Version 2.0. See the [LICENSE](LICENSE) file for details.
