@@ -1615,6 +1615,7 @@
             measurementId: 'G-3BW6M1SXLP'
         };
         const QUESTION_COLLECTION = 'question_bank_submissions';
+        const LEGACY_COLLECTION = 'questionPapers';
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
@@ -1949,19 +1950,55 @@
         // FIREBASE LISTENER
         // ==========================================
         function listenForApprovedPapers() {
-            const qRef = query(collection(db, QUESTION_COLLECTION), where('status', '==', 'approved'));
-            onSnapshot(qRef, (snapshot) => {
+            let primaryPapers = [];
+            let legacyPapers = [];
+            let primaryReady = false;
+            let legacyReady = false;
+
+            function mergeAndRender() {
+                if (!primaryReady || !legacyReady) return;
+                const seen = new Set();
                 approvedPapers = [];
-                snapshot.forEach(doc => {
-                    approvedPapers.push({ id: doc.id, ...doc.data() });
-                });
-                // Sort by timestamp desc
+                for (const paper of [...primaryPapers, ...legacyPapers]) {
+                    if (!seen.has(paper.id)) {
+                        seen.add(paper.id);
+                        approvedPapers.push(paper);
+                    }
+                }
                 approvedPapers.sort((a, b) => {
                     const timeA = a.submittedAt ? a.submittedAt.toMillis() : 0;
                     const timeB = b.submittedAt ? b.submittedAt.toMillis() : 0;
                     return timeB - timeA;
                 });
                 renderCurrentPage();
+            }
+
+            const primaryRef = query(collection(db, QUESTION_COLLECTION), where('status', '==', 'approved'));
+            onSnapshot(primaryRef, (snapshot) => {
+                primaryPapers = [];
+                snapshot.forEach(doc => {
+                    primaryPapers.push({ id: doc.id, ...doc.data() });
+                });
+                primaryReady = true;
+                mergeAndRender();
+            }, (error) => {
+                console.error('Could not load from primary collection:', error);
+                primaryReady = true;
+                mergeAndRender();
+            });
+
+            const legacyRef = query(collection(db, LEGACY_COLLECTION), where('status', '==', 'approved'));
+            onSnapshot(legacyRef, (snapshot) => {
+                legacyPapers = [];
+                snapshot.forEach(doc => {
+                    legacyPapers.push({ id: doc.id, ...doc.data() });
+                });
+                legacyReady = true;
+                mergeAndRender();
+            }, (error) => {
+                console.error('Could not load from legacy collection:', error);
+                legacyReady = true;
+                mergeAndRender();
             });
         }
 
