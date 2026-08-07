@@ -2582,6 +2582,11 @@
 
             const defaultHTML = content.innerHTML;
 
+            dropzone.addEventListener('click', (e) => {
+                if (e.target && e.target.closest && e.target.closest('button')) return;
+                input.click();
+            });
+
             function updatePreview(file) {
                 if (!file) {
                     content.innerHTML = defaultHTML;
@@ -2998,7 +3003,9 @@
             
             const infoEl = document.getElementById('solModalQuestionInfo');
             if (infoEl) {
-                infoEl.textContent = `Target: ${courseCode} - ${examType} (${decodeSemester(semester)})`;
+                const semObj = decodeSemester(semester);
+                const semText = (semObj && semObj.label) ? semObj.label : (semester || '');
+                infoEl.textContent = `Target: ${courseCode} - ${examType} (${semText})`;
             }
             modal.style.display = 'flex';
         }
