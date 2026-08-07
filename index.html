@@ -446,57 +446,69 @@
         
         .autocomplete-dropdown {
             position: absolute;
-            top: 100%;
+            top: calc(100% + 0.5rem);
             left: 0;
             right: 0;
             background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-lg);
-            max-height: 360px;
+            border: 1px solid var(--border-hover);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            max-height: 380px;
             overflow-y: auto;
             display: none;
-            z-index: 50;
-            margin-top: 0.5rem;
+            z-index: 1000;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .autocomplete-dropdown::-webkit-scrollbar {
+            width: 6px;
+        }
+        .autocomplete-dropdown::-webkit-scrollbar-track {
+            background: var(--surface-2);
+        }
+        .autocomplete-dropdown::-webkit-scrollbar-thumb {
+            background: var(--border-hover);
+            border-radius: 9999px;
         }
         .autocomplete-dropdown.active {
             display: block;
         }
         .autocomplete-item {
-            padding: 0.75rem 1rem;
+            padding: 0.75rem 1.25rem;
             cursor: pointer;
-            transition: var(--transition);
             border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: var(--transition);
         }
         .autocomplete-item:last-child {
             border-bottom: none;
         }
         .autocomplete-item:hover,
         .autocomplete-item.highlighted {
+            background: rgba(243, 112, 33, 0.15);
+            border-left: 4px solid var(--orange);
+        }
+
+        .file-drop-area {
+            border: 2px dashed var(--border-hover);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--surface-2);
+            position: relative;
+        }
+        .file-drop-area:hover, .file-drop-area.dragover {
+            border-color: var(--orange);
             background: var(--orange-light);
         }
-            border-radius: var(--radius-md);
-            margin-top: 0.5rem;
-            box-shadow: var(--shadow-lg);
-            max-height: 400px;
-            overflow-y: auto;
-            z-index: 10;
-            display: none;
-        }
-        .autocomplete-dropdown.active {
-            display: block;
-        }
-        
-        .autocomplete-item {
-            padding: 0.75rem 1.5rem;
-            cursor: pointer;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .autocomplete-item:hover, .autocomplete-item.selected {
-            background: var(--surface-2);
+        .file-drop-area.has-file {
+            border-style: solid;
+            border-color: var(--orange);
+            background: rgba(243, 112, 33, 0.05);
         }
 
         .stats-grid {
@@ -1529,12 +1541,26 @@
                         
                         <div class="input-group">
                             <label class="input-label">Main File (PDF/Image) <span style="font-size:0.8rem; color:var(--orange); font-weight:500;">(Max 5MB)</span></label>
-                            <input type="file" id="upMainFile" class="input-control" accept=".pdf,.png,.jpg,.jpeg" required>
+                            <div class="file-drop-area" id="mainFileDropzone" onclick="document.getElementById('upMainFile').click()">
+                                <input type="file" id="upMainFile" accept=".pdf,.png,.jpg,.jpeg" required style="display:none;">
+                                <div class="dropzone-content" id="mainFileDropContent">
+                                    <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--orange); margin-bottom:0.5rem;"></i>
+                                    <div style="font-weight:600; margin-bottom:0.25rem;">Drag & drop main file here or <span style="color:var(--orange); text-decoration:underline;">browse</span></div>
+                                    <div style="font-size:0.8rem; color:var(--text-muted);">Supports PDF, PNG, JPG, JPEG (Max 5MB)</div>
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="input-group" id="solutionFileGroup">
                             <label class="input-label">Solution File (Optional) <span style="font-size:0.8rem; color:var(--orange); font-weight:500;">(Max 5MB)</span></label>
-                            <input type="file" id="upSolutionFile" class="input-control" accept=".pdf,.png,.jpg,.jpeg">
+                            <div class="file-drop-area" id="solFileDropzone" onclick="document.getElementById('upSolutionFile').click()">
+                                <input type="file" id="upSolutionFile" accept=".pdf,.png,.jpg,.jpeg" style="display:none;">
+                                <div class="dropzone-content" id="solFileDropContent">
+                                    <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--orange); margin-bottom:0.5rem;"></i>
+                                    <div style="font-weight:600; margin-bottom:0.25rem;">Drag & drop solution file here or <span style="color:var(--orange); text-decoration:underline;">browse</span></div>
+                                    <div style="font-size:0.8rem; color:var(--text-muted);">Supports PDF, PNG, JPG, JPEG (Max 5MB)</div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="input-group">
@@ -2039,6 +2065,28 @@
             `;
         }
 
+        function formatPdfDownloadName(paper, isSolution = false) {
+            if (!paper) return 'download.pdf';
+            const courseCodeRaw = (paper.courseCode || 'CSE1111').trim();
+            const deptMatch = courseCodeRaw.match(/^([a-zA-Z]+)/);
+            const dept = deptMatch ? deptMatch[1].toUpperCase() : 'CSE';
+            const cleanCourseCode = courseCodeRaw.replace(/\s+/g, '').toUpperCase();
+            
+            let examName = isSolution ? 'Solution' : (paper.examType || paper.type || paper.topic || 'Exam');
+            if (!isSolution && paper.type === 'Question' && paper.examType) {
+                examName = paper.examType;
+            }
+            if (isSolution && paper.examType) {
+                examName = `${paper.examType}_Solution`;
+            }
+            examName = String(examName).replace(/[^a-zA-Z0-9]/g, '');
+            if (!examName) examName = 'Exam';
+            
+            const trimesterCode = paper.semester || (paper.trimester ? `251` : '251');
+            
+            return `${dept}_${cleanCourseCode}_${examName}_${trimesterCode}.pdf`;
+        }
+
         function createResourceCard(paper) {
             const isFav = isFavoriteResource(paper.id);
             const semLabel = paper.semester ? decodeSemester(paper.semester).label : '';
@@ -2051,13 +2099,13 @@
 
             let downloadLinks = '';
             if (mainPdf) {
-                const mainName = `${paper.courseCode || 'Resource'}_${paper.topic || paper.type || 'Question'}.pdf`.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
-                downloadLinks += `<button class="btn btn-outline" onclick="openPdfViewer('${mainPdf}', '${paper.courseCode} - ${paper.topic || paper.type}')" style="padding:0.45rem 0.85rem; font-size:0.85rem;"><i class="fas fa-eye"></i> View PDF</button>
+                const mainName = formatPdfDownloadName(paper, false);
+                downloadLinks += `<button class="btn btn-outline" onclick="openPdfViewer('${mainPdf}', '${paper.courseCode} - ${paper.topic || paper.type}', false)" style="padding:0.45rem 0.85rem; font-size:0.85rem;"><i class="fas fa-eye"></i> View PDF</button>
                                   <button type="button" onclick="forceDownloadFile('${mainPdf}', '${mainName}')" class="btn btn-primary" style="padding:0.45rem 0.85rem; font-size:0.85rem;"><i class="fas fa-download"></i> Download</button>`;
             }
             if (solPdf) {
-                const solName = `${paper.courseCode || 'Resource'}_Solution.pdf`.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
-                downloadLinks += `<button class="btn btn-outline" onclick="openPdfViewer('${solPdf}', '${paper.courseCode} - Solution')" style="padding:0.45rem 0.85rem; font-size:0.85rem;"><i class="fas fa-eye"></i> View Solution</button>
+                const solName = formatPdfDownloadName(paper, true);
+                downloadLinks += `<button class="btn btn-outline" onclick="openPdfViewer('${solPdf}', '${paper.courseCode} - Solution', true)" style="padding:0.45rem 0.85rem; font-size:0.85rem;"><i class="fas fa-eye"></i> View Solution</button>
                                   <button type="button" onclick="forceDownloadFile('${solPdf}', '${solName}')" class="btn btn-primary" style="padding:0.45rem 0.85rem; font-size:0.85rem;"><i class="fas fa-download"></i> Download Solution</button>`;
             }
 
@@ -2516,6 +2564,85 @@
                         }
                     });
                 });
+
+                bindDropzone('mainFileDropzone', 'upMainFile', 'mainFileDropContent');
+                bindDropzone('solFileDropzone', 'upSolutionFile', 'solFileDropContent');
+            }
+        }
+
+        function bindDropzone(dropzoneId, inputId, contentId) {
+            const dropzone = document.getElementById(dropzoneId);
+            const input = document.getElementById(inputId);
+            const content = document.getElementById(contentId);
+            if (!dropzone || !input || !content) return;
+
+            const defaultHTML = content.innerHTML;
+
+            function updatePreview(file) {
+                if (!file) {
+                    content.innerHTML = defaultHTML;
+                    dropzone.classList.remove('has-file');
+                    return;
+                }
+                const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                content.innerHTML = `
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; text-align:left;">
+                        <div style="display:flex; align-items:center; gap:0.75rem; overflow:hidden;">
+                            <i class="fas fa-file-pdf" style="font-size:1.8rem; color:var(--orange);"></i>
+                            <div style="overflow:hidden;">
+                                <div style="font-weight:600; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; color:var(--text-main); font-size:0.9rem;">${file.name}</div>
+                                <div style="font-size:0.75rem; color:var(--text-muted);">${sizeMB} MB • Ready for upload</div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline" style="padding:0.25rem 0.6rem; font-size:0.75rem; color:var(--danger); border-color:var(--danger);" onclick="event.stopPropagation(); resetDropzone('${dropzoneId}','${inputId}','${contentId}');">
+                            <i class="fas fa-times"></i> Remove
+                        </button>
+                    </div>
+                `;
+                dropzone.classList.add('has-file');
+            }
+
+            ['dragenter', 'dragover'].forEach(name => {
+                dropzone.addEventListener(name, (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    dropzone.classList.add('dragover');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(name => {
+                dropzone.addEventListener(name, (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    dropzone.classList.remove('dragover');
+                });
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                if (dt && dt.files && dt.files.length > 0) {
+                    input.files = dt.files;
+                    updatePreview(dt.files[0]);
+                }
+            });
+
+            input.addEventListener('change', () => {
+                if (input.files && input.files.length > 0) {
+                    updatePreview(input.files[0]);
+                }
+            });
+        }
+
+        function resetDropzone(dropzoneId, inputId, contentId) {
+            const input = document.getElementById(inputId);
+            if (input) input.value = '';
+            const content = document.getElementById(contentId);
+            const dropzone = document.getElementById(dropzoneId);
+            if (dropzone) dropzone.classList.remove('has-file');
+            if (content) {
+                content.innerHTML = `
+                    <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--orange); margin-bottom:0.5rem;"></i>
+                    <div style="font-weight:600; margin-bottom:0.25rem;">Drag & drop file here or <span style="color:var(--orange); text-decoration:underline;">browse</span></div>
+                    <div style="font-size:0.8rem; color:var(--text-muted);">Supports PDF, PNG, JPG, JPEG (Max 5MB)</div>
+                `;
             }
         }
 
@@ -2725,6 +2852,8 @@
                 showToast('Material submitted for admin review.', 'success');
                 setTimeout(() => {
                     document.getElementById('uploadForm').reset();
+                    resetDropzone('mainFileDropzone', 'upMainFile', 'mainFileDropContent');
+                    resetDropzone('solFileDropzone', 'upSolutionFile', 'solFileDropContent');
                     nextStep(1);
                     btn.disabled = false;
                     btn.innerText = 'Submit Material';
