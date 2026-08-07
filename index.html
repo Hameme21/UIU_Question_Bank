@@ -2108,6 +2108,10 @@
                 downloadLinks += `<button class="btn btn-outline" onclick="openPdfViewer('${solPdf}', '${paper.courseCode} - Solution', true)" style="padding:0.45rem 0.85rem; font-size:0.85rem;"><i class="fas fa-eye"></i> View Solution</button>
                                   <button type="button" onclick="forceDownloadFile('${solPdf}', '${solName}')" class="btn btn-primary" style="padding:0.45rem 0.85rem; font-size:0.85rem;"><i class="fas fa-download"></i> Download Solution</button>`;
             }
+            if (type === 'Question' || type === 'Lab') {
+                const solBtnText = solPdf ? '<i class="fas fa-plus-circle"></i> Add Solution' : '<i class="fas fa-upload"></i> Upload Solution';
+                downloadLinks += `<button type="button" onclick="openSolutionUploadModal('${paper.id}', '${paper.courseCode}', '${paper.examType || 'Midterm'}', '${paper.semester}')" class="btn btn-outline" style="padding:0.45rem 0.85rem; font-size:0.85rem; color:var(--orange); border-color:var(--orange);" title="Upload a solution for this question paper">${solBtnText}</button>`;
+            }
 
             const topicStr = paper.topic ? `<div style="font-weight:500;">${paper.topic}</div>` : '';
             
@@ -2797,6 +2801,26 @@
                     throw new Error('Please enter a topic or title for your notes.');
                 }
 
+                // Strictly forbid duplicate question papers for same course + exam + trimester
+                if (type === 'Question' || type === 'Lab') {
+                    const cleanCourse = courseCode.replace(/\s+/g, '').toUpperCase();
+                    const isDuplicate = allPapers.some(p => {
+                        const pType = (p.type || p.materialType || 'Question').toLowerCase();
+                        if (pType !== type.toLowerCase() && pType !== 'question') return false;
+                        const pCourse = (p.courseCode || '').replace(/\s+/g, '').toUpperCase();
+                        const pExam = (p.examType || '').toLowerCase();
+                        const pSem = String(p.trimester || p.semester || '');
+                        
+                        return pCourse === cleanCourse && 
+                               pExam === examType.toLowerCase() && 
+                               (pSem === String(trimester) || pSem === String(semester));
+                    });
+
+                    if (isDuplicate) {
+                        throw new Error(`A ${examType} question paper for ${courseCode} (${trimester || semester}) ALREADY EXISTS in the Question Bank! Duplicate question papers are strictly forbidden.`);
+                    }
+                }
+
                 updateUploadProgress(5, 'Preparing upload...');
 
                 const mainAssetType = type === 'Question' ? 'question' : type === 'Lab' ? 'question' : 'note';
@@ -2961,6 +2985,98 @@
             }
         }
 
+        // ==========================================
+        // SOLUTION UPLOAD MODAL FOR QUESTION PAPERS
+        // ==========================================
+        function openSolutionUploadModal(questionId, courseCode, examType, semester) {
+            const modal = document.getElementById('uploadSolutionModal');
+            if (!modal) return;
+            document.getElementById('solTargetQuestionId').value = questionId || '';
+            document.getElementById('solTargetCourseCode').value = courseCode || '';
+            document.getElementById('solTargetExamType').value = examType || 'Midterm';
+            document.getElementById('solTargetSemester').value = semester || '251';
+            
+            const infoEl = document.getElementById('solModalQuestionInfo');
+            if (infoEl) {
+                infoEl.textContent = `Target: ${courseCode} - ${examType} (${decodeSemester(semester)})`;
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeSolutionUploadModal() {
+            const modal = document.getElementById('uploadSolutionModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        bindDropzone('solUploadDropzone', 'solUploadFileInput', 'solUploadDropContent');
+
+        const solForm = document.getElementById('solutionUploadForm');
+        if (solForm) {
+            solForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btnSubmitSolution');
+                const status = document.getElementById('solUploadStatus');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+                status.innerHTML = '';
+
+                try {
+                    const questionId = document.getElementById('solTargetQuestionId').value;
+                    const courseCode = document.getElementById('solTargetCourseCode').value;
+                    const examType = document.getElementById('solTargetExamType').value;
+                    const semester = document.getElementById('solTargetSemester').value;
+                    const submitterName = document.getElementById('solSubmitterName').value.trim();
+                    const submitterEmail = document.getElementById('solSubmitterEmail').value.trim();
+                    const solFile = document.getElementById('solUploadFileInput').files[0];
+
+                    if (!solFile) throw new Error('Please attach a solution PDF file.');
+                    if (!submitterEmail.toLowerCase().endsWith('.uiu.ac.bd')) {
+                        throw new Error('Please enter a valid UIU email address ending in .uiu.ac.bd.');
+                    }
+
+                    status.innerHTML = '<div style="font-size:0.8rem; color:var(--orange); margin-top:0.5rem;"><i class="fas fa-spinner fa-spin"></i> Uploading solution PDF to Cloudinary...</div>';
+
+                    const solAsset = await uploadToCloudinary('solution', solFile, courseCode, `${examType} Solution`);
+
+                    status.innerHTML = '<div style="font-size:0.8rem; color:var(--success); margin-top:0.5rem;"><i class="fas fa-spinner fa-spin"></i> Submitting solution for admin review...</div>';
+
+                    await addDoc(collection(db, QUESTION_COLLECTION), {
+                        targetQuestionId: questionId,
+                        courseCode: courseCode,
+                        examType: examType,
+                        semester: semester,
+                        type: 'Solution',
+                        materialType: 'solution',
+                        topic: `${examType} Solution`,
+                        solutionPdfUrl: solAsset.pdfUrl,
+                        pdfUrl: solAsset.pdfUrl,
+                        submitterName,
+                        submitterEmail,
+                        status: 'pending',
+                        materialAssets: [solAsset],
+                        submittedAt: serverTimestamp(),
+                        createdAt: serverTimestamp()
+                    });
+
+                    status.innerHTML = '<div style="font-size:0.85rem; color:var(--success); font-weight:600; margin-top:0.5rem;">Solution submitted successfully for admin review!</div>';
+                    showToast('Solution submitted for admin review.', 'success');
+                    setTimeout(() => {
+                        solForm.reset();
+                        resetDropzone('solUploadDropzone', 'solUploadFileInput', 'solUploadDropContent');
+                        closeSolutionUploadModal();
+                        btn.disabled = false;
+                        btn.innerHTML = 'Submit Solution';
+                        status.innerHTML = '';
+                    }, 2000);
+                } catch (err) {
+                    console.error('Solution upload failed:', err);
+                    status.innerHTML = `<span style="color:var(--error); font-size:0.85rem;">Error: ${err.message}</span>`;
+                    btn.disabled = false;
+                    btn.innerHTML = 'Submit Solution';
+                }
+            });
+        }
+
         // Init
         initTheme();
         listenForApprovedPapers();
@@ -2978,6 +3094,54 @@
         }
 
     </script>
+    
+    <!-- Solution Upload Modal -->
+    <div id="uploadSolutionModal" class="modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.75); backdrop-filter:blur(8px); justify-content:center; align-items:center; padding:1rem;">
+        <div class="modal-content" style="background:var(--surface-1); border:1px solid var(--border); border-radius:var(--radius-lg); max-width:500px; width:100%; padding:1.5rem; color:var(--text-main); position:relative; box-shadow:var(--shadow-xl);">
+            <button type="button" onclick="closeSolutionUploadModal()" style="position:absolute; top:1rem; right:1rem; background:none; border:none; color:var(--text-muted); font-size:1.25rem; cursor:pointer;" title="Close"><i class="fas fa-times"></i></button>
+            <h3 style="margin-bottom:0.25rem; display:flex; align-items:center; gap:0.5rem; color:var(--orange);">
+                <i class="fas fa-file-signature"></i> Upload Solution for Question
+            </h3>
+            <p id="solModalQuestionInfo" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.25rem;">Target: Question Paper</p>
+
+            <form id="solutionUploadForm">
+                <input type="hidden" id="solTargetQuestionId">
+                <input type="hidden" id="solTargetCourseCode">
+                <input type="hidden" id="solTargetExamType">
+                <input type="hidden" id="solTargetSemester">
+                
+                <div style="margin-bottom:0.85rem;">
+                    <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Your Full Name</label>
+                    <input type="text" id="solSubmitterName" required placeholder="e.g. John Doe" class="form-input" style="width:100%; padding:0.6rem 0.85rem; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-md); color:var(--text-main);">
+                </div>
+                
+                <div style="margin-bottom:0.85rem;">
+                    <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">UIU Email Address (@uiu.ac.bd)</label>
+                    <input type="email" id="solSubmitterEmail" required placeholder="name@bscse.uiu.ac.bd" class="form-input" style="width:100%; padding:0.6rem 0.85rem; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-md); color:var(--text-main);">
+                </div>
+
+                <div style="margin-bottom:1rem;">
+                    <label style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:0.25rem;">Solution PDF File (Max 5MB)</label>
+                    <div class="file-drop-area" id="solUploadDropzone" style="border:2px dashed var(--border); border-radius:var(--radius-md); background:var(--surface-hover); cursor:pointer; text-align:center; transition:all 0.2s;">
+                        <input type="file" id="solUploadFileInput" accept=".pdf,.png,.jpg,.jpeg" required style="display:none;">
+                        <div id="solUploadDropContent" style="pointer-events:none; padding:1.25rem; text-align:center;">
+                            <i class="fas fa-cloud-upload-alt" style="font-size:1.5rem; color:var(--orange); margin-bottom:0.25rem;"></i>
+                            <div style="font-weight:600; font-size:0.85rem;">Drag & drop Solution PDF or <span style="color:var(--orange); text-decoration:underline;">browse</span></div>
+                            <div style="font-size:0.7rem; color:var(--text-muted);">PDF, PNG, JPG (Max 5MB)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="solUploadStatus"></div>
+
+                <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1.25rem;">
+                    <button type="button" onclick="closeSolutionUploadModal()" class="btn btn-outline" style="padding:0.45rem 1rem;">Cancel</button>
+                    <button type="submit" id="btnSubmitSolution" class="btn btn-primary" style="padding:0.45rem 1.25rem;">Submit Solution</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Mobile Bottom Navigation -->
     <nav class="mobile-bottom-nav" id="mobileBottomNav">
         <a href="#dashboard" class="bottom-nav-item active" data-page="dashboard">
