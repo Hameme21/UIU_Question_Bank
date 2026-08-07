@@ -2993,7 +2993,7 @@
         // ==========================================
         // SOLUTION UPLOAD MODAL FOR QUESTION PAPERS
         // ==========================================
-        function openSolutionUploadModal(questionId, courseCode, examType, semester) {
+        window.openSolutionUploadModal = function(questionId, courseCode, examType, semester) {
             const modal = document.getElementById('uploadSolutionModal');
             if (!modal) return;
             document.getElementById('solTargetQuestionId').value = questionId || '';
@@ -3008,12 +3008,12 @@
                 infoEl.textContent = `Target: ${courseCode} - ${examType} (${semText})`;
             }
             modal.style.display = 'flex';
-        }
+        };
 
-        function closeSolutionUploadModal() {
+        window.closeSolutionUploadModal = function() {
             const modal = document.getElementById('uploadSolutionModal');
             if (modal) modal.style.display = 'none';
-        }
+        };
 
         bindDropzone('solUploadDropzone', 'solUploadFileInput', 'solUploadDropContent');
 
