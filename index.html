@@ -1742,7 +1742,7 @@
             const seasonPart = parseInt(str.slice(-1));
             const year = 2000 + yearPart;
             const seasons = { 1: 'Spring', 2: 'Summer', 3: 'Fall' };
-            return { year, season: seasons[seasonPart] || '?', label: `${seasons[seasonPart] || '?'} ${year}` };
+            return { year, season: seasons[seasonPart] || '?', label: str };
         }
         function generateSemesters() {
             // Semester schedule:
@@ -2299,7 +2299,7 @@
                 }
             }
 
-            // Match academic semesters: "261" -> Spring 2026
+            // Match academic semesters by code: "261", "252", etc.
             const semesters = SEMESTERS.filter(s =>
                 s.code.includes(q) || s.label.toLowerCase().includes(qWords)
             ).slice(0, 4);
