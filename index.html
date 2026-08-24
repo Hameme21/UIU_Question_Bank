@@ -5334,14 +5334,30 @@
 
         window.toggleViewerFullscreen = function() {
             const viewer = document.getElementById('fullBrowserViewer');
+            const closeBtn = viewer.querySelector('.qb-close-studio-btn');
             if (!document.fullscreenElement) {
                 viewer.requestFullscreen().catch(err => console.warn(err));
                 document.getElementById('qbFullscreenIcon').className = 'fas fa-compress';
+                if (closeBtn) closeBtn.style.display = 'none';
             } else {
                 document.exitFullscreen().catch(err => console.warn(err));
                 document.getElementById('qbFullscreenIcon').className = 'fas fa-expand';
+                if (closeBtn) closeBtn.style.display = '';
             }
         };
+
+        // Also restore close button if user exits fullscreen via Escape key
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                const viewer = document.getElementById('fullBrowserViewer');
+                if (viewer) {
+                    const closeBtn = viewer.querySelector('.qb-close-studio-btn');
+                    if (closeBtn) closeBtn.style.display = '';
+                    const icon = document.getElementById('qbFullscreenIcon');
+                    if (icon) icon.className = 'fas fa-expand';
+                }
+            }
+        });
 
         window.toggleViewerDownloadMenu = function(event) {
             if (event) event.stopPropagation();
