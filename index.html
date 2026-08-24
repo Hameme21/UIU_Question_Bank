@@ -2679,7 +2679,7 @@
 
     <!-- Question Picker Modal (for the '+' new tab button) -->
     <div id="questionPickerModal" class="modal-overlay" style="z-index: 100050; display: none;">
-        <div class="modal-content" style="max-width: 680px; max-height: 80vh; display: flex; flex-direction: column;">
+        <div class="modal-content" style="max-width: 720px; max-height: 85vh; display: flex; flex-direction: column;">
             <div class="modal-header">
                 <h3 style="margin:0; display:flex; align-items:center; gap:0.5rem; color:var(--orange);">
                     <i class="fas fa-folder-plus"></i> Open Question in New Tab
@@ -2687,9 +2687,20 @@
                 <button type="button" onclick="closeQuestionPickerModal()" class="qb-btn-icon" style="font-size:1.1rem;"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body" style="padding:1rem 1.5rem; overflow-y:auto; flex:1;">
-                <div style="margin-bottom:1rem; position:relative;">
-                    <input type="text" id="qbPickerSearch" class="input-control" placeholder="Search available questions by course, exam, trimester (e.g. 261, Midterm)..." oninput="filterQuestionPickerItems()" style="padding-left:2.5rem;">
+                <div style="margin-bottom:0.85rem; position:relative;">
+                    <input type="text" id="qbPickerSearch" class="input-control" placeholder="Search questions by course, exam, trimester (e.g. 261, Midterm)..." oninput="filterQuestionPickerItems()" style="padding-left:2.5rem;">
                     <i class="fas fa-search" style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); color:var(--text-muted);"></i>
+                </div>
+                
+                <!-- Quick Filter Tabs -->
+                <div style="display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:1rem;" id="qbPickerScopeFilters">
+                    <button type="button" class="qb-btn-tool active" id="qbFilterBtnCurrentCourse" onclick="setPickerCourseScope('current')" style="font-size:0.78rem; padding:0.3rem 0.65rem;">Current Course</button>
+                    <button type="button" class="qb-btn-tool" id="qbFilterBtnAllCourses" onclick="setPickerCourseScope('all')" style="font-size:0.78rem; padding:0.3rem 0.65rem;">All Courses</button>
+                    <div style="width:1px; height:24px; background:var(--border); margin:0 0.15rem;"></div>
+                    <button type="button" class="qb-btn-tool active" id="qbFilterBtnExamAll" onclick="setPickerExamScope('all')" style="font-size:0.78rem; padding:0.3rem 0.65rem;">All Types</button>
+                    <button type="button" class="qb-btn-tool" id="qbFilterBtnExamMid" onclick="setPickerExamScope('midterm')" style="font-size:0.78rem; padding:0.3rem 0.65rem;">Midterms</button>
+                    <button type="button" class="qb-btn-tool" id="qbFilterBtnExamFin" onclick="setPickerExamScope('final')" style="font-size:0.78rem; padding:0.3rem 0.65rem;">Finals</button>
+                    <button type="button" class="qb-btn-tool" id="qbFilterBtnExamNotes" onclick="setPickerExamScope('notes')" style="font-size:0.78rem; padding:0.3rem 0.65rem;">Notes</button>
                 </div>
                 
                 <div id="qbPickerList" class="qb-picker-list">
@@ -4108,24 +4119,36 @@
             }
         }
 
+        function getPaperUniqueId(paper) {
+            if (!paper) return 'unknown_' + Math.random().toString(36).substring(2, 9);
+            if (paper.id) return String(paper.id);
+            const course = (paper.courseCode || 'CSE').replace(/\s+/g, '');
+            const sem = paper.semester || paper.trimester || 'all';
+            const exam = (paper.examType || paper.type || 'exam').replace(/\s+/g, '');
+            const topic = (paper.topic || '').replace(/\s+/g, '');
+            return `${course}_${sem}_${exam}_${topic}`;
+        }
+
         window.openFullBrowserViewerById = function(paperId) {
-            const paper = approvedPapers.find(p => p.id === paperId);
+            const paper = approvedPapers.find(p => p.id === paperId || getPaperUniqueId(p) === paperId);
             if (!paper) return;
             openFullBrowserViewer(paper);
         };
 
         window.openFullBrowserViewer = function(paper) {
+            if (!paper) return;
+            const tabId = getPaperUniqueId(paper);
             const mainPdf = paper.pdfUrl || paper.fileUrl || paper.notePdfUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType !== 'solution')?.pdfUrl) || (paper.materialAssets && paper.materialAssets[0]?.pdfUrl) || '';
             const solPdf = paper.solutionPdfUrl || paper.solutionUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType === 'solution')?.pdfUrl) || '';
             const semObj = decodeSemester(paper.semester || paper.trimester);
             const title = `${paper.courseCode} · ${semObj.label} ${paper.examType || paper.type || 'Question'}`;
 
-            const existingIdx = openViewerTabs.findIndex(t => t.id === paper.id);
+            const existingIdx = openViewerTabs.findIndex(t => t.id === tabId);
             if (existingIdx >= 0) {
                 activeViewerTabIndex = existingIdx;
             } else {
                 const tab = {
-                    id: paper.id,
+                    id: tabId,
                     paper: paper,
                     title: title,
                     pdfUrl: mainPdf,
@@ -4135,7 +4158,7 @@
                     totalPages: 1,
                     zoom: 1.0,
                     rotation: 0,
-                    annotations: loadSavedAnnotations(paper.id),
+                    annotations: loadSavedAnnotations(tabId),
                     undoStack: [],
                     redoStack: []
                 };
@@ -4164,7 +4187,7 @@
             container.innerHTML = openViewerTabs.map((tab, idx) => {
                 const isActive = idx === activeViewerTabIndex;
                 const semObj = decodeSemester(tab.paper.semester || tab.paper.trimester);
-                const tabLabel = `${tab.paper.courseCode} · ${tab.paper.semester || semObj.label}`;
+                const tabLabel = `${tab.paper.courseCode} · ${tab.paper.semester || semObj.label} ${tab.paper.examType || ''}`;
                 return `
                     <div class="qb-viewer-tab ${isActive ? 'active' : ''}" onclick="switchViewerTab(${idx})" title="${tab.title}">
                         <i class="fas fa-file-pdf" style="font-size:0.75rem; color:${isActive ? '#3b82f6' : 'var(--text-muted)'};"></i>
@@ -4198,11 +4221,38 @@
             renderActiveTabDocument();
         };
 
+        let pickerCourseScope = 'current';
+        let pickerExamScope = 'all';
+
+        window.setPickerCourseScope = function(scope) {
+            pickerCourseScope = scope;
+            document.getElementById('qbFilterBtnCurrentCourse')?.classList.toggle('active', scope === 'current');
+            document.getElementById('qbFilterBtnAllCourses')?.classList.toggle('active', scope === 'all');
+            filterQuestionPickerItems();
+        };
+
+        window.setPickerExamScope = function(scope) {
+            pickerExamScope = scope;
+            document.getElementById('qbFilterBtnExamAll')?.classList.toggle('active', scope === 'all');
+            document.getElementById('qbFilterBtnExamMid')?.classList.toggle('active', scope === 'midterm');
+            document.getElementById('qbFilterBtnExamFin')?.classList.toggle('active', scope === 'final');
+            document.getElementById('qbFilterBtnExamNotes')?.classList.toggle('active', scope === 'notes');
+            filterQuestionPickerItems();
+        };
+
         window.openQuestionPickerModal = function() {
             const modal = document.getElementById('questionPickerModal');
             if (modal) modal.style.display = 'flex';
             const searchEl = document.getElementById('qbPickerSearch');
             if (searchEl) searchEl.value = '';
+            pickerCourseScope = 'current';
+            pickerExamScope = 'all';
+            document.getElementById('qbFilterBtnCurrentCourse')?.classList.add('active');
+            document.getElementById('qbFilterBtnAllCourses')?.classList.remove('active');
+            document.getElementById('qbFilterBtnExamAll')?.classList.add('active');
+            document.getElementById('qbFilterBtnExamMid')?.classList.remove('active');
+            document.getElementById('qbFilterBtnExamFin')?.classList.remove('active');
+            document.getElementById('qbFilterBtnExamNotes')?.classList.remove('active');
             filterQuestionPickerItems();
         };
 
@@ -4216,53 +4266,94 @@
             const list = document.getElementById('qbPickerList');
             if (!list) return;
 
+            const activeTab = openViewerTabs[activeViewerTabIndex];
+            const currentCourseCode = activeTab ? (activeTab.paper.courseCode || '').replace(/\s+/g, '').toLowerCase() : '';
+
             let availablePapers = approvedPapers.filter(p => {
+                const pCourse = (p.courseCode || '').replace(/\s+/g, '').toLowerCase();
+                if (pickerCourseScope === 'current' && currentCourseCode && pCourse !== currentCourseCode) {
+                    return false;
+                }
+
+                const pExam = (p.examType || '').toLowerCase();
+                const pType = (p.type || '').toLowerCase();
+                if (pickerExamScope === 'midterm' && !pExam.includes('mid') && !pType.includes('mid')) return false;
+                if (pickerExamScope === 'final' && !pExam.includes('fin') && !pType.includes('fin')) return false;
+                if (pickerExamScope === 'notes' && !pType.includes('note') && p.materialType !== 'note') return false;
+
                 if (!searchVal) return true;
                 const sem = decodeSemester(p.semester || p.trimester).label.toLowerCase();
                 const code = (p.courseCode || '').toLowerCase();
-                const exam = (p.examType || '').toLowerCase();
                 const topic = (p.topic || '').toLowerCase();
                 const semesterCode = (p.semester || '').toLowerCase();
-                return code.includes(searchVal) || sem.includes(searchVal) || exam.includes(searchVal) || topic.includes(searchVal) || semesterCode.includes(searchVal);
+                return code.includes(searchVal) || sem.includes(searchVal) || pExam.includes(searchVal) || topic.includes(searchVal) || semesterCode.includes(searchVal);
+            });
+
+            // Sort newest first
+            availablePapers.sort((a, b) => {
+                const semA = parseInt(a.semester || '0', 10) || (a.submittedAt?.toMillis() || 0);
+                const semB = parseInt(b.semester || '0', 10) || (b.submittedAt?.toMillis() || 0);
+                return semB - semA;
             });
 
             if (availablePapers.length === 0) {
-                list.innerHTML = `<p class="text-muted" style="text-align:center; padding:2rem;">No question papers found matching search.</p>`;
+                list.innerHTML = `
+                    <div style="text-align:center; padding:2.5rem 1rem; color:var(--text-muted);">
+                        <i class="fas fa-search" style="font-size:2rem; margin-bottom:0.75rem; opacity:0.6;"></i>
+                        <p style="margin:0;">No questions found matching your filter criteria.</p>
+                        ${pickerCourseScope === 'current' ? `<button type="button" class="btn btn-outline" style="margin-top:1rem; padding:0.4rem 0.85rem;" onclick="setPickerCourseScope('all')">Search Across All Courses</button>` : ''}
+                    </div>
+                `;
                 return;
             }
 
             list.innerHTML = availablePapers.map(p => {
+                const tabId = getPaperUniqueId(p);
                 const semObj = decodeSemester(p.semester || p.trimester);
-                const isOpen = openViewerTabs.some(t => t.id === p.id);
+                const openIdx = openViewerTabs.findIndex(t => t.id === tabId);
+                const isOpen = openIdx >= 0;
+                const hasSol = Boolean(p.solutionPdfUrl || p.solutionUrl || (p.materialAssets && p.materialAssets.find(a => a.assetType === 'solution')?.pdfUrl));
+
                 return `
-                    <div class="qb-picker-item" onclick="openPickerQuestion('${p.id}')">
+                    <div class="qb-picker-item" onclick="openPickerQuestion('${tabId}')" title="${isOpen ? 'Click to switch to open tab' : 'Click to open in new tab'}">
                         <div class="qb-picker-item-info">
                             <span class="qb-picker-badge">${p.semester || '261'}</span>
                             <div>
-                                <div style="font-weight:600; font-size:0.9rem;">${p.courseCode} · ${semObj.label}</div>
-                                <div style="font-size:0.8rem; color:var(--text-muted);">${p.examType || p.type || 'Question Paper'} ${p.topic ? `· ${p.topic}` : ''}</div>
+                                <div style="font-weight:700; font-size:0.92rem; color:var(--text-main);">
+                                    ${p.courseCode} · ${semObj.label}
+                                    ${hasSol ? `<span style="display:inline-flex; align-items:center; gap:0.25rem; font-size:0.72rem; color:var(--success); background:rgba(16, 185, 129, 0.12); padding:0.15rem 0.45rem; border-radius:4px; margin-left:0.4rem; font-weight:600;"><i class="fas fa-check"></i> Solution</span>` : ''}
+                                </div>
+                                <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.15rem;">
+                                    ${p.examType || p.type || 'Question Paper'} ${p.topic && !p.topic.toLowerCase().includes('mid') && !p.topic.toLowerCase().includes('fin') ? `· ${p.topic}` : ''}
+                                </div>
                             </div>
                         </div>
-                        ${isOpen ? `<span class="pill" style="font-size:0.75rem; color:#3b82f6; border-color:#3b82f6;">Open</span>` : `<button type="button" class="btn btn-outline" style="padding:0.3rem 0.7rem; font-size:0.75rem;"><i class="fas fa-plus"></i> Open Tab</button>`}
+                        <div>
+                            ${isOpen ? `<span class="pill" style="font-size:0.75rem; color:#3b82f6; border-color:#3b82f6; background:rgba(59,130,246,0.1);"><i class="fas fa-eye"></i> Active Tab</span>` : `<button type="button" class="btn btn-outline" style="padding:0.35rem 0.85rem; font-size:0.78rem; font-weight:600; color:#3b82f6; border-color:#3b82f6;"><i class="fas fa-plus"></i> Open Tab</button>`}
+                        </div>
                     </div>
                 `;
             }).join('');
         };
 
-        window.openPickerQuestion = function(paperId) {
-            const paper = approvedPapers.find(p => p.id === paperId);
+        window.openPickerQuestion = function(paperIdOrUniqueId) {
+            const paper = approvedPapers.find(p => p.id === paperIdOrUniqueId || getPaperUniqueId(p) === paperIdOrUniqueId);
             if (!paper) return;
             closeQuestionPickerModal();
             openFullBrowserViewer(paper);
+            showToast(`Opened ${paper.courseCode} (${decodeSemester(paper.semester || paper.trimester).label})`, 'success');
         };
 
+        let currentRenderToken = 0;
+
         async function renderActiveTabDocument() {
+            const renderToken = ++currentRenderToken;
             const activeTab = openViewerTabs[activeViewerTabIndex];
             if (!activeTab) return;
 
             document.getElementById('qbViewerCourseCode').innerText = activeTab.paper.courseCode || 'CSE';
             document.getElementById('qbViewerDocTitle').innerText = activeTab.title;
-            document.getElementById('qbViewerOpenExternal').href = activeTab.pdfUrl;
+            document.getElementById('qbViewerOpenExternal').href = activeTab.pdfUrl || '#';
             document.getElementById('qbZoomLevelDisplay').innerText = `${Math.round(activeTab.zoom * 100)}%`;
 
             const solOpt = document.getElementById('qbDlSolutionOpt');
@@ -4274,10 +4365,22 @@
             const iframeWrapper = document.getElementById('qbMainIframeWrapper');
             const iframe = document.getElementById('qbMainIframe');
 
+            // Immediately clear previous content so user never sees old tab's content
+            wrapper.innerHTML = '';
+            iframe.src = 'about:blank';
+
             const pdfUrl = activeTab.isShowingSolution && activeTab.solPdf ? activeTab.solPdf : activeTab.pdfUrl;
 
             if (!pdfUrl) {
-                wrapper.innerHTML = `<div style="color:white; padding:3rem; text-align:center;">No PDF file URL available for this document.</div>`;
+                wrapper.style.display = 'flex';
+                iframeWrapper.style.display = 'none';
+                wrapper.innerHTML = `
+                    <div style="color:white; padding:4rem 2rem; text-align:center; max-width:500px;">
+                        <i class="fas fa-file-pdf" style="font-size:3rem; color:var(--orange); margin-bottom:1rem; opacity:0.8;"></i>
+                        <h3 style="margin-bottom:0.5rem;">${activeTab.title}</h3>
+                        <p style="color:#94a3b8; font-size:0.9rem;">No direct PDF file link found for this question entry.</p>
+                    </div>
+                `;
                 return;
             }
 
@@ -4286,7 +4389,7 @@
                 try {
                     wrapper.style.display = 'flex';
                     iframeWrapper.style.display = 'none';
-                    wrapper.innerHTML = `<div style="color:white; padding:2rem; display:flex; align-items:center; gap:0.6rem;"><i class="fas fa-spinner fa-spin"></i> Rendering Question PDF...</div>`;
+                    wrapper.innerHTML = `<div style="color:white; padding:2rem; display:flex; align-items:center; gap:0.6rem;"><i class="fas fa-spinner fa-spin"></i> Rendering ${activeTab.paper.courseCode} ${activeTab.paper.semester || ''} PDF...</div>`;
 
                     let pdfDoc = loadedPdfDocs[pdfUrl];
                     if (!pdfDoc) {
@@ -4299,6 +4402,8 @@
                         loadedPdfDocs[pdfUrl] = pdfDoc;
                     }
 
+                    if (renderToken !== currentRenderToken) return;
+
                     activeTab.totalPages = pdfDoc.numPages;
                     document.getElementById('qbTotalPagesNum').innerText = pdfDoc.numPages;
                     document.getElementById('qbCurrentPageNum').innerText = activeTab.currentPage;
@@ -4306,7 +4411,11 @@
                     wrapper.innerHTML = '';
 
                     for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+                        if (renderToken !== currentRenderToken) return;
+
                         const page = await pdfDoc.getPage(pageNum);
+                        if (renderToken !== currentRenderToken) return;
+
                         const scale = (window.devicePixelRatio || 1) * activeTab.zoom;
                         const viewport = page.getViewport({ scale: scale, rotation: activeTab.rotation });
                         const displayViewport = page.getViewport({ scale: activeTab.zoom, rotation: activeTab.rotation });
@@ -4342,6 +4451,7 @@
                             viewport: viewport
                         };
                         await page.render(renderContext).promise;
+                        if (renderToken !== currentRenderToken) return;
 
                         // Setup annotation events on this page canvas
                         setupAnnotationCanvasEvents(annoCanvas, pageNum, scale);
@@ -4352,9 +4462,11 @@
                     setAnnotationTool(currentAnnotationTool);
                     return;
                 } catch (pdfErr) {
-                    console.warn('PDF.js direct rendering fallback to embedded iframe:', pdfErr);
+                    console.warn('PDF.js rendering fallback to embedded iframe:', pdfErr);
                 }
             }
+
+            if (renderToken !== currentRenderToken) return;
 
             // Fallback: Google Docs Viewer Embed inside iframe
             wrapper.style.display = 'none';
