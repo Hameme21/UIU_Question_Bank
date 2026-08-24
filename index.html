@@ -1986,62 +1986,198 @@
         }
 
         /* =========================================================
-           TEACHER ANNOTATION TOOLBAR
+           FLOATING DUAL-MODE (VERTICAL & HORIZONTAL) TOOLBAR
            ========================================================= */
         .qb-annotation-toolbar {
             position: absolute;
-            top: 70px;
-            left: 50%;
-            transform: translateX(-50%);
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 14px;
-            box-shadow: var(--shadow-lg), 0 10px 30px rgba(0, 0, 0, 0.2);
-            padding: 0.6rem 0.85rem;
-            z-index: 50;
+            box-shadow: 0 14px 38px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 0.5rem;
+            z-index: 60;
+            display: flex;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            user-select: none;
+            transition: box-shadow 0.2s ease, width 0.2s ease, height 0.2s ease;
+        }
+
+        /* 1. Vertical Mode (Default Docked Palette) */
+        .qb-annotation-toolbar.qb-floating-vertical {
+            top: 20px;
+            left: 20px;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.35rem;
+            width: 52px;
+            max-height: calc(100vh - 130px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none;
+        }
+        .qb-annotation-toolbar.qb-floating-vertical::-webkit-scrollbar {
+            display: none;
+        }
+
+        .qb-annotation-toolbar.qb-floating-vertical .qb-anno-header {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
-            backdrop-filter: blur(16px);
-            animation: toolbarSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            align-items: center;
+            gap: 0.25rem;
+            width: 100%;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .qb-annotation-toolbar.qb-floating-vertical .qb-anno-title {
+            display: none;
+        }
+
+        .qb-annotation-toolbar.qb-floating-vertical .qb-anno-tools-row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.35rem;
+            width: 100%;
+        }
+
+        .qb-annotation-toolbar.qb-floating-vertical .qb-anno-stamps {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.35rem;
+            width: 100%;
+        }
+
+        .qb-annotation-toolbar.qb-floating-vertical .qb-anno-separator {
+            width: 32px;
+            height: 1px;
+            background: var(--border);
+            margin: 0.2rem 0;
+        }
+
+        .qb-annotation-toolbar.qb-floating-vertical .qb-anno-colors {
+            display: grid;
+            grid-template-columns: repeat(2, 18px);
+            gap: 0.3rem;
+            padding: 0.2rem 0;
+            justify-content: center;
+        }
+
+        .qb-annotation-toolbar.qb-floating-vertical .qb-stroke-width-wrapper select {
+            width: 42px;
+            font-size: 0.68rem;
+            padding: 0.2rem 0.1rem;
+        }
+
+        .qb-annotation-toolbar.qb-floating-vertical .qb-btn-save-anno span {
+            display: none;
+        }
+
+        /* 2. Horizontal Mode */
+        .qb-annotation-toolbar.qb-floating-horizontal {
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            flex-direction: row;
+            align-items: center;
+            gap: 0.4rem;
+            width: auto;
             max-width: 95vw;
+            height: 52px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scrollbar-width: none;
+        }
+        .qb-annotation-toolbar.qb-floating-horizontal::-webkit-scrollbar {
+            display: none;
         }
 
-        @keyframes toolbarSlideDown {
-            from { opacity: 0; transform: translate(-50%, -10px); }
-            to { opacity: 1; transform: translate(-50%, 0); }
-        }
-
-        .qb-anno-header {
+        .qb-annotation-toolbar.qb-floating-horizontal .qb-anno-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            gap: 0.35rem;
+            padding-right: 0.4rem;
+            border-right: 1px solid var(--border);
+        }
+
+        .qb-annotation-toolbar.qb-floating-horizontal .qb-anno-title {
             font-size: 0.75rem;
             font-weight: 700;
             color: var(--orange);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 0.35rem;
+            white-space: nowrap;
         }
 
-        .qb-anno-close {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 0.85rem;
+        .qb-annotation-toolbar.qb-floating-horizontal .qb-anno-tools-row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 0.35rem;
+            flex-wrap: nowrap;
         }
 
-        .qb-anno-close:hover {
-            color: #ef4444;
-        }
-
-        .qb-anno-tools-row {
+        .qb-annotation-toolbar.qb-floating-horizontal .qb-anno-stamps {
             display: flex;
             align-items: center;
-            gap: 0.4rem;
-            flex-wrap: wrap;
+            gap: 0.3rem;
+        }
+
+        .qb-annotation-toolbar.qb-floating-horizontal .qb-anno-separator {
+            width: 1px;
+            height: 24px;
+            background: var(--border);
+            margin: 0 0.2rem;
+        }
+
+        .qb-annotation-toolbar.qb-floating-horizontal .qb-anno-colors {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0 0.2rem;
+        }
+
+        /* Drag Handle */
+        .qb-anno-drag-handle {
+            cursor: grab;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            padding: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.15s;
+        }
+        .qb-anno-drag-handle:hover, .qb-anno-drag-handle:active {
+            color: var(--orange);
+        }
+        .qb-anno-drag-handle:active {
+            cursor: grabbing;
+        }
+
+        /* Minimized Floating Bubble */
+        .qb-floating-min-bubble {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--orange), var(--orange-2));
+            color: #ffffff;
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 24px rgba(243, 112, 33, 0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            z-index: 60;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+        }
+        .qb-floating-min-bubble:hover {
+            transform: scale(1.12);
+            box-shadow: 0 10px 28px rgba(243, 112, 33, 0.65);
         }
 
         .qb-anno-btn {
@@ -2057,6 +2193,7 @@
             font-size: 0.85rem;
             cursor: pointer;
             transition: var(--transition);
+            flex-shrink: 0;
         }
 
         .qb-anno-btn:hover {
@@ -2072,33 +2209,14 @@
             box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
         }
 
-        .qb-anno-separator {
-            width: 1px;
-            height: 24px;
-            background: var(--border);
-            margin: 0 0.2rem;
-        }
-
-        .qb-anno-stamps {
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
-
-        .qb-anno-colors {
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0 0.2rem;
-        }
-
         .qb-color-dot {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
             cursor: pointer;
             transition: transform 0.15s, box-shadow 0.15s;
             position: relative;
+            flex-shrink: 0;
         }
 
         .qb-color-dot:hover {
@@ -2111,12 +2229,12 @@
         }
 
         .qb-stroke-select {
-            padding: 0.3rem 0.5rem;
+            padding: 0.25rem 0.45rem;
             border-radius: 6px;
             background: var(--surface-2);
             border: 1px solid var(--border);
             color: var(--text-main);
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: 600;
             cursor: pointer;
             outline: none;
@@ -2124,7 +2242,7 @@
 
         .qb-btn-save-anno {
             width: auto !important;
-            padding: 0.35rem 0.75rem !important;
+            padding: 0.35rem 0.65rem !important;
             background: linear-gradient(135deg, var(--orange), var(--orange-2)) !important;
             color: #ffffff !important;
             font-size: 0.78rem !important;
@@ -2640,11 +2758,6 @@
 
             <!-- Right: Actions & Tools -->
             <div class="qb-topbar-actions">
-                <!-- Teacher Annotation Toggle -->
-                <button type="button" id="qbTeacherModeToggle" class="qb-btn-tool qb-teacher-toggle" onclick="toggleTeacherAnnotationMode()" title="Toggle Teacher Annotation & Shapes Studio">
-                    <i class="fas fa-pen-nib"></i> <span class="qb-btn-text">Teacher Tools</span>
-                </button>
-                
                 <!-- Split-Screen Side-by-Side Comparison Toggle -->
                 <button type="button" id="qbSplitViewToggle" class="qb-btn-tool" onclick="toggleSplitViewMode()" title="Compare 2 Questions Side-by-Side">
                     <i class="fas fa-columns"></i> <span class="qb-btn-text">Split View</span>
@@ -2685,101 +2798,113 @@
             </div>
         </div>
 
-        <!-- Floating / Docked Teacher Annotation Toolbar -->
-        <div class="qb-annotation-toolbar" id="qbAnnotationToolbar" style="display: none;">
-            <div class="qb-anno-header">
-                <span class="qb-anno-title"><i class="fas fa-chalkboard-teacher"></i> Teacher Annotation Studio</span>
-                <button type="button" class="qb-anno-close" onclick="toggleTeacherAnnotationMode(false)"><i class="fas fa-times"></i></button>
-            </div>
-            
-            <div class="qb-anno-tools-row">
-                <!-- Tool buttons -->
-                <button type="button" class="qb-anno-btn active" data-tool="select" onclick="setAnnotationTool('select')" title="Select / Pan">
-                    <i class="fas fa-mouse-pointer"></i>
-                </button>
-                <button type="button" class="qb-anno-btn" data-tool="pen" onclick="setAnnotationTool('pen')" title="Freehand Pen">
-                    <i class="fas fa-pen"></i>
-                </button>
-                <button type="button" class="qb-anno-btn" data-tool="highlighter" onclick="setAnnotationTool('highlighter')" title="Highlighter Marker">
-                    <i class="fas fa-highlighter"></i>
-                </button>
-                <button type="button" class="qb-anno-btn" data-tool="eraser" onclick="setAnnotationTool('eraser')" title="Eraser">
-                    <i class="fas fa-eraser"></i>
-                </button>
-                
-                <div class="qb-anno-separator"></div>
-
-                <!-- Shapes -->
-                <button type="button" class="qb-anno-btn" data-tool="rectangle" onclick="setAnnotationTool('rectangle')" title="Rectangle Box">
-                    <i class="far fa-square"></i>
-                </button>
-                <button type="button" class="qb-anno-btn" data-tool="circle" onclick="setAnnotationTool('circle')" title="Circle / Oval">
-                    <i class="far fa-circle"></i>
-                </button>
-                <button type="button" class="qb-anno-btn" data-tool="arrow" onclick="setAnnotationTool('arrow')" title="Arrow Pointer">
-                    <i class="fas fa-long-arrow-alt-right"></i>
-                </button>
-                <button type="button" class="qb-anno-btn" data-tool="line" onclick="setAnnotationTool('line')" title="Straight Line">
-                    <i class="fas fa-minus"></i>
-                </button>
-                <button type="button" class="qb-anno-btn" data-tool="text" onclick="setAnnotationTool('text')" title="Text Note / Comment">
-                    <i class="fas fa-font"></i>
-                </button>
-
-                <div class="qb-anno-separator"></div>
-
-                <!-- Grading Stamps -->
-                <div class="qb-anno-stamps">
-                    <button type="button" class="qb-anno-btn qb-stamp-btn" data-tool="stamp-check" onclick="setAnnotationTool('stamp-check')" title="Mark Correct (✓)" style="color:#10b981;">
-                        <i class="fas fa-check"></i>
-                    </button>
-                    <button type="button" class="qb-anno-btn qb-stamp-btn" data-tool="stamp-cross" onclick="setAnnotationTool('stamp-cross')" title="Mark Incorrect (✗)" style="color:#ef4444;">
-                        <i class="fas fa-times"></i>
-                    </button>
-                    <button type="button" class="qb-anno-btn qb-stamp-btn" data-tool="stamp-star" onclick="setAnnotationTool('stamp-star')" title="Star / Bonus (★)" style="color:#f59e0b;">
-                        <i class="fas fa-star"></i>
-                    </button>
-                    <button type="button" class="qb-anno-btn qb-stamp-btn" data-tool="stamp-marks" onclick="promptCustomMarkStamp()" title="Custom Marks Stamp (+1, +2, etc.)" style="font-weight:bold; font-size:0.75rem; width:auto; padding:0 0.4rem;">
-                        +Marks
-                    </button>
-                </div>
-
-                <div class="qb-anno-separator"></div>
-
-                <!-- Color Palette -->
-                <div class="qb-anno-colors">
-                    <span class="qb-color-dot active" data-color="#ef4444" style="background:#ef4444;" onclick="setAnnotationColor('#ef4444')" title="Red (Teacher default)"></span>
-                    <span class="qb-color-dot" data-color="#f37021" style="background:#f37021;" onclick="setAnnotationColor('#f37021')" title="UIU Orange"></span>
-                    <span class="qb-color-dot" data-color="#3b82f6" style="background:#3b82f6;" onclick="setAnnotationColor('#3b82f6')" title="Blue"></span>
-                    <span class="qb-color-dot" data-color="#10b981" style="background:#10b981;" onclick="setAnnotationColor('#10b981')" title="Green"></span>
-                    <span class="qb-color-dot" data-color="#f59e0b" style="background:#f59e0b;" onclick="setAnnotationColor('#f59e0b')" title="Yellow"></span>
-                    <span class="qb-color-dot" data-color="#8b5cf6" style="background:#8b5cf6;" onclick="setAnnotationColor('#8b5cf6')" title="Purple"></span>
-                    <span class="qb-color-dot" data-color="#111827" style="background:#111827;" onclick="setAnnotationColor('#111827')" title="Black"></span>
-                    <span class="qb-color-dot" data-color="#ffffff" style="background:#ffffff; border:1px solid #ccc;" onclick="setAnnotationColor('#ffffff')" title="White"></span>
-                </div>
-
-                <!-- Line Width Selector -->
-                <div class="qb-stroke-width-wrapper" title="Line Thickness">
-                    <select id="qbStrokeWidthSelect" onchange="setAnnotationStrokeWidth(this.value)" class="qb-stroke-select">
-                        <option value="2">Fine (2px)</option>
-                        <option value="4" selected>Medium (4px)</option>
-                        <option value="8">Thick (8px)</option>
-                        <option value="16">Marker (16px)</option>
-                    </select>
-                </div>
-
-                <div class="qb-anno-separator"></div>
-
-                <!-- Undo / Redo / Clear / Export -->
-                <button type="button" class="qb-anno-btn" onclick="undoAnnotation()" title="Undo (Ctrl+Z)"><i class="fas fa-undo"></i></button>
-                <button type="button" class="qb-anno-btn" onclick="redoAnnotation()" title="Redo (Ctrl+Y)"><i class="fas fa-redo"></i></button>
-                <button type="button" class="qb-anno-btn" onclick="clearAllAnnotations()" title="Clear All Annotations" style="color:#ef4444;"><i class="fas fa-trash-alt"></i></button>
-                <button type="button" class="qb-anno-btn qb-btn-save-anno" onclick="exportAnnotatedCanvasImage()" title="Save & Export Annotated Question Image"><i class="fas fa-file-export"></i> <span>Export</span></button>
-            </div>
-        </div>
-
         <!-- Workspace Container (Single or Split View) -->
         <div class="qb-viewer-workspace" id="qbViewerWorkspace">
+            <!-- Floating Dual-Mode Studio Palette (Vertical & Horizontal, Draggable, Minimizable) -->
+            <div class="qb-annotation-toolbar qb-floating-vertical" id="qbAnnotationToolbar">
+                <div class="qb-anno-header">
+                    <div class="qb-anno-drag-handle" id="qbAnnoDragHandle" title="Drag to move palette">
+                        <i class="fas fa-grip-vertical" id="qbAnnoDragIcon"></i>
+                    </div>
+                    <span class="qb-anno-title">Studio Tools</span>
+                    <button type="button" class="qb-anno-btn" id="qbToggleOrientationBtn" onclick="toggleFloatingToolbarOrientation()" title="Switch Orientation (Vertical / Horizontal)">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <button type="button" class="qb-anno-btn" onclick="toggleFloatingToolbarMinimized(true)" title="Minimize toolbar">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+                
+                <div class="qb-anno-tools-row">
+                    <!-- Core Tools -->
+                    <button type="button" class="qb-anno-btn active" data-tool="select" onclick="setAnnotationTool('select')" title="Select / Pan">
+                        <i class="fas fa-mouse-pointer"></i>
+                    </button>
+                    <button type="button" class="qb-anno-btn" data-tool="pen" onclick="setAnnotationTool('pen')" title="Freehand Pen">
+                        <i class="fas fa-pen"></i>
+                    </button>
+                    <button type="button" class="qb-anno-btn" data-tool="highlighter" onclick="setAnnotationTool('highlighter')" title="Highlighter Marker">
+                        <i class="fas fa-highlighter"></i>
+                    </button>
+                    <button type="button" class="qb-anno-btn" data-tool="eraser" onclick="setAnnotationTool('eraser')" title="Eraser">
+                        <i class="fas fa-eraser"></i>
+                    </button>
+                    
+                    <div class="qb-anno-separator"></div>
+
+                    <!-- Shapes -->
+                    <button type="button" class="qb-anno-btn" data-tool="rectangle" onclick="setAnnotationTool('rectangle')" title="Rectangle Box">
+                        <i class="far fa-square"></i>
+                    </button>
+                    <button type="button" class="qb-anno-btn" data-tool="circle" onclick="setAnnotationTool('circle')" title="Circle / Oval">
+                        <i class="far fa-circle"></i>
+                    </button>
+                    <button type="button" class="qb-anno-btn" data-tool="arrow" onclick="setAnnotationTool('arrow')" title="Arrow Pointer">
+                        <i class="fas fa-long-arrow-alt-right"></i>
+                    </button>
+                    <button type="button" class="qb-anno-btn" data-tool="line" onclick="setAnnotationTool('line')" title="Straight Line">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button type="button" class="qb-anno-btn" data-tool="text" onclick="setAnnotationTool('text')" title="Text Note / Comment">
+                        <i class="fas fa-font"></i>
+                    </button>
+
+                    <div class="qb-anno-separator"></div>
+
+                    <!-- Grading Stamps -->
+                    <div class="qb-anno-stamps">
+                        <button type="button" class="qb-anno-btn qb-stamp-btn" data-tool="stamp-check" onclick="setAnnotationTool('stamp-check')" title="Mark Correct (✓)" style="color:#10b981;">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <button type="button" class="qb-anno-btn qb-stamp-btn" data-tool="stamp-cross" onclick="setAnnotationTool('stamp-cross')" title="Mark Incorrect (✗)" style="color:#ef4444;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <button type="button" class="qb-anno-btn qb-stamp-btn" data-tool="stamp-star" onclick="setAnnotationTool('stamp-star')" title="Star / Bonus (★)" style="color:#f59e0b;">
+                            <i class="fas fa-star"></i>
+                        </button>
+                        <button type="button" class="qb-anno-btn qb-stamp-btn" data-tool="stamp-marks" onclick="promptCustomMarkStamp()" title="Custom Marks Stamp (+1, +2, etc.)" style="font-weight:bold; font-size:0.75rem; width:auto; padding:0 0.35rem;">
+                            +M
+                        </button>
+                    </div>
+
+                    <div class="qb-anno-separator"></div>
+
+                    <!-- Color Palette -->
+                    <div class="qb-anno-colors">
+                        <span class="qb-color-dot active" data-color="#ef4444" style="background:#ef4444;" onclick="setAnnotationColor('#ef4444')" title="Red"></span>
+                        <span class="qb-color-dot" data-color="#f37021" style="background:#f37021;" onclick="setAnnotationColor('#f37021')" title="Orange"></span>
+                        <span class="qb-color-dot" data-color="#3b82f6" style="background:#3b82f6;" onclick="setAnnotationColor('#3b82f6')" title="Blue"></span>
+                        <span class="qb-color-dot" data-color="#10b981" style="background:#10b981;" onclick="setAnnotationColor('#10b981')" title="Green"></span>
+                        <span class="qb-color-dot" data-color="#f59e0b" style="background:#f59e0b;" onclick="setAnnotationColor('#f59e0b')" title="Yellow"></span>
+                        <span class="qb-color-dot" data-color="#8b5cf6" style="background:#8b5cf6;" onclick="setAnnotationColor('#8b5cf6')" title="Purple"></span>
+                        <span class="qb-color-dot" data-color="#111827" style="background:#111827;" onclick="setAnnotationColor('#111827')" title="Black"></span>
+                        <span class="qb-color-dot" data-color="#ffffff" style="background:#ffffff; border:1px solid #ccc;" onclick="setAnnotationColor('#ffffff')" title="White"></span>
+                    </div>
+
+                    <!-- Line Width Selector -->
+                    <div class="qb-stroke-width-wrapper" title="Line Thickness">
+                        <select id="qbStrokeWidthSelect" onchange="setAnnotationStrokeWidth(this.value)" class="qb-stroke-select">
+                            <option value="2">2px</option>
+                            <option value="4" selected>4px</option>
+                            <option value="8">8px</option>
+                            <option value="16">16px</option>
+                        </select>
+                    </div>
+
+                    <div class="qb-anno-separator"></div>
+
+                    <!-- Undo / Redo / Clear / Export -->
+                    <button type="button" class="qb-anno-btn" onclick="undoAnnotation()" title="Undo (Ctrl+Z)"><i class="fas fa-undo"></i></button>
+                    <button type="button" class="qb-anno-btn" onclick="redoAnnotation()" title="Redo (Ctrl+Y)"><i class="fas fa-redo"></i></button>
+                    <button type="button" class="qb-anno-btn" onclick="clearAllAnnotations()" title="Clear All Annotations" style="color:#ef4444;"><i class="fas fa-trash-alt"></i></button>
+                    <button type="button" class="qb-anno-btn qb-btn-save-anno" onclick="exportAnnotatedCanvasImage()" title="Export Annotated Question Image (PNG)"><i class="fas fa-file-export"></i> <span>Export</span></button>
+                </div>
+            </div>
+
+            <!-- Minimized Floating Bubble Button -->
+            <button type="button" class="qb-floating-min-bubble" id="qbFloatingMinBubble" onclick="toggleFloatingToolbarMinimized(false)" title="Open Tools Palette">
+                <i class="fas fa-pen-nib"></i>
+            </button>
             <!-- Main Pane (Active Tab) -->
             <div class="qb-viewer-pane" id="qbMainPane">
                 <div class="qb-doc-scroller" id="qbMainDocScroller">
@@ -4610,23 +4735,115 @@
         }
 
         // ==========================================
-        // TEACHER ANNOTATIONS & SHAPES STUDIO
+        // FLOATING DUAL-MODE ANNOTATION STUDIO
         // ==========================================
+        let isToolbarHorizontal = false;
+        let isToolbarMinimized = false;
+
+        window.toggleFloatingToolbarOrientation = function() {
+            const toolbar = document.getElementById('qbAnnotationToolbar');
+            const icon = document.getElementById('qbAnnoDragIcon');
+            if (!toolbar) return;
+            isToolbarHorizontal = !isToolbarHorizontal;
+            toolbar.classList.toggle('qb-floating-horizontal', isToolbarHorizontal);
+            toolbar.classList.toggle('qb-floating-vertical', !isToolbarHorizontal);
+
+            if (icon) {
+                icon.className = isToolbarHorizontal ? 'fas fa-grip-horizontal' : 'fas fa-grip-vertical';
+            }
+
+            if (isToolbarHorizontal) {
+                toolbar.style.top = '16px';
+                toolbar.style.left = '50%';
+                toolbar.style.transform = 'translateX(-50%)';
+            } else {
+                toolbar.style.top = '20px';
+                toolbar.style.left = '20px';
+                toolbar.style.transform = 'none';
+            }
+            showToast(`Switched toolbar to ${isToolbarHorizontal ? 'Horizontal' : 'Vertical'} mode`, 'info');
+        };
+
+        window.toggleFloatingToolbarMinimized = function(minimized) {
+            isToolbarMinimized = minimized !== undefined ? minimized : !isToolbarMinimized;
+            const toolbar = document.getElementById('qbAnnotationToolbar');
+            const bubble = document.getElementById('qbFloatingMinBubble');
+            if (!toolbar || !bubble) return;
+
+            if (isToolbarMinimized) {
+                toolbar.style.display = 'none';
+                bubble.style.display = 'flex';
+                bubble.style.top = toolbar.style.top || '20px';
+                bubble.style.left = toolbar.style.left || '20px';
+            } else {
+                toolbar.style.display = 'flex';
+                bubble.style.display = 'none';
+            }
+        };
+
         window.toggleTeacherAnnotationMode = function(explicitState) {
             const toolbar = document.getElementById('qbAnnotationToolbar');
-            const toggleBtn = document.getElementById('qbTeacherModeToggle');
+            if (!toolbar) return;
             const isVisible = toolbar.style.display !== 'none';
             const newState = explicitState !== undefined ? explicitState : !isVisible;
-
             toolbar.style.display = newState ? 'flex' : 'none';
-            toggleBtn.classList.toggle('active', newState);
-
             if (newState && currentAnnotationTool === 'select') {
                 setAnnotationTool('pen');
             } else if (!newState) {
                 setAnnotationTool('select');
             }
         };
+
+        // Initialize Draggable Palette
+        (function initToolbarDrag() {
+            let isDragging = false;
+            let startX, startY, initLeft, initTop;
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const toolbar = document.getElementById('qbAnnotationToolbar');
+                const dragHandle = document.getElementById('qbAnnoDragHandle');
+                if (!toolbar || !dragHandle) return;
+
+                function onPointerDown(e) {
+                    isDragging = true;
+                    toolbar.style.transform = 'none';
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    startX = clientX;
+                    startY = clientY;
+                    const rect = toolbar.getBoundingClientRect();
+                    initLeft = rect.left;
+                    initTop = rect.top;
+                    e.preventDefault();
+                }
+
+                function onPointerMove(e) {
+                    if (!isDragging) return;
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    const dx = clientX - startX;
+                    const dy = clientY - startY;
+
+                    const newLeft = Math.max(10, Math.min(window.innerWidth - toolbar.offsetWidth - 10, initLeft + dx));
+                    const newTop = Math.max(10, Math.min(window.innerHeight - toolbar.offsetHeight - 10, initTop + dy));
+
+                    toolbar.style.left = `${newLeft}px`;
+                    toolbar.style.top = `${newTop}px`;
+                }
+
+                function onPointerUp() {
+                    isDragging = false;
+                }
+
+                dragHandle.addEventListener('mousedown', onPointerDown);
+                window.addEventListener('mousemove', onPointerMove);
+                window.addEventListener('mouseup', onPointerUp);
+
+                dragHandle.addEventListener('touchstart', onPointerDown, { passive: false });
+                window.addEventListener('touchmove', onPointerMove, { passive: false });
+                window.addEventListener('touchend', onPointerUp);
+            });
+        })();
 
         window.setAnnotationTool = function(tool) {
             currentAnnotationTool = tool;
