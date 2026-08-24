@@ -8,6 +8,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+    </script>
     <style>
         :root {
             /* Light Theme Variables */
@@ -1288,6 +1295,866 @@
                 width: 100%;
             }
         }
+
+        /* =========================================================
+           QUESTION BANK: PHOTO-MATCHED CARDS & SECTIONS
+           ========================================================= */
+        .qb-section-wrapper {
+            margin-bottom: 2.5rem;
+        }
+
+        .qb-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .qb-section-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .qb-section-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #3b82f6;
+            display: inline-block;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+        }
+
+        .qb-section-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .qb-sort-select {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.45rem 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-main);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .qb-sort-select:hover, .qb-sort-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .qb-box-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 1.25rem;
+        }
+
+        @media (min-width: 1200px) {
+            .qb-box-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .qb-box-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 540px) {
+            .qb-box-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+        }
+
+        .qb-question-box {
+            background: var(--surface);
+            border: 1.5px solid #dbeafe;
+            border-bottom: 3.5px solid #3b82f6;
+            border-radius: 14px;
+            padding: 1.5rem 1rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.08);
+            user-select: none;
+            backdrop-filter: blur(8px);
+            min-height: 120px;
+        }
+
+        [data-theme="dark"] .qb-question-box {
+            background: var(--surface);
+            border-color: rgba(59, 130, 246, 0.25);
+            border-bottom: 3.5px solid #3b82f6;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .qb-question-box:hover {
+            transform: translateY(-5px);
+            border-color: #3b82f6;
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.25);
+        }
+
+        .qb-trimester-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.35rem 1.15rem;
+            border-radius: 9999px;
+            background: #e0f2fe;
+            color: #0284c7;
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 0.65rem;
+            border: 1px solid rgba(2, 132, 199, 0.2);
+            transition: var(--transition);
+        }
+
+        [data-theme="dark"] .qb-trimester-badge {
+            background: rgba(14, 165, 233, 0.18);
+            color: #38bdf8;
+            border-color: rgba(56, 189, 248, 0.3);
+        }
+
+        .qb-question-box:hover .qb-trimester-badge {
+            background: #0284c7;
+            color: #ffffff;
+            transform: scale(1.05);
+        }
+
+        [data-theme="dark"] .qb-question-box:hover .qb-trimester-badge {
+            background: #0284c7;
+            color: #ffffff;
+        }
+
+        .qb-trimester-name {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        .qb-card-subtopic {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .qb-card-dl-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--surface-2);
+            color: var(--text-muted);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            border: 1px solid var(--border);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0.85;
+            z-index: 2;
+        }
+
+        .qb-card-dl-btn:hover {
+            opacity: 1;
+            background: #3b82f6;
+            color: #ffffff;
+            border-color: #3b82f6;
+            transform: scale(1.15);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+        }
+
+        .qb-card-sol-indicator {
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        /* =========================================================
+           FULL BROWSER QUESTION VIEWER & MULTI-TAB STUDIO
+           ========================================================= */
+        .qb-fullscreen-viewer {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text-main);
+            animation: viewerFadeIn 0.25s ease-out;
+        }
+
+        @keyframes viewerFadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .qb-viewer-topbar {
+            height: 60px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1rem;
+            gap: 0.75rem;
+            position: relative;
+            z-index: 20;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .qb-topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .qb-btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.45rem 0.85rem;
+            border-radius: var(--radius-sm);
+            background: var(--surface-2);
+            color: var(--text-main);
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .qb-btn-back:hover {
+            background: var(--orange-light);
+            color: var(--orange);
+            border-color: var(--orange);
+        }
+
+        .qb-viewer-course-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .qb-info-pill {
+            padding: 0.2rem 0.6rem;
+            border-radius: var(--radius-full);
+            background: var(--orange-light);
+            color: var(--orange);
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        .qb-info-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Multi-Question Tabs */
+        .qb-topbar-tabs-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            overflow: hidden;
+            max-width: 45vw;
+            padding: 0 0.5rem;
+        }
+
+        .qb-tabs-scroll {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+            padding: 0.25rem 0;
+        }
+
+        .qb-tabs-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .qb-viewer-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.85rem;
+            border-radius: 8px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            font-size: 0.825rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            max-width: 220px;
+        }
+
+        .qb-viewer-tab:hover {
+            color: var(--text-main);
+            border-color: var(--border-hover);
+        }
+
+        .qb-viewer-tab.active {
+            background: var(--surface);
+            color: #3b82f6;
+            border-color: #3b82f6;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+        }
+
+        .qb-tab-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .qb-tab-close-btn {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+
+        .qb-tab-close-btn:hover {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+
+        .qb-add-tab-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--surface-2);
+            color: #3b82f6;
+            border: 1.5px dashed #3b82f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .qb-add-tab-btn:hover {
+            background: #3b82f6;
+            color: #ffffff;
+            border-style: solid;
+            transform: scale(1.08);
+        }
+
+        /* Topbar Actions */
+        .qb-topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .qb-btn-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: var(--surface-2);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .qb-btn-icon:hover {
+            background: var(--surface-hover);
+            color: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .qb-btn-tool {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            background: var(--surface-2);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            font-size: 0.825rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .qb-btn-tool:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .qb-btn-tool.active {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: #ffffff;
+            border-color: transparent;
+            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4);
+        }
+
+        .qb-teacher-toggle {
+            background: rgba(243, 112, 33, 0.1);
+            color: var(--orange);
+            border-color: rgba(243, 112, 33, 0.3);
+        }
+
+        .qb-teacher-toggle:hover {
+            background: var(--orange);
+            color: #ffffff;
+        }
+
+        .qb-teacher-toggle.active {
+            background: linear-gradient(135deg, var(--orange), var(--orange-2));
+            color: #ffffff;
+            box-shadow: 0 2px 10px rgba(243, 112, 33, 0.4);
+        }
+
+        .qb-zoom-controls, .qb-page-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: var(--surface-2);
+            padding: 0.2rem 0.4rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .qb-zoom-level, .qb-page-display {
+            font-size: 0.8rem;
+            font-weight: 600;
+            min-width: 45px;
+            text-align: center;
+            color: var(--text-main);
+        }
+
+        /* Download Dropdown */
+        .qb-download-dropdown-wrapper {
+            position: relative;
+        }
+
+        .qb-btn-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.85rem;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            font-size: 0.825rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+            transition: var(--transition);
+        }
+
+        .qb-btn-download:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .qb-download-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.4rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+            padding: 0.4rem;
+            min-width: 220px;
+            z-index: 100;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .qb-download-menu.active {
+            display: flex;
+            animation: fadeIn 0.15s ease-out;
+        }
+
+        .qb-download-menu button {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text-main);
+            font-size: 0.825rem;
+            font-weight: 500;
+            text-align: left;
+            width: 100%;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .qb-download-menu button:hover {
+            background: var(--surface-2);
+            color: #3b82f6;
+        }
+
+        /* =========================================================
+           TEACHER ANNOTATION TOOLBAR
+           ========================================================= */
+        .qb-annotation-toolbar {
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: var(--shadow-lg), 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 0.6rem 0.85rem;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            backdrop-filter: blur(16px);
+            animation: toolbarSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            max-width: 95vw;
+        }
+
+        @keyframes toolbarSlideDown {
+            from { opacity: 0; transform: translate(-50%, -10px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
+        .qb-anno-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--orange);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.35rem;
+        }
+
+        .qb-anno-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .qb-anno-close:hover {
+            color: #ef4444;
+        }
+
+        .qb-anno-tools-row {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .qb-anno-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--surface-2);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .qb-anno-btn:hover {
+            background: var(--surface-hover);
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .qb-anno-btn.active {
+            background: #3b82f6;
+            color: #ffffff;
+            border-color: #3b82f6;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+        }
+
+        .qb-anno-separator {
+            width: 1px;
+            height: 24px;
+            background: var(--border);
+            margin: 0 0.2rem;
+        }
+
+        .qb-anno-stamps {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .qb-anno-colors {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0 0.2rem;
+        }
+
+        .qb-color-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            position: relative;
+        }
+
+        .qb-color-dot:hover {
+            transform: scale(1.25);
+        }
+
+        .qb-color-dot.active {
+            transform: scale(1.3);
+            box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px #3b82f6;
+        }
+
+        .qb-stroke-select {
+            padding: 0.3rem 0.5rem;
+            border-radius: 6px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .qb-btn-save-anno {
+            width: auto !important;
+            padding: 0.35rem 0.75rem !important;
+            background: linear-gradient(135deg, var(--orange), var(--orange-2)) !important;
+            color: #ffffff !important;
+            font-size: 0.78rem !important;
+            font-weight: 600 !important;
+            gap: 0.35rem !important;
+            border: none !important;
+        }
+
+        /* =========================================================
+           VIEWER WORKSPACE & CANVAS LAYER
+           ========================================================= */
+        .qb-viewer-workspace {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+            background: #3e4449;
+        }
+
+        [data-theme="dark"] .qb-viewer-workspace {
+            background: #0f141c;
+        }
+
+        .qb-viewer-pane {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .qb-secondary-pane {
+            border-left: 2px solid var(--border);
+            background: #353b40;
+        }
+
+        .qb-split-header {
+            height: 36px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .qb-doc-scroller {
+            flex: 1;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            position: relative;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .qb-doc-canvas-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            margin: auto;
+        }
+
+        .qb-page-container {
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border-radius: 4px;
+            overflow: hidden;
+            background: #ffffff;
+        }
+
+        .qb-pdf-page-canvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .qb-anno-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+            cursor: default;
+        }
+
+        .qb-iframe-fallback {
+            width: 100%;
+            height: 100%;
+            display: flex;
+        }
+
+        .qb-iframe-fallback iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            min-height: calc(100vh - 80px);
+        }
+
+        /* Question Picker Modal */
+        .qb-picker-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .qb-picker-group-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--orange);
+            margin: 0.75rem 0 0.35rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .qb-picker-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .qb-picker-item:hover {
+            border-color: #3b82f6;
+            background: var(--surface-hover);
+            transform: translateX(4px);
+        }
+
+        .qb-picker-item-info {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .qb-picker-badge {
+            padding: 0.25rem 0.65rem;
+            border-radius: 9999px;
+            background: #e0f2fe;
+            color: #0284c7;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
     </style>
     <script>
         (function() {
@@ -1605,6 +2472,233 @@
         <div style="font-size: 0.75rem; opacity: 0.8;">version 2.1.0</div>
     </footer>
 
+    <!-- Full Browser Question Viewer & Multi-Tab Teacher Studio Overlay -->
+    <div id="fullBrowserViewer" class="qb-fullscreen-viewer" style="display: none;">
+        <!-- Top Studio Header -->
+        <div class="qb-viewer-topbar">
+            <!-- Left: Course / Question Info -->
+            <div class="qb-topbar-left">
+                <button type="button" class="qb-btn-back" onclick="closeFullBrowserViewer()" title="Back to Courses">
+                    <i class="fas fa-arrow-left"></i> <span>Back</span>
+                </button>
+                <div class="qb-viewer-course-info" id="qbViewerCourseInfo">
+                    <span class="qb-info-pill" id="qbViewerCourseCode">CSE 2215</span>
+                    <span class="qb-info-title" id="qbViewerDocTitle">Question Paper</span>
+                </div>
+            </div>
+
+            <!-- Center: Multi-Question Tabs -->
+            <div class="qb-topbar-tabs-wrapper">
+                <div class="qb-tabs-scroll" id="qbTabsContainer">
+                    <!-- Dynamically populated tabs -->
+                </div>
+                <button type="button" class="qb-add-tab-btn" onclick="openQuestionPickerModal()" title="Add / Open another question in new tab">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+
+            <!-- Right: Actions & Tools -->
+            <div class="qb-topbar-actions">
+                <!-- Teacher Annotation Toggle -->
+                <button type="button" id="qbTeacherModeToggle" class="qb-btn-tool qb-teacher-toggle" onclick="toggleTeacherAnnotationMode()" title="Toggle Teacher Annotation & Shapes Studio">
+                    <i class="fas fa-pen-nib"></i> <span class="qb-btn-text">Teacher Tools</span>
+                </button>
+                
+                <!-- Split-Screen Side-by-Side Comparison Toggle -->
+                <button type="button" id="qbSplitViewToggle" class="qb-btn-tool" onclick="toggleSplitViewMode()" title="Compare 2 Questions Side-by-Side">
+                    <i class="fas fa-columns"></i>
+                </button>
+
+                <!-- Zoom & Page Controls -->
+                <div class="qb-zoom-controls">
+                    <button type="button" onclick="zoomViewerDoc(-0.15)" title="Zoom Out" class="qb-btn-icon"><i class="fas fa-search-minus"></i></button>
+                    <span id="qbZoomLevelDisplay" class="qb-zoom-level">100%</span>
+                    <button type="button" onclick="zoomViewerDoc(0.15)" title="Zoom In" class="qb-btn-icon"><i class="fas fa-search-plus"></i></button>
+                    <button type="button" onclick="fitViewerDocWidth()" title="Fit Width" class="qb-btn-icon"><i class="fas fa-arrows-alt-h"></i></button>
+                    <button type="button" onclick="rotateViewerDoc()" title="Rotate 90°" class="qb-btn-icon"><i class="fas fa-redo"></i></button>
+                </div>
+
+                <!-- Page Navigation -->
+                <div class="qb-page-controls" id="qbPageNavControls">
+                    <button type="button" onclick="prevDocPage()" class="qb-btn-icon" id="qbBtnPrevPage"><i class="fas fa-chevron-left"></i></button>
+                    <span class="qb-page-display"><span id="qbCurrentPageNum">1</span> / <span id="qbTotalPagesNum">1</span></span>
+                    <button type="button" onclick="nextDocPage()" class="qb-btn-icon" id="qbBtnNextPage"><i class="fas fa-chevron-right"></i></button>
+                </div>
+
+                <!-- Download Dropdown -->
+                <div class="qb-download-dropdown-wrapper">
+                    <button type="button" class="qb-btn-primary qb-btn-download" onclick="toggleViewerDownloadMenu(event)" title="Download Options">
+                        <i class="fas fa-download"></i> <span>Download</span> <i class="fas fa-chevron-down" style="font-size:0.75rem;"></i>
+                    </button>
+                    <div class="qb-download-menu" id="qbViewerDownloadMenu">
+                        <button type="button" onclick="downloadCurrentTabPaper(false)"><i class="fas fa-file-pdf"></i> Download Question PDF</button>
+                        <button type="button" id="qbDlSolutionOpt" onclick="downloadCurrentTabPaper(true)"><i class="fas fa-check-circle"></i> Download Solution PDF</button>
+                        <button type="button" onclick="exportAnnotatedCanvasImage()"><i class="fas fa-file-image"></i> Export Annotated Image (PNG)</button>
+                    </div>
+                </div>
+
+                <!-- External Link -->
+                <a id="qbViewerOpenExternal" href="#" target="_blank" class="qb-btn-icon" title="Open PDF in new tab">
+                    <i class="fas fa-external-link-alt"></i>
+                </a>
+
+                <!-- Fullscreen -->
+                <button type="button" class="qb-btn-icon" onclick="toggleViewerFullscreen()" title="Fullscreen mode">
+                    <i class="fas fa-expand" id="qbFullscreenIcon"></i>
+                </button>
+
+                <!-- Close Viewer -->
+                <button type="button" class="qb-btn-icon qb-btn-close" onclick="closeFullBrowserViewer()" title="Close Viewer">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Floating / Docked Teacher Annotation Toolbar -->
+        <div class="qb-annotation-toolbar" id="qbAnnotationToolbar" style="display: none;">
+            <div class="qb-anno-header">
+                <span class="qb-anno-title"><i class="fas fa-chalkboard-teacher"></i> Teacher Annotation Studio</span>
+                <button type="button" class="qb-anno-close" onclick="toggleTeacherAnnotationMode(false)"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="qb-anno-tools-row">
+                <!-- Tool buttons -->
+                <button type="button" class="qb-anno-btn active" data-tool="select" onclick="setAnnotationTool('select')" title="Select / Pan">
+                    <i class="fas fa-mouse-pointer"></i>
+                </button>
+                <button type="button" class="qb-anno-btn" data-tool="pen" onclick="setAnnotationTool('pen')" title="Freehand Pen">
+                    <i class="fas fa-pen"></i>
+                </button>
+                <button type="button" class="qb-anno-btn" data-tool="highlighter" onclick="setAnnotationTool('highlighter')" title="Highlighter Marker">
+                    <i class="fas fa-highlighter"></i>
+                </button>
+                <button type="button" class="qb-anno-btn" data-tool="eraser" onclick="setAnnotationTool('eraser')" title="Eraser">
+                    <i class="fas fa-eraser"></i>
+                </button>
+                
+                <div class="qb-anno-separator"></div>
+
+                <!-- Shapes -->
+                <button type="button" class="qb-anno-btn" data-tool="rectangle" onclick="setAnnotationTool('rectangle')" title="Rectangle Box">
+                    <i class="far fa-square"></i>
+                </button>
+                <button type="button" class="qb-anno-btn" data-tool="circle" onclick="setAnnotationTool('circle')" title="Circle / Oval">
+                    <i class="far fa-circle"></i>
+                </button>
+                <button type="button" class="qb-anno-btn" data-tool="arrow" onclick="setAnnotationTool('arrow')" title="Arrow Pointer">
+                    <i class="fas fa-long-arrow-alt-right"></i>
+                </button>
+                <button type="button" class="qb-anno-btn" data-tool="line" onclick="setAnnotationTool('line')" title="Straight Line">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <button type="button" class="qb-anno-btn" data-tool="text" onclick="setAnnotationTool('text')" title="Text Note / Comment">
+                    <i class="fas fa-font"></i>
+                </button>
+
+                <div class="qb-anno-separator"></div>
+
+                <!-- Grading Stamps -->
+                <div class="qb-anno-stamps">
+                    <button type="button" class="qb-anno-btn qb-stamp-btn" data-tool="stamp-check" onclick="setAnnotationTool('stamp-check')" title="Mark Correct (✓)" style="color:#10b981;">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button type="button" class="qb-anno-btn qb-stamp-btn" data-tool="stamp-cross" onclick="setAnnotationTool('stamp-cross')" title="Mark Incorrect (✗)" style="color:#ef4444;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <button type="button" class="qb-anno-btn qb-stamp-btn" data-tool="stamp-star" onclick="setAnnotationTool('stamp-star')" title="Star / Bonus (★)" style="color:#f59e0b;">
+                        <i class="fas fa-star"></i>
+                    </button>
+                    <button type="button" class="qb-anno-btn qb-stamp-btn" data-tool="stamp-marks" onclick="promptCustomMarkStamp()" title="Custom Marks Stamp (+1, +2, etc.)" style="font-weight:bold; font-size:0.75rem; width:auto; padding:0 0.4rem;">
+                        +Marks
+                    </button>
+                </div>
+
+                <div class="qb-anno-separator"></div>
+
+                <!-- Color Palette -->
+                <div class="qb-anno-colors">
+                    <span class="qb-color-dot active" data-color="#ef4444" style="background:#ef4444;" onclick="setAnnotationColor('#ef4444')" title="Red (Teacher default)"></span>
+                    <span class="qb-color-dot" data-color="#f37021" style="background:#f37021;" onclick="setAnnotationColor('#f37021')" title="UIU Orange"></span>
+                    <span class="qb-color-dot" data-color="#3b82f6" style="background:#3b82f6;" onclick="setAnnotationColor('#3b82f6')" title="Blue"></span>
+                    <span class="qb-color-dot" data-color="#10b981" style="background:#10b981;" onclick="setAnnotationColor('#10b981')" title="Green"></span>
+                    <span class="qb-color-dot" data-color="#f59e0b" style="background:#f59e0b;" onclick="setAnnotationColor('#f59e0b')" title="Yellow"></span>
+                    <span class="qb-color-dot" data-color="#8b5cf6" style="background:#8b5cf6;" onclick="setAnnotationColor('#8b5cf6')" title="Purple"></span>
+                    <span class="qb-color-dot" data-color="#111827" style="background:#111827;" onclick="setAnnotationColor('#111827')" title="Black"></span>
+                    <span class="qb-color-dot" data-color="#ffffff" style="background:#ffffff; border:1px solid #ccc;" onclick="setAnnotationColor('#ffffff')" title="White"></span>
+                </div>
+
+                <!-- Line Width Selector -->
+                <div class="qb-stroke-width-wrapper" title="Line Thickness">
+                    <select id="qbStrokeWidthSelect" onchange="setAnnotationStrokeWidth(this.value)" class="qb-stroke-select">
+                        <option value="2">Fine (2px)</option>
+                        <option value="4" selected>Medium (4px)</option>
+                        <option value="8">Thick (8px)</option>
+                        <option value="16">Marker (16px)</option>
+                    </select>
+                </div>
+
+                <div class="qb-anno-separator"></div>
+
+                <!-- Undo / Redo / Clear / Export -->
+                <button type="button" class="qb-anno-btn" onclick="undoAnnotation()" title="Undo (Ctrl+Z)"><i class="fas fa-undo"></i></button>
+                <button type="button" class="qb-anno-btn" onclick="redoAnnotation()" title="Redo (Ctrl+Y)"><i class="fas fa-redo"></i></button>
+                <button type="button" class="qb-anno-btn" onclick="clearAllAnnotations()" title="Clear All Annotations" style="color:#ef4444;"><i class="fas fa-trash-alt"></i></button>
+                <button type="button" class="qb-anno-btn qb-btn-save-anno" onclick="exportAnnotatedCanvasImage()" title="Save & Export Annotated Question Image"><i class="fas fa-file-export"></i> <span>Export</span></button>
+            </div>
+        </div>
+
+        <!-- Workspace Container (Single or Split View) -->
+        <div class="qb-viewer-workspace" id="qbViewerWorkspace">
+            <!-- Main Pane (Active Tab) -->
+            <div class="qb-viewer-pane" id="qbMainPane">
+                <div class="qb-doc-scroller" id="qbMainDocScroller">
+                    <div class="qb-doc-canvas-wrapper" id="qbMainCanvasWrapper">
+                        <!-- PDF pages and drawing overlay canvas elements are rendered here -->
+                    </div>
+                    <div id="qbMainIframeWrapper" class="qb-iframe-fallback" style="display:none;">
+                        <iframe id="qbMainIframe" src="" frameborder="0"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Secondary Pane (For Split Screen Comparison) -->
+            <div class="qb-viewer-pane qb-secondary-pane" id="qbSecondaryPane" style="display:none;">
+                <div class="qb-split-header">
+                    <span id="qbSplitDocTitle">Select Question to Compare</span>
+                    <button type="button" onclick="toggleSplitViewMode(false)" class="qb-btn-icon"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="qb-doc-scroller" id="qbSecondaryDocScroller">
+                    <div class="qb-doc-canvas-wrapper" id="qbSecondaryCanvasWrapper"></div>
+                    <div id="qbSecondaryIframeWrapper" class="qb-iframe-fallback" style="display:none;">
+                        <iframe id="qbSecondaryIframe" src="" frameborder="0"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question Picker Modal (for the '+' new tab button) -->
+    <div id="questionPickerModal" class="modal-overlay" style="z-index: 100050; display: none;">
+        <div class="modal-content" style="max-width: 680px; max-height: 80vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h3 style="margin:0; display:flex; align-items:center; gap:0.5rem; color:var(--orange);">
+                    <i class="fas fa-folder-plus"></i> Open Question in New Tab
+                </h3>
+                <button type="button" onclick="closeQuestionPickerModal()" class="qb-btn-icon" style="font-size:1.1rem;"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" style="padding:1rem 1.5rem; overflow-y:auto; flex:1;">
+                <div style="margin-bottom:1rem; position:relative;">
+                    <input type="text" id="qbPickerSearch" class="input-control" placeholder="Search available questions by course, exam, trimester (e.g. 261, Midterm)..." oninput="filterQuestionPickerItems()" style="padding-left:2.5rem;">
+                    <i class="fas fa-search" style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); color:var(--text-muted);"></i>
+                </div>
+                
+                <div id="qbPickerList" class="qb-picker-list">
+                    <!-- Available questions list grouped by Exam Type / Trimester -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- PDF Viewer Modal -->
     <div class="modal-overlay" id="pdfModal">
         <div class="modal-content" style="width: 95vw; max-width: 1400px; height: 92vh; display: flex; flex-direction: column;">
@@ -1767,12 +2861,15 @@
         ];
 
         function decodeSemester(code) {
-            const str = String(code);
-            const yearPart = parseInt(str.slice(0, -1));
-            const seasonPart = parseInt(str.slice(-1));
+            if (!code) return { year: 2026, season: 'Trimester', label: 'General', code: '' };
+            const str = String(code).trim();
+            if (str.length < 3) return { year: 2026, season: 'Trimester', label: str, code: str };
+            const yearPart = parseInt(str.slice(0, 2), 10);
+            const seasonPart = parseInt(str.slice(2, 3), 10);
             const year = 2000 + yearPart;
             const seasons = { 1: 'Spring', 2: 'Summer', 3: 'Fall' };
-            return { year, season: seasons[seasonPart] || '?', label: str };
+            const season = seasons[seasonPart] || 'Trimester';
+            return { year, season, label: `${season} ${year}`, code: str };
         }
         function generateSemesters() {
             // Semester schedule:
@@ -2228,6 +3325,38 @@
             document.getElementById('trimesterGrid').innerHTML = courses.map(c => createCourseCard(c)).join('');
         }
 
+        // ==========================================
+        // PHOTO-MATCHED QUESTION CARD GENERATOR
+        // ==========================================
+        function createPhotoMatchedQuestionBox(paper) {
+            const semObj = decodeSemester(paper.semester || paper.trimester);
+            const codePill = paper.semester || (paper.trimester ? `${paper.trimester}` : '261');
+            const semName = semObj.label;
+            const mainPdf = paper.pdfUrl || paper.fileUrl || paper.notePdfUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType !== 'solution')?.pdfUrl) || (paper.materialAssets && paper.materialAssets[0]?.pdfUrl) || '';
+            const solPdf = paper.solutionPdfUrl || paper.solutionUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType === 'solution')?.pdfUrl) || '';
+            const mainName = formatPdfDownloadName(paper, false);
+            const hasSol = Boolean(solPdf);
+
+            return `
+                <div class="qb-question-box" onclick="openFullBrowserViewerById('${paper.id}')" title="Click to open ${paper.courseCode} ${semName} in Full Browser Viewer">
+                    ${hasSol ? `<span class="qb-card-sol-indicator" title="Solution Included"><i class="fas fa-check"></i></span>` : ''}
+                    <button type="button" class="qb-card-dl-btn" onclick="event.stopPropagation(); forceDownloadFile('${mainPdf}', '${mainName}')" title="Download Question PDF">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <div class="qb-trimester-badge">${codePill}</div>
+                    <div class="qb-trimester-name">${semName}</div>
+                    ${paper.topic && !paper.topic.toLowerCase().includes('mid') && !paper.topic.toLowerCase().includes('fin') ? `<div class="qb-card-subtopic" title="${paper.topic}">${paper.topic}</div>` : ''}
+                </div>
+            `;
+        }
+
+        const courseSectionSortOrders = {};
+
+        window.sortSectionQuestions = function(sectionKey, order, courseCode) {
+            courseSectionSortOrders[sectionKey] = order;
+            renderCourseDetail(courseCode);
+        };
+
         function renderCourseDetail(code) {
             addToRecentCourses(code);
             const course = CURRICULUM.find(c => c.code.replace(/\s+/g,'').toLowerCase() === code.toLowerCase());
@@ -2237,7 +3366,7 @@
             const isFav = isFavoriteCourse(course.code);
 
             document.getElementById('courseHeaderInfo').innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem;">
                     <div>
                         <span class="pill primary" style="margin-bottom:1rem;">${course.code}</span>
                         <h1>${course.title}</h1>
@@ -2263,10 +3392,6 @@
                 examFilter.addEventListener('change', updateCourseResources);
             }
             
-            // Reset filters on load
-            semFilter.value = 'all';
-            examFilter.value = 'all';
-            
             updateCourseResources();
 
             function updateCourseResources() {
@@ -2281,25 +3406,69 @@
                 const container = document.getElementById('courseResourcesContainer');
                 container.innerHTML = '';
 
-                // Group by type
-                const questions = papers.filter(p => p.type === 'Question' || !p.type);
-                const notes = papers.filter(p => p.type === 'Notes');
+                // Helper to sort papers by semester
+                function sortPapers(paperList, order = 'newest') {
+                    return [...paperList].sort((a, b) => {
+                        const semA = parseInt(a.semester || '0', 10) || (a.submittedAt?.toMillis() || 0);
+                        const semB = parseInt(b.semester || '0', 10) || (b.submittedAt?.toMillis() || 0);
+                        return order === 'newest' ? semB - semA : semA - semB;
+                    });
+                }
+
+                // Categorize papers matching UI layout
+                const midterms = papers.filter(p => (p.examType === 'Midterm' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('mid'))) && p.type !== 'Notes' && p.type !== 'Lab');
+                const finals = papers.filter(p => (p.examType === 'Final' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('fin'))) && p.type !== 'Notes' && p.type !== 'Lab');
+                const otherQuestions = papers.filter(p => p.type === 'Question' && !midterms.includes(p) && !finals.includes(p) && p.type !== 'Notes' && p.type !== 'Lab');
+                const notes = papers.filter(p => p.type === 'Notes' || p.materialType === 'note');
                 const labs = papers.filter(p => p.type === 'Lab');
 
-                if (questions.length > 0) {
-                    container.innerHTML += `<h3 class="section-title" style="margin-top:2rem;">📝 Previous Questions & Solutions</h3>`;
-                    container.innerHTML += `<div class="resource-list">${questions.map(p => createResourceCard(p)).join('')}</div>`;
+                function renderBoxSection(title, key, list) {
+                    if (list.length === 0) return '';
+                    const sortOrder = courseSectionSortOrders[key] || 'newest';
+                    const sortedList = sortPapers(list, sortOrder);
+                    return `
+                        <div class="qb-section-wrapper" id="qbSection_${key}">
+                            <div class="qb-section-header">
+                                <div class="qb-section-title-wrap">
+                                    <span class="qb-section-dot"></span>
+                                    <h3 class="qb-section-title">${title}</h3>
+                                </div>
+                                <select class="qb-sort-select" onchange="sortSectionQuestions('${key}', this.value, '${course.code}')">
+                                    <option value="newest" ${sortOrder === 'newest' ? 'selected' : ''}>⇅ Newest First</option>
+                                    <option value="oldest" ${sortOrder === 'oldest' ? 'selected' : ''}>⇅ Oldest First</option>
+                                </select>
+                            </div>
+                            <div class="qb-box-grid">
+                                ${sortedList.map(p => createPhotoMatchedQuestionBox(p)).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                let html = '';
+                html += renderBoxSection('Mid-Term Questions', 'midterm', midterms);
+                html += renderBoxSection('Final Questions', 'final', finals);
+                if (otherQuestions.length > 0) {
+                    html += renderBoxSection('Other Questions & Quizzes', 'other', otherQuestions);
                 }
                 if (notes.length > 0) {
-                    container.innerHTML += `<h3 class="section-title" style="margin-top:2rem;">📒 Class Notes</h3>`;
-                    container.innerHTML += `<div class="resource-list">${notes.map(p => createResourceCard(p)).join('')}</div>`;
+                    html += renderBoxSection('Class Notes', 'notes', notes);
                 }
                 if (labs.length > 0) {
-                    container.innerHTML += `<h3 class="section-title" style="margin-top:2rem;">🔬 Lab Materials</h3>`;
-                    container.innerHTML += `<div class="resource-list">${labs.map(p => createResourceCard(p)).join('')}</div>`;
+                    html += renderBoxSection('Lab Materials', 'labs', labs);
                 }
-                if (papers.length === 0) {
-                    container.innerHTML = `<p class="text-muted" style="padding:3rem; text-align:center; border:1px dashed var(--border); border-radius:var(--radius-md);">No materials found matching criteria.</p>`;
+
+                if (!html) {
+                    container.innerHTML = `
+                        <div style="padding:3.5rem 1.5rem; text-align:center; border:2px dashed var(--border); border-radius:var(--radius-lg); background:var(--surface); margin-top:2rem;">
+                            <i class="fas fa-folder-open" style="font-size:2.5rem; color:var(--text-muted); margin-bottom:1rem;"></i>
+                            <h3 style="margin-bottom:0.5rem;">No question papers found for this course yet</h3>
+                            <p class="text-muted" style="margin-bottom:1.5rem;">Be the first to contribute by uploading past midterms, finals, or notes!</p>
+                            <a href="#upload" class="btn btn-primary"><i class="fas fa-cloud-upload-alt"></i> Upload Material</a>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = html;
                 }
             }
         }
@@ -2903,34 +4072,948 @@
             }
         });
 
+        // =========================================================
+        // FULL BROWSER QUESTION STUDIO & MULTI-TAB TEACHER ENGINE
+        // =========================================================
+        let openViewerTabs = [];
+        let activeViewerTabIndex = 0;
+        let isSplitViewActive = false;
+        let currentAnnotationTool = 'select';
+        let currentAnnotationColor = '#ef4444';
+        let currentAnnotationStrokeWidth = 4;
+        let currentMarkStampText = '+1';
+        let isDrawing = false;
+        let currentShapeStart = null;
+        let currentStrokePoints = [];
+        const loadedPdfDocs = {};
+
+        function getSavedAnnotationsKey(tabId) {
+            return `qb_anno_${tabId}`;
+        }
+
+        function loadSavedAnnotations(tabId) {
+            try {
+                const data = localStorage.getItem(getSavedAnnotationsKey(tabId));
+                return data ? JSON.parse(data) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function persistAnnotations(tabId, annotations) {
+            try {
+                localStorage.setItem(getSavedAnnotationsKey(tabId), JSON.stringify(annotations));
+            } catch (e) {
+                console.warn('Storage error:', e);
+            }
+        }
+
+        window.openFullBrowserViewerById = function(paperId) {
+            const paper = approvedPapers.find(p => p.id === paperId);
+            if (!paper) return;
+            openFullBrowserViewer(paper);
+        };
+
+        window.openFullBrowserViewer = function(paper) {
+            const mainPdf = paper.pdfUrl || paper.fileUrl || paper.notePdfUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType !== 'solution')?.pdfUrl) || (paper.materialAssets && paper.materialAssets[0]?.pdfUrl) || '';
+            const solPdf = paper.solutionPdfUrl || paper.solutionUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType === 'solution')?.pdfUrl) || '';
+            const semObj = decodeSemester(paper.semester || paper.trimester);
+            const title = `${paper.courseCode} · ${semObj.label} ${paper.examType || paper.type || 'Question'}`;
+
+            const existingIdx = openViewerTabs.findIndex(t => t.id === paper.id);
+            if (existingIdx >= 0) {
+                activeViewerTabIndex = existingIdx;
+            } else {
+                const tab = {
+                    id: paper.id,
+                    paper: paper,
+                    title: title,
+                    pdfUrl: mainPdf,
+                    solPdf: solPdf,
+                    isShowingSolution: false,
+                    currentPage: 1,
+                    totalPages: 1,
+                    zoom: 1.0,
+                    rotation: 0,
+                    annotations: loadSavedAnnotations(paper.id),
+                    undoStack: [],
+                    redoStack: []
+                };
+                openViewerTabs.push(tab);
+                activeViewerTabIndex = openViewerTabs.length - 1;
+            }
+
+            const viewer = document.getElementById('fullBrowserViewer');
+            if (viewer) viewer.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            renderViewerTabs();
+            renderActiveTabDocument();
+        };
+
+        window.closeFullBrowserViewer = function() {
+            const viewer = document.getElementById('fullBrowserViewer');
+            if (viewer) viewer.style.display = 'none';
+            document.body.style.overflow = '';
+        };
+
+        window.renderViewerTabs = function() {
+            const container = document.getElementById('qbTabsContainer');
+            if (!container) return;
+
+            container.innerHTML = openViewerTabs.map((tab, idx) => {
+                const isActive = idx === activeViewerTabIndex;
+                const semObj = decodeSemester(tab.paper.semester || tab.paper.trimester);
+                const tabLabel = `${tab.paper.courseCode} · ${tab.paper.semester || semObj.label}`;
+                return `
+                    <div class="qb-viewer-tab ${isActive ? 'active' : ''}" onclick="switchViewerTab(${idx})" title="${tab.title}">
+                        <i class="fas fa-file-pdf" style="font-size:0.75rem; color:${isActive ? '#3b82f6' : 'var(--text-muted)'};"></i>
+                        <span class="qb-tab-text">${tabLabel}</span>
+                        <span class="qb-tab-close-btn" onclick="closeViewerTab(${idx}, event)" title="Close Tab">&times;</span>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        window.switchViewerTab = function(idx) {
+            if (idx >= 0 && idx < openViewerTabs.length) {
+                activeViewerTabIndex = idx;
+                renderViewerTabs();
+                renderActiveTabDocument();
+            }
+        };
+
+        window.closeViewerTab = function(idx, event) {
+            if (event) event.stopPropagation();
+            if (openViewerTabs.length <= 1) {
+                openViewerTabs = [];
+                closeFullBrowserViewer();
+                return;
+            }
+            openViewerTabs.splice(idx, 1);
+            if (activeViewerTabIndex >= openViewerTabs.length) {
+                activeViewerTabIndex = openViewerTabs.length - 1;
+            }
+            renderViewerTabs();
+            renderActiveTabDocument();
+        };
+
+        window.openQuestionPickerModal = function() {
+            const modal = document.getElementById('questionPickerModal');
+            if (modal) modal.style.display = 'flex';
+            const searchEl = document.getElementById('qbPickerSearch');
+            if (searchEl) searchEl.value = '';
+            filterQuestionPickerItems();
+        };
+
+        window.closeQuestionPickerModal = function() {
+            const modal = document.getElementById('questionPickerModal');
+            if (modal) modal.style.display = 'none';
+        };
+
+        window.filterQuestionPickerItems = function() {
+            const searchVal = (document.getElementById('qbPickerSearch')?.value || '').toLowerCase().trim();
+            const list = document.getElementById('qbPickerList');
+            if (!list) return;
+
+            let availablePapers = approvedPapers.filter(p => {
+                if (!searchVal) return true;
+                const sem = decodeSemester(p.semester || p.trimester).label.toLowerCase();
+                const code = (p.courseCode || '').toLowerCase();
+                const exam = (p.examType || '').toLowerCase();
+                const topic = (p.topic || '').toLowerCase();
+                const semesterCode = (p.semester || '').toLowerCase();
+                return code.includes(searchVal) || sem.includes(searchVal) || exam.includes(searchVal) || topic.includes(searchVal) || semesterCode.includes(searchVal);
+            });
+
+            if (availablePapers.length === 0) {
+                list.innerHTML = `<p class="text-muted" style="text-align:center; padding:2rem;">No question papers found matching search.</p>`;
+                return;
+            }
+
+            list.innerHTML = availablePapers.map(p => {
+                const semObj = decodeSemester(p.semester || p.trimester);
+                const isOpen = openViewerTabs.some(t => t.id === p.id);
+                return `
+                    <div class="qb-picker-item" onclick="openPickerQuestion('${p.id}')">
+                        <div class="qb-picker-item-info">
+                            <span class="qb-picker-badge">${p.semester || '261'}</span>
+                            <div>
+                                <div style="font-weight:600; font-size:0.9rem;">${p.courseCode} · ${semObj.label}</div>
+                                <div style="font-size:0.8rem; color:var(--text-muted);">${p.examType || p.type || 'Question Paper'} ${p.topic ? `· ${p.topic}` : ''}</div>
+                            </div>
+                        </div>
+                        ${isOpen ? `<span class="pill" style="font-size:0.75rem; color:#3b82f6; border-color:#3b82f6;">Open</span>` : `<button type="button" class="btn btn-outline" style="padding:0.3rem 0.7rem; font-size:0.75rem;"><i class="fas fa-plus"></i> Open Tab</button>`}
+                    </div>
+                `;
+            }).join('');
+        };
+
+        window.openPickerQuestion = function(paperId) {
+            const paper = approvedPapers.find(p => p.id === paperId);
+            if (!paper) return;
+            closeQuestionPickerModal();
+            openFullBrowserViewer(paper);
+        };
+
+        async function renderActiveTabDocument() {
+            const activeTab = openViewerTabs[activeViewerTabIndex];
+            if (!activeTab) return;
+
+            document.getElementById('qbViewerCourseCode').innerText = activeTab.paper.courseCode || 'CSE';
+            document.getElementById('qbViewerDocTitle').innerText = activeTab.title;
+            document.getElementById('qbViewerOpenExternal').href = activeTab.pdfUrl;
+            document.getElementById('qbZoomLevelDisplay').innerText = `${Math.round(activeTab.zoom * 100)}%`;
+
+            const solOpt = document.getElementById('qbDlSolutionOpt');
+            if (solOpt) {
+                solOpt.style.display = activeTab.solPdf ? 'flex' : 'none';
+            }
+
+            const wrapper = document.getElementById('qbMainCanvasWrapper');
+            const iframeWrapper = document.getElementById('qbMainIframeWrapper');
+            const iframe = document.getElementById('qbMainIframe');
+
+            const pdfUrl = activeTab.isShowingSolution && activeTab.solPdf ? activeTab.solPdf : activeTab.pdfUrl;
+
+            if (!pdfUrl) {
+                wrapper.innerHTML = `<div style="color:white; padding:3rem; text-align:center;">No PDF file URL available for this document.</div>`;
+                return;
+            }
+
+            // PDF.js high-performance canvas rendering
+            if (typeof pdfjsLib !== 'undefined') {
+                try {
+                    wrapper.style.display = 'flex';
+                    iframeWrapper.style.display = 'none';
+                    wrapper.innerHTML = `<div style="color:white; padding:2rem; display:flex; align-items:center; gap:0.6rem;"><i class="fas fa-spinner fa-spin"></i> Rendering Question PDF...</div>`;
+
+                    let pdfDoc = loadedPdfDocs[pdfUrl];
+                    if (!pdfDoc) {
+                        const loadingTask = pdfjsLib.getDocument({
+                            url: pdfUrl,
+                            cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+                            cMapPacked: true
+                        });
+                        pdfDoc = await loadingTask.promise;
+                        loadedPdfDocs[pdfUrl] = pdfDoc;
+                    }
+
+                    activeTab.totalPages = pdfDoc.numPages;
+                    document.getElementById('qbTotalPagesNum').innerText = pdfDoc.numPages;
+                    document.getElementById('qbCurrentPageNum').innerText = activeTab.currentPage;
+
+                    wrapper.innerHTML = '';
+
+                    for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+                        const page = await pdfDoc.getPage(pageNum);
+                        const scale = (window.devicePixelRatio || 1) * activeTab.zoom;
+                        const viewport = page.getViewport({ scale: scale, rotation: activeTab.rotation });
+                        const displayViewport = page.getViewport({ scale: activeTab.zoom, rotation: activeTab.rotation });
+
+                        const pageContainer = document.createElement('div');
+                        pageContainer.className = 'qb-page-container';
+                        pageContainer.dataset.pageNum = pageNum;
+                        pageContainer.style.width = `${displayViewport.width}px`;
+                        pageContainer.style.height = `${displayViewport.height}px`;
+
+                        const pdfCanvas = document.createElement('canvas');
+                        pdfCanvas.className = 'qb-pdf-page-canvas';
+                        pdfCanvas.width = viewport.width;
+                        pdfCanvas.height = viewport.height;
+                        pdfCanvas.style.width = `${displayViewport.width}px`;
+                        pdfCanvas.style.height = `${displayViewport.height}px`;
+
+                        const annoCanvas = document.createElement('canvas');
+                        annoCanvas.className = 'qb-anno-canvas';
+                        annoCanvas.dataset.pageNum = pageNum;
+                        annoCanvas.width = viewport.width;
+                        annoCanvas.height = viewport.height;
+                        annoCanvas.style.width = `${displayViewport.width}px`;
+                        annoCanvas.style.height = `${displayViewport.height}px`;
+
+                        pageContainer.appendChild(pdfCanvas);
+                        pageContainer.appendChild(annoCanvas);
+                        wrapper.appendChild(pageContainer);
+
+                        // Render PDF page into canvas
+                        const renderContext = {
+                            canvasContext: pdfCanvas.getContext('2d'),
+                            viewport: viewport
+                        };
+                        await page.render(renderContext).promise;
+
+                        // Setup annotation events on this page canvas
+                        setupAnnotationCanvasEvents(annoCanvas, pageNum, scale);
+                        // Draw existing annotations
+                        drawPageAnnotations(annoCanvas, pageNum, scale);
+                    }
+
+                    setAnnotationTool(currentAnnotationTool);
+                    return;
+                } catch (pdfErr) {
+                    console.warn('PDF.js direct rendering fallback to embedded iframe:', pdfErr);
+                }
+            }
+
+            // Fallback: Google Docs Viewer Embed inside iframe
+            wrapper.style.display = 'none';
+            iframeWrapper.style.display = 'flex';
+            let embedUrl = pdfUrl;
+            if (pdfUrl.includes('cloudinary.com') || pdfUrl.toLowerCase().endsWith('.pdf')) {
+                embedUrl = `https://docs.google.com/gview?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
+            }
+            iframe.src = embedUrl;
+        }
+
         // ==========================================
-        // PDF VIEWER MODAL
+        // TEACHER ANNOTATIONS & SHAPES STUDIO
+        // ==========================================
+        window.toggleTeacherAnnotationMode = function(explicitState) {
+            const toolbar = document.getElementById('qbAnnotationToolbar');
+            const toggleBtn = document.getElementById('qbTeacherModeToggle');
+            const isVisible = toolbar.style.display !== 'none';
+            const newState = explicitState !== undefined ? explicitState : !isVisible;
+
+            toolbar.style.display = newState ? 'flex' : 'none';
+            toggleBtn.classList.toggle('active', newState);
+
+            if (newState && currentAnnotationTool === 'select') {
+                setAnnotationTool('pen');
+            } else if (!newState) {
+                setAnnotationTool('select');
+            }
+        };
+
+        window.setAnnotationTool = function(tool) {
+            currentAnnotationTool = tool;
+            document.querySelectorAll('.qb-anno-btn[data-tool]').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-tool') === tool);
+            });
+
+            const annoCanvases = document.querySelectorAll('.qb-anno-canvas');
+            annoCanvases.forEach(c => {
+                if (tool === 'select') {
+                    c.style.cursor = 'default';
+                    c.style.pointerEvents = 'none';
+                } else if (tool === 'eraser') {
+                    c.style.cursor = 'cell';
+                    c.style.pointerEvents = 'auto';
+                } else if (tool === 'text') {
+                    c.style.cursor = 'text';
+                    c.style.pointerEvents = 'auto';
+                } else {
+                    c.style.cursor = 'crosshair';
+                    c.style.pointerEvents = 'auto';
+                }
+            });
+        };
+
+        window.setAnnotationColor = function(color) {
+            currentAnnotationColor = color;
+            document.querySelectorAll('.qb-color-dot').forEach(dot => {
+                dot.classList.toggle('active', dot.getAttribute('data-color') === color);
+            });
+        };
+
+        window.setAnnotationStrokeWidth = function(width) {
+            currentAnnotationStrokeWidth = parseInt(width, 10) || 4;
+        };
+
+        window.promptCustomMarkStamp = function() {
+            const val = prompt('Enter custom marks or feedback stamp text (e.g. +5, 10/10, Good!):', currentMarkStampText || '+5');
+            if (val) {
+                currentMarkStampText = val.trim();
+                setAnnotationTool('stamp-marks');
+            }
+        };
+
+        function drawArrow(ctx, fromx, fromy, tox, toy, lineWidth) {
+            const headlen = Math.max(12, lineWidth * 3);
+            const angle = Math.atan2(toy - fromy, tox - fromx);
+            ctx.beginPath();
+            ctx.moveTo(fromx, fromy);
+            ctx.lineTo(tox, toy);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(tox, toy);
+            ctx.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawStampIcon(ctx, stampType, x, y, size, customText) {
+            ctx.save();
+            if (stampType === 'stamp-check') {
+                ctx.fillStyle = '#10b981';
+                ctx.strokeStyle = '#10b981';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.font = `bold ${size * 1.2}px Inter, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('✓', x, y);
+            } else if (stampType === 'stamp-cross') {
+                ctx.fillStyle = '#ef4444';
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.font = `bold ${size * 1.2}px Inter, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('✗', x, y);
+            } else if (stampType === 'stamp-star') {
+                ctx.fillStyle = '#f59e0b';
+                ctx.font = `bold ${size * 1.6}px Inter, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('★', x, y);
+            } else if (stampType === 'stamp-marks') {
+                ctx.fillStyle = currentAnnotationColor || '#ef4444';
+                ctx.strokeStyle = currentAnnotationColor || '#ef4444';
+                ctx.lineWidth = 3;
+                const text = customText || currentMarkStampText || '+1';
+                ctx.font = `bold ${size * 0.9}px Inter, sans-serif`;
+                const textWidth = ctx.measureText(text).width;
+                const pad = 12;
+                ctx.strokeRect(x - pad, y - size, textWidth + (pad * 2), size * 1.5);
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(text, x, y - (size * 0.25));
+            }
+            ctx.restore();
+        }
+
+        function drawPageAnnotations(canvas, pageNum, scale = 1) {
+            const activeTab = openViewerTabs[activeViewerTabIndex];
+            if (!activeTab || !canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const pageAnnos = (activeTab.annotations || []).filter(a => a.pageNum === pageNum);
+
+            pageAnnos.forEach(anno => {
+                ctx.save();
+                ctx.strokeStyle = anno.color || '#ef4444';
+                ctx.fillStyle = anno.color || '#ef4444';
+                ctx.lineWidth = (anno.width || 4) * (scale / (anno.savedScale || scale || 1));
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+
+                if (anno.tool === 'highlighter') {
+                    ctx.globalAlpha = 0.35;
+                    ctx.lineWidth = (anno.width || 16) * (scale / (anno.savedScale || scale || 1));
+                }
+
+                if (anno.type === 'freehand' && anno.points && anno.points.length > 1) {
+                    ctx.beginPath();
+                    const p0 = anno.points[0];
+                    ctx.moveTo(p0.x * scale, p0.y * scale);
+                    for (let i = 1; i < anno.points.length; i++) {
+                        ctx.lineTo(anno.points[i].x * scale, anno.points[i].y * scale);
+                    }
+                    ctx.stroke();
+                } else if (anno.type === 'rectangle') {
+                    const x = Math.min(anno.start.x, anno.end.x) * scale;
+                    const y = Math.min(anno.start.y, anno.end.y) * scale;
+                    const w = Math.abs(anno.end.x - anno.start.x) * scale;
+                    const h = Math.abs(anno.end.y - anno.start.y) * scale;
+                    ctx.strokeRect(x, y, w, h);
+                } else if (anno.type === 'circle') {
+                    const cx = ((anno.start.x + anno.end.x) / 2) * scale;
+                    const cy = ((anno.start.y + anno.end.y) / 2) * scale;
+                    const rx = (Math.abs(anno.end.x - anno.start.x) / 2) * scale;
+                    const ry = (Math.abs(anno.end.y - anno.start.y) / 2) * scale;
+                    ctx.beginPath();
+                    ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
+                    ctx.stroke();
+                } else if (anno.type === 'line') {
+                    ctx.beginPath();
+                    ctx.moveTo(anno.start.x * scale, anno.start.y * scale);
+                    ctx.lineTo(anno.end.x * scale, anno.end.y * scale);
+                    ctx.stroke();
+                } else if (anno.type === 'arrow') {
+                    drawArrow(ctx, anno.start.x * scale, anno.start.y * scale, anno.end.x * scale, anno.end.y * scale, ctx.lineWidth);
+                } else if (anno.type === 'text') {
+                    ctx.font = `bold ${(anno.fontSize || 20) * (scale / (anno.savedScale || scale || 1))}px Inter, sans-serif`;
+                    ctx.fillText(anno.text, anno.x * scale, anno.y * scale);
+                } else if (anno.type === 'stamp') {
+                    drawStampIcon(ctx, anno.stampType, anno.x * scale, anno.y * scale, (anno.size || 24) * scale, anno.text);
+                }
+
+                ctx.restore();
+            });
+        }
+
+        function setupAnnotationCanvasEvents(canvas, pageNum, scale = 1) {
+            const activeTab = openViewerTabs[activeViewerTabIndex];
+            if (!activeTab) return;
+
+            function getCanvasCoords(e) {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return {
+                    x: (clientX - rect.left) / scale,
+                    y: (clientY - rect.top) / scale
+                };
+            }
+
+            function onPointerDown(e) {
+                if (currentAnnotationTool === 'select') return;
+                e.preventDefault();
+                isDrawing = true;
+                const coords = getCanvasCoords(e);
+
+                if (currentAnnotationTool === 'pen' || currentAnnotationTool === 'highlighter') {
+                    currentStrokePoints = [coords];
+                } else if (['rectangle', 'circle', 'arrow', 'line'].includes(currentAnnotationTool)) {
+                    currentShapeStart = coords;
+                } else if (currentAnnotationTool.startsWith('stamp-')) {
+                    const stampAnno = {
+                        type: 'stamp',
+                        stampType: currentAnnotationTool,
+                        x: coords.x,
+                        y: coords.y,
+                        size: 24,
+                        color: currentAnnotationColor,
+                        text: currentMarkStampText,
+                        pageNum,
+                        savedScale: 1
+                    };
+                    activeTab.annotations.push(stampAnno);
+                    activeTab.undoStack.push({ action: 'add', anno: stampAnno });
+                    activeTab.redoStack = [];
+                    persistAnnotations(activeTab.id, activeTab.annotations);
+                    drawPageAnnotations(canvas, pageNum, scale);
+                    isDrawing = false;
+                } else if (currentAnnotationTool === 'text') {
+                    const text = prompt('Enter Teacher Comment / Note:', '');
+                    if (text && text.trim()) {
+                        const textAnno = {
+                            type: 'text',
+                            text: text.trim(),
+                            x: coords.x,
+                            y: coords.y,
+                            fontSize: 18,
+                            color: currentAnnotationColor,
+                            pageNum,
+                            savedScale: 1
+                        };
+                        activeTab.annotations.push(textAnno);
+                        activeTab.undoStack.push({ action: 'add', anno: textAnno });
+                        activeTab.redoStack = [];
+                        persistAnnotations(activeTab.id, activeTab.annotations);
+                        drawPageAnnotations(canvas, pageNum, scale);
+                    }
+                    isDrawing = false;
+                } else if (currentAnnotationTool === 'eraser') {
+                    eraseAtCoords(coords, pageNum);
+                }
+            }
+
+            function onPointerMove(e) {
+                if (!isDrawing) return;
+                e.preventDefault();
+                const coords = getCanvasCoords(e);
+
+                if (currentAnnotationTool === 'pen' || currentAnnotationTool === 'highlighter') {
+                    currentStrokePoints.push(coords);
+                    const ctx = canvas.getContext('2d');
+                    ctx.save();
+                    ctx.strokeStyle = currentAnnotationColor;
+                    ctx.lineWidth = (currentAnnotationTool === 'highlighter' ? 16 : currentAnnotationStrokeWidth) * scale;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    if (currentAnnotationTool === 'highlighter') ctx.globalAlpha = 0.35;
+
+                    const len = currentStrokePoints.length;
+                    if (len > 1) {
+                        ctx.beginPath();
+                        ctx.moveTo(currentStrokePoints[len - 2].x * scale, currentStrokePoints[len - 2].y * scale);
+                        ctx.lineTo(currentStrokePoints[len - 1].x * scale, currentStrokePoints[len - 1].y * scale);
+                        ctx.stroke();
+                    }
+                    ctx.restore();
+                } else if (['rectangle', 'circle', 'arrow', 'line'].includes(currentAnnotationTool)) {
+                    drawPageAnnotations(canvas, pageNum, scale);
+                    const ctx = canvas.getContext('2d');
+                    ctx.save();
+                    ctx.strokeStyle = currentAnnotationColor;
+                    ctx.fillStyle = currentAnnotationColor;
+                    ctx.lineWidth = currentAnnotationStrokeWidth * scale;
+                    ctx.lineCap = 'round';
+
+                    if (currentAnnotationTool === 'rectangle') {
+                        const x = Math.min(currentShapeStart.x, coords.x) * scale;
+                        const y = Math.min(currentShapeStart.y, coords.y) * scale;
+                        const w = Math.abs(coords.x - currentShapeStart.x) * scale;
+                        const h = Math.abs(coords.y - currentShapeStart.y) * scale;
+                        ctx.strokeRect(x, y, w, h);
+                    } else if (currentAnnotationTool === 'circle') {
+                        const cx = ((currentShapeStart.x + coords.x) / 2) * scale;
+                        const cy = ((currentShapeStart.y + coords.y) / 2) * scale;
+                        const rx = (Math.abs(coords.x - currentShapeStart.x) / 2) * scale;
+                        const ry = (Math.abs(coords.y - currentShapeStart.y) / 2) * scale;
+                        ctx.beginPath();
+                        ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
+                        ctx.stroke();
+                    } else if (currentAnnotationTool === 'line') {
+                        ctx.beginPath();
+                        ctx.moveTo(currentShapeStart.x * scale, currentShapeStart.y * scale);
+                        ctx.lineTo(coords.x * scale, coords.y * scale);
+                        ctx.stroke();
+                    } else if (currentAnnotationTool === 'arrow') {
+                        drawArrow(ctx, currentShapeStart.x * scale, currentShapeStart.y * scale, coords.x * scale, coords.y * scale, ctx.lineWidth);
+                    }
+                    ctx.restore();
+                } else if (currentAnnotationTool === 'eraser') {
+                    eraseAtCoords(coords, pageNum);
+                }
+            }
+
+            function onPointerUp(e) {
+                if (!isDrawing) return;
+                isDrawing = false;
+                const coords = getCanvasCoords(e);
+
+                if (currentAnnotationTool === 'pen' || currentAnnotationTool === 'highlighter') {
+                    if (currentStrokePoints.length > 1) {
+                        const strokeAnno = {
+                            type: 'freehand',
+                            tool: currentAnnotationTool,
+                            color: currentAnnotationColor,
+                            width: currentAnnotationTool === 'highlighter' ? 16 : currentAnnotationStrokeWidth,
+                            points: [...currentStrokePoints],
+                            pageNum,
+                            savedScale: 1
+                        };
+                        activeTab.annotations.push(strokeAnno);
+                        activeTab.undoStack.push({ action: 'add', anno: strokeAnno });
+                        activeTab.redoStack = [];
+                        persistAnnotations(activeTab.id, activeTab.annotations);
+                    }
+                    currentStrokePoints = [];
+                } else if (['rectangle', 'circle', 'arrow', 'line'].includes(currentAnnotationTool) && currentShapeStart) {
+                    const shapeAnno = {
+                        type: currentAnnotationTool,
+                        color: currentAnnotationColor,
+                        width: currentAnnotationStrokeWidth,
+                        start: currentShapeStart,
+                        end: coords,
+                        pageNum,
+                        savedScale: 1
+                    };
+                    activeTab.annotations.push(shapeAnno);
+                    activeTab.undoStack.push({ action: 'add', anno: shapeAnno });
+                    activeTab.redoStack = [];
+                    persistAnnotations(activeTab.id, activeTab.annotations);
+                    currentShapeStart = null;
+                }
+
+                drawPageAnnotations(canvas, pageNum, scale);
+            }
+
+            function eraseAtCoords(coords, pNum) {
+                const threshold = 15;
+                const initLen = activeTab.annotations.length;
+                activeTab.annotations = activeTab.annotations.filter(a => {
+                    if (a.pageNum !== pNum) return true;
+                    if (a.type === 'freehand' && a.points) {
+                        return !a.points.some(pt => Math.hypot(pt.x - coords.x, pt.y - coords.y) < threshold);
+                    } else if (a.start && a.end) {
+                        const minX = Math.min(a.start.x, a.end.x) - threshold;
+                        const maxX = Math.max(a.start.x, a.end.x) + threshold;
+                        const minY = Math.min(a.start.y, a.end.y) - threshold;
+                        const maxY = Math.max(a.start.y, a.end.y) + threshold;
+                        return !(coords.x >= minX && coords.x <= maxX && coords.y >= minY && coords.y <= maxY);
+                    } else if (a.x !== undefined && a.y !== undefined) {
+                        return Math.hypot(a.x - coords.x, a.y - coords.y) > threshold * 1.5;
+                    }
+                    return true;
+                });
+
+                if (activeTab.annotations.length !== initLen) {
+                    persistAnnotations(activeTab.id, activeTab.annotations);
+                    drawPageAnnotations(canvas, pNum, scale);
+                }
+            }
+
+            canvas.onmousedown = onPointerDown;
+            canvas.onmousemove = onPointerMove;
+            window.addEventListener('mouseup', onPointerUp);
+            canvas.ontouchstart = onPointerDown;
+            canvas.ontouchmove = onPointerMove;
+            window.addEventListener('touchend', onPointerUp);
+        }
+
+        window.undoAnnotation = function() {
+            const activeTab = openViewerTabs[activeViewerTabIndex];
+            if (!activeTab || !activeTab.annotations || activeTab.annotations.length === 0) return;
+            const popped = activeTab.annotations.pop();
+            activeTab.redoStack.push(popped);
+            persistAnnotations(activeTab.id, activeTab.annotations);
+            document.querySelectorAll('.qb-anno-canvas').forEach(c => {
+                drawPageAnnotations(c, parseInt(c.dataset.pageNum, 10), (window.devicePixelRatio || 1) * activeTab.zoom);
+            });
+        };
+
+        window.redoAnnotation = function() {
+            const activeTab = openViewerTabs[activeViewerTabIndex];
+            if (!activeTab || !activeTab.redoStack || activeTab.redoStack.length === 0) return;
+            const restored = activeTab.redoStack.pop();
+            activeTab.annotations.push(restored);
+            persistAnnotations(activeTab.id, activeTab.annotations);
+            document.querySelectorAll('.qb-anno-canvas').forEach(c => {
+                drawPageAnnotations(c, parseInt(c.dataset.pageNum, 10), (window.devicePixelRatio || 1) * activeTab.zoom);
+            });
+        };
+
+        window.clearAllAnnotations = function() {
+            const activeTab = openViewerTabs[activeViewerTabIndex];
+            if (!activeTab) return;
+            if (!confirm('Clear all teacher annotations for this question paper?')) return;
+            activeTab.annotations = [];
+            activeTab.undoStack = [];
+            activeTab.redoStack = [];
+            persistAnnotations(activeTab.id, []);
+            document.querySelectorAll('.qb-anno-canvas').forEach(c => {
+                drawPageAnnotations(c, parseInt(c.dataset.pageNum, 10), (window.devicePixelRatio || 1) * activeTab.zoom);
+            });
+            showToast('Annotations cleared', 'info');
+        };
+
+        window.exportAnnotatedCanvasImage = function() {
+            const activeTab = openViewerTabs[activeViewerTabIndex];
+            if (!activeTab) return;
+
+            const pageContainers = document.querySelectorAll('#qbMainCanvasWrapper .qb-page-container');
+            if (pageContainers.length === 0) {
+                showToast('No rendered pages found to export.', 'error');
+                return;
+            }
+
+            pageContainers.forEach((container, idx) => {
+                const pdfCanvas = container.querySelector('.qb-pdf-page-canvas');
+                const annoCanvas = container.querySelector('.qb-anno-canvas');
+
+                if (!pdfCanvas) return;
+
+                const exportCanvas = document.createElement('canvas');
+                exportCanvas.width = pdfCanvas.width;
+                exportCanvas.height = pdfCanvas.height;
+                const ctx = exportCanvas.getContext('2d');
+
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+                ctx.drawImage(pdfCanvas, 0, 0);
+
+                if (annoCanvas) {
+                    ctx.drawImage(annoCanvas, 0, 0);
+                }
+
+                exportCanvas.toBlob(blob => {
+                    const blobUrl = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = blobUrl;
+                    link.download = `${activeTab.title.replace(/[^a-zA-Z0-9_\-]/g, '_')}_Page${idx + 1}_Annotated.png`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    setTimeout(() => URL.revokeObjectURL(blobUrl), 2500);
+                }, 'image/png', 1.0);
+            });
+
+            showToast('Exported annotated question image successfully!', 'success');
+        };
+
+        // Zoom & Navigation Controls
+        window.zoomViewerDoc = function(delta) {
+            const activeTab = openViewerTabs[activeViewerTabIndex];
+            if (!activeTab) return;
+            activeTab.zoom = Math.max(0.4, Math.min(3.0, activeTab.zoom + delta));
+            renderActiveTabDocument();
+        };
+
+        window.fitViewerDocWidth = function() {
+            const activeTab = openViewerTabs[activeViewerTabIndex];
+            if (!activeTab) return;
+            activeTab.zoom = 1.0;
+            renderActiveTabDocument();
+        };
+
+        window.rotateViewerDoc = function() {
+            const activeTab = openViewerTabs[activeViewerTabIndex];
+            if (!activeTab) return;
+            activeTab.rotation = (activeTab.rotation + 90) % 360;
+            renderActiveTabDocument();
+        };
+
+        window.prevDocPage = function() {
+            const activeTab = openViewerTabs[activeViewerTabIndex];
+            if (!activeTab || activeTab.currentPage <= 1) return;
+            activeTab.currentPage--;
+            document.getElementById('qbCurrentPageNum').innerText = activeTab.currentPage;
+            const targetContainer = document.querySelector(`.qb-page-container[data-page-num="${activeTab.currentPage}"]`);
+            if (targetContainer) targetContainer.scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.nextDocPage = function() {
+            const activeTab = openViewerTabs[activeViewerTabIndex];
+            if (!activeTab || activeTab.currentPage >= activeTab.totalPages) return;
+            activeTab.currentPage++;
+            document.getElementById('qbCurrentPageNum').innerText = activeTab.currentPage;
+            const targetContainer = document.querySelector(`.qb-page-container[data-page-num="${activeTab.currentPage}"]`);
+            if (targetContainer) targetContainer.scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.toggleViewerFullscreen = function() {
+            const viewer = document.getElementById('fullBrowserViewer');
+            if (!document.fullscreenElement) {
+                viewer.requestFullscreen().catch(err => console.warn(err));
+                document.getElementById('qbFullscreenIcon').className = 'fas fa-compress';
+            } else {
+                document.exitFullscreen().catch(err => console.warn(err));
+                document.getElementById('qbFullscreenIcon').className = 'fas fa-expand';
+            }
+        };
+
+        window.toggleViewerDownloadMenu = function(event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById('qbViewerDownloadMenu');
+            if (menu) menu.classList.toggle('active');
+        };
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.qb-download-dropdown-wrapper')) {
+                const menu = document.getElementById('qbViewerDownloadMenu');
+                if (menu) menu.classList.remove('active');
+            }
+        });
+
+        window.downloadCurrentTabPaper = function(isSolution = false) {
+            const activeTab = openViewerTabs[activeViewerTabIndex];
+            if (!activeTab) return;
+            const url = isSolution ? (activeTab.solPdf || activeTab.pdfUrl) : activeTab.pdfUrl;
+            const name = formatPdfDownloadName(activeTab.paper, isSolution);
+            forceDownloadFile(url, name);
+        };
+
+        window.toggleSplitViewMode = function(explicitState) {
+            isSplitViewActive = explicitState !== undefined ? explicitState : !isSplitViewActive;
+            const secPane = document.getElementById('qbSecondaryPane');
+            const splitBtn = document.getElementById('qbSplitViewToggle');
+
+            if (secPane) secPane.style.display = isSplitViewActive ? 'flex' : 'none';
+            if (splitBtn) splitBtn.classList.toggle('active', isSplitViewActive);
+
+            if (isSplitViewActive && openViewerTabs.length > 1) {
+                const secIndex = (activeViewerTabIndex + 1) % openViewerTabs.length;
+                renderSecondaryPaneDocument(openViewerTabs[secIndex]);
+            } else if (isSplitViewActive) {
+                document.getElementById('qbSplitDocTitle').innerText = 'Open another question tab with (+) to compare';
+            }
+        };
+
+        async function renderSecondaryPaneDocument(tab) {
+            if (!tab) return;
+            document.getElementById('qbSplitDocTitle').innerText = tab.title;
+            const wrapper = document.getElementById('qbSecondaryCanvasWrapper');
+            const iframeWrapper = document.getElementById('qbSecondaryIframeWrapper');
+            const iframe = document.getElementById('qbSecondaryIframe');
+
+            if (typeof pdfjsLib !== 'undefined' && tab.pdfUrl) {
+                try {
+                    wrapper.style.display = 'flex';
+                    iframeWrapper.style.display = 'none';
+                    wrapper.innerHTML = `<div style="color:white; padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
+
+                    let pdfDoc = loadedPdfDocs[tab.pdfUrl];
+                    if (!pdfDoc) {
+                        pdfDoc = await pdfjsLib.getDocument(tab.pdfUrl).promise;
+                        loadedPdfDocs[tab.pdfUrl] = pdfDoc;
+                    }
+
+                    wrapper.innerHTML = '';
+                    for (let p = 1; p <= pdfDoc.numPages; p++) {
+                        const page = await pdfDoc.getPage(p);
+                        const scale = (window.devicePixelRatio || 1) * 0.75;
+                        const viewport = page.getViewport({ scale });
+                        const dispViewport = page.getViewport({ scale: 0.75 });
+
+                        const pageContainer = document.createElement('div');
+                        pageContainer.className = 'qb-page-container';
+                        pageContainer.style.width = `${dispViewport.width}px`;
+                        pageContainer.style.height = `${dispViewport.height}px`;
+
+                        const pdfCanvas = document.createElement('canvas');
+                        pdfCanvas.className = 'qb-pdf-page-canvas';
+                        pdfCanvas.width = viewport.width;
+                        pdfCanvas.height = viewport.height;
+                        pdfCanvas.style.width = `${dispViewport.width}px`;
+                        pdfCanvas.style.height = `${dispViewport.height}px`;
+
+                        pageContainer.appendChild(pdfCanvas);
+                        wrapper.appendChild(pageContainer);
+
+                        await page.render({ canvasContext: pdfCanvas.getContext('2d'), viewport }).promise;
+                    }
+                    return;
+                } catch (e) {
+                    console.warn('Secondary pane pdf render fallback:', e);
+                }
+            }
+
+            wrapper.style.display = 'none';
+            iframeWrapper.style.display = 'flex';
+            iframe.src = `https://docs.google.com/gview?url=${encodeURIComponent(tab.pdfUrl)}&embedded=true`;
+        }
+
+        // Keyboard Shortcuts for Teacher Studio
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeQuestionPickerModal();
+                if (document.getElementById('fullBrowserViewer')?.style.display === 'flex' && !document.fullscreenElement) {
+                    closeFullBrowserViewer();
+                }
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+                e.preventDefault();
+                undoAnnotation();
+            }
+            if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
+                e.preventDefault();
+                redoAnnotation();
+            }
+        });
+
+        // ==========================================
+        // PDF VIEWER MODAL (LEGACY FALLBACK)
         // ==========================================
         window.openPdfViewer = function(url, title) {
-            const modal = document.getElementById('pdfModal');
-            document.getElementById('pdfModalTitle').innerText = title;
-            
-            // Handle google drive preview or direct pdf
-            let iframeUrl = url;
-            if (url.includes('cloudinary.com') || url.toLowerCase().endsWith('.pdf')) {
-                iframeUrl = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
-            }
-            
-            document.getElementById('pdfModalIframe').src = iframeUrl;
-            document.getElementById('pdfModalOpenExternal').href = url;
-            const dlBtn = document.getElementById('pdfModalDownload');
-            if (dlBtn) {
-                dlBtn.onclick = () => forceDownloadFile(url, `${title.replace(/[^a-zA-Z0-9_\-\.]/g, '_')}.pdf`);
-            }
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
+            openFullBrowserViewer({
+                id: 'temp_' + Date.now(),
+                courseCode: title.split(' - ')[0] || 'CSE',
+                topic: title,
+                type: 'Document',
+                pdfUrl: url
+            });
         };
 
         window.closePdfViewer = function() {
             const modal = document.getElementById('pdfModal');
-            modal.classList.remove('active');
-            document.getElementById('pdfModalIframe').src = '';
-            document.body.style.overflow = '';
+            if (modal) {
+                modal.classList.remove('active');
+                document.getElementById('pdfModalIframe').src = '';
+            }
+            closeFullBrowserViewer();
         };
 
         window.forceDownloadFile = async function(url, fileName) {
