@@ -1587,31 +1587,28 @@
             flex: 1 1 auto;
             display: flex;
             align-items: flex-end;
-            gap: 0.35rem;
-            min-width: 0;
-            overflow: hidden;
-            padding-right: 0.25rem;
-        }
-
-        .qb-tabs-scroll {
-            display: flex;
-            align-items: flex-end;
-            gap: 3px;
-            flex: 1 1 auto;
             min-width: 0;
             overflow-x: auto;
             overflow-y: hidden;
             scrollbar-width: none;
         }
 
-        .qb-tabs-scroll::-webkit-scrollbar {
+        .qb-tabstrip-track-wrapper::-webkit-scrollbar {
             display: none;
         }
 
-        /* Tabs Squeezing Behavior */
+        .qb-tabs-scroll {
+            display: inline-flex;
+            align-items: flex-end;
+            gap: 4px;
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        /* Tabs Squeezing Behavior (Chrome-style) */
         .qb-viewer-tab {
-            flex: 1 1 200px;
-            min-width: 70px;
+            flex: 0 1 200px;
+            min-width: 60px;
             max-width: 220px;
             height: 36px;
             display: flex;
@@ -2726,11 +2723,8 @@
             
             <div class="qb-tabstrip-track-wrapper">
                 <div class="qb-tabs-scroll" id="qbTabsContainer">
-                    <!-- Dynamic tabs that squeeze smoothly when full -->
+                    <!-- Dynamic tabs + Chrome-style '+' new tab button beside them -->
                 </div>
-                <button type="button" class="qb-add-tab-btn" onclick="openQuestionPickerModal()" title="Add / Open another question in new tab (+)">
-                    <i class="fas fa-plus"></i>
-                </button>
             </div>
 
             <div class="qb-tabstrip-right">
@@ -4440,7 +4434,7 @@
             const container = document.getElementById('qbTabsContainer');
             if (!container) return;
 
-            container.innerHTML = openViewerTabs.map((tab, idx) => {
+            const tabsHtml = openViewerTabs.map((tab, idx) => {
                 const isActive = idx === activeViewerTabIndex;
                 const semObj = decodeSemester(tab.paper.semester || tab.paper.trimester);
                 const tabLabel = `${tab.paper.courseCode} · ${tab.paper.semester || semObj.label} ${tab.paper.examType || ''}`;
@@ -4452,6 +4446,10 @@
                     </div>
                 `;
             }).join('');
+
+            // Chrome-style: + button sits directly beside the last tab
+            const addBtnHtml = `<button type="button" class="qb-add-tab-btn" onclick="openQuestionPickerModal()" title="New Tab (+)"><i class="fas fa-plus"></i></button>`;
+            container.innerHTML = tabsHtml + addBtnHtml;
         };
 
         window.switchViewerTab = function(idx) {
