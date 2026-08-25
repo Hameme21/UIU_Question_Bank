@@ -2346,6 +2346,120 @@
             min-height: calc(100vh - 80px);
         }
 
+        /* Mobile question viewer */
+        @media (max-width: 768px) {
+            .qb-fullscreen-viewer {
+                width: 100%;
+                height: 100dvh;
+            }
+
+            .qb-browser-tabstrip {
+                height: 40px;
+                padding: 0 0.4rem;
+                gap: 0.3rem;
+            }
+
+            .qb-tabstrip-brand span,
+            .qb-btn-back span,
+            .qb-info-title,
+            .qb-btn-text {
+                display: none;
+            }
+
+            .qb-tabstrip-left {
+                padding-left: 0;
+            }
+
+            .qb-viewer-tab {
+                min-width: 52px;
+                max-width: 150px;
+                padding: 0 0.45rem;
+            }
+
+            .qb-viewer-topbar {
+                height: auto;
+                min-height: 50px;
+                flex-wrap: wrap;
+                justify-content: flex-start;
+                padding: 0.4rem 0.5rem;
+                gap: 0.35rem;
+            }
+
+            .qb-topbar-left {
+                width: 100%;
+                gap: 0.4rem;
+            }
+
+            .qb-btn-back,
+            .qb-btn-icon {
+                min-width: 40px;
+                min-height: 40px;
+            }
+
+            .qb-topbar-actions {
+                width: 100%;
+                min-width: 0;
+                gap: 0.35rem;
+                overflow-x: auto;
+                padding-bottom: 0.15rem;
+                scrollbar-width: none;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .qb-topbar-actions::-webkit-scrollbar {
+                display: none;
+            }
+
+            .qb-zoom-controls,
+            .qb-page-controls {
+                flex-shrink: 0;
+            }
+
+            .qb-doc-scroller {
+                align-items: stretch;
+                padding: 1rem 0.5rem calc(1rem + env(safe-area-inset-bottom));
+            }
+
+            .qb-doc-canvas-wrapper {
+                width: 100%;
+                gap: 1rem;
+            }
+
+            .qb-floating-min-bubble {
+                top: auto !important;
+                left: auto !important;
+                right: 14px;
+                bottom: calc(14px + env(safe-area-inset-bottom));
+                width: 48px;
+                height: 48px;
+            }
+
+            .qb-annotation-toolbar.qb-floating-vertical {
+                top: auto !important;
+                left: 12px !important;
+                bottom: calc(12px + env(safe-area-inset-bottom));
+                max-height: min(58vh, 430px);
+            }
+        }
+
+        @media (max-width: 480px) {
+            #qbSplitViewToggle,
+            .qb-zoom-controls .qb-btn-icon:nth-of-type(3),
+            .qb-zoom-controls .qb-btn-icon:nth-of-type(4) {
+                display: none;
+            }
+
+            .qb-zoom-controls,
+            .qb-page-controls {
+                padding: 0.15rem 0.25rem;
+            }
+
+            .qb-zoom-level,
+            .qb-page-display {
+                min-width: 40px;
+            }
+        }
+
         /* Question Picker Modal */
         .qb-picker-list {
             display: flex;
@@ -4420,6 +4534,10 @@
             if (viewer) viewer.style.display = 'flex';
             document.body.style.overflow = 'hidden';
 
+            if (window.matchMedia('(max-width: 768px)').matches && !isToolbarMinimized) {
+                toggleFloatingToolbarMinimized(true);
+            }
+
             renderViewerTabs();
             renderActiveTabDocument();
         };
@@ -4670,9 +4788,16 @@
                         const page = await pdfDoc.getPage(pageNum);
                         if (renderToken !== currentRenderToken) return;
 
-                        const scale = (window.devicePixelRatio || 1) * activeTab.zoom;
+                        const baseViewport = page.getViewport({ scale: 1, rotation: activeTab.rotation });
+                        const docScroller = document.getElementById('qbMainDocScroller');
+                        const availableMobileWidth = Math.max(0, (docScroller?.clientWidth || 0) - 16);
+                        const mobileFitScale = window.matchMedia('(max-width: 768px)').matches && availableMobileWidth
+                            ? Math.min(1, availableMobileWidth / baseViewport.width)
+                            : 1;
+                        const displayScale = activeTab.zoom * mobileFitScale;
+                        const scale = (window.devicePixelRatio || 1) * displayScale;
                         const viewport = page.getViewport({ scale: scale, rotation: activeTab.rotation });
-                        const displayViewport = page.getViewport({ scale: activeTab.zoom, rotation: activeTab.rotation });
+                        const displayViewport = page.getViewport({ scale: displayScale, rotation: activeTab.rotation });
 
                         const pageContainer = document.createElement('div');
                         pageContainer.className = 'qb-page-container';
