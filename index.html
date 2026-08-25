@@ -2501,8 +2501,8 @@
 
         @media (max-width: 480px) {
             #qbSplitViewToggle,
-            .qb-zoom-controls .qb-btn-icon:nth-of-type(3),
-            .qb-zoom-controls .qb-btn-icon:nth-of-type(4) {
+            .qb-zoom-controls .qb-btn-icon:nth-of-type(1),
+            .qb-zoom-controls .qb-btn-icon:nth-of-type(2) {
                 display: none;
             }
 
@@ -2953,9 +2953,7 @@
 
                 <!-- Zoom & Page Controls -->
                 <div class="qb-zoom-controls">
-                    <button type="button" onclick="zoomViewerDoc(-0.15)" title="Zoom Out" class="qb-btn-icon"><i class="fas fa-search-minus"></i></button>
                     <span id="qbZoomLevelDisplay" class="qb-zoom-level">100%</span>
-                    <button type="button" onclick="zoomViewerDoc(0.15)" title="Zoom In" class="qb-btn-icon"><i class="fas fa-search-plus"></i></button>
                     <button type="button" onclick="fitViewerDocWidth()" title="Fit Width" class="qb-btn-icon"><i class="fas fa-arrows-alt-h"></i></button>
                     <button type="button" onclick="rotateViewerDoc()" title="Rotate 90°" class="qb-btn-icon"><i class="fas fa-redo"></i></button>
                 </div>
@@ -5527,6 +5525,72 @@
             if (!event.ctrlKey && !event.metaKey) return;
             event.preventDefault();
             zoomViewerDoc(event.deltaY < 0 ? 0.15 : -0.15);
+        }, { passive: false });
+
+        // Pinch with two fingers to zoom on touch devices. One-finger swipes still scroll pages normally.
+        const mainDocScroller = document.getElementById('qbMainDocScroller');
+        let viewerPinchState = null;
+        let pinchRenderTimer = null;
+
+        function getTouchDistance(touches) {
+            const horizontal = touches[0].clientX - touches[1].clientX;
+            const vertical = touches[0].clientY - touches[1].clientY;
+            return Math.hypot(horizontal, vertical);
+        }
+
+        function renderPinchZoom(immediately = false) {
+            if (pinchRenderTimer) {
+                clearTimeout(pinchRenderTimer);
+                pinchRenderTimer = null;
+            }
+            if (immediately) {
+                renderActiveTabDocument();
+                return;
+            }
+            pinchRenderTimer = setTimeout(() => {
+                pinchRenderTimer = null;
+                renderActiveTabDocument();
+            }, 90);
+        }
+
+        mainDocScroller.addEventListener('touchstart', function(event) {
+            if (event.touches.length !== 2) return;
+            const activeTab = openViewerTabs[activeViewerTabIndex];
+            if (!activeTab) return;
+            viewerPinchState = {
+                startDistance: getTouchDistance(event.touches),
+                startZoom: activeTab.zoom,
+                changed: false
+            };
+        }, { passive: false });
+
+        mainDocScroller.addEventListener('touchmove', function(event) {
+            if (!viewerPinchState || event.touches.length !== 2) return;
+            event.preventDefault();
+            const activeTab = openViewerTabs[activeViewerTabIndex];
+            if (!activeTab) return;
+
+            const zoomFactor = getTouchDistance(event.touches) / viewerPinchState.startDistance;
+            const nextZoom = Math.max(0.4, Math.min(3.0, viewerPinchState.startZoom * zoomFactor));
+            if (Math.abs(nextZoom - activeTab.zoom) < 0.01) return;
+
+            activeTab.zoom = nextZoom;
+            viewerPinchState.changed = true;
+            document.getElementById('qbZoomLevelDisplay').innerText = `${Math.round(nextZoom * 100)}%`;
+            renderPinchZoom();
+        }, { passive: false });
+
+        mainDocScroller.addEventListener('touchend', function(event) {
+            if (!viewerPinchState || event.touches.length >= 2) return;
+            const shouldRender = viewerPinchState.changed;
+            viewerPinchState = null;
+            if (shouldRender) renderPinchZoom(true);
+        }, { passive: false });
+
+        mainDocScroller.addEventListener('touchcancel', function() {
+            viewerPinchState = null;
+            if (pinchRenderTimer) clearTimeout(pinchRenderTimer);
+            pinchRenderTimer = null;
         }, { passive: false });
 
         window.fitViewerDocWidth = function() {
