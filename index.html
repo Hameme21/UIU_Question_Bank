@@ -2311,6 +2311,7 @@
             align-items: center;
             gap: 1.5rem;
             margin: auto;
+            transform-origin: center top;
         }
 
         .qb-page-container {
@@ -2902,7 +2903,7 @@
     <!-- App Footer (Global Across All Pages) -->
     <footer class="app-footer" style="margin-top: 1.5rem; padding: 0.75rem 1rem 4rem; text-align: center; color: var(--text-muted); font-size: 0.8rem; width: 100%; position: relative; z-index: 10;">
         <div style="font-weight: 600; color: var(--text); margin-bottom: 0.15rem;">©copyright© 2026 Hameme21</div>
-        <div style="font-size: 0.75rem; opacity: 0.8;">version 2.1.0</div>
+        <div style="font-size: 0.75rem; opacity: 0.8;">version 1.1.0</div>
     </footer>
 
     <!-- Full Browser Question Viewer & Multi-Tab Teacher Studio Overlay -->
@@ -5530,7 +5531,6 @@
         // Pinch with two fingers to zoom on touch devices. One-finger swipes still scroll pages normally.
         const mainDocScroller = document.getElementById('qbMainDocScroller');
         let viewerPinchState = null;
-        let pinchRenderTimer = null;
 
         function getTouchDistance(touches) {
             const horizontal = touches[0].clientX - touches[1].clientX;
@@ -5538,19 +5538,13 @@
             return Math.hypot(horizontal, vertical);
         }
 
-        function renderPinchZoom(immediately = false) {
-            if (pinchRenderTimer) {
-                clearTimeout(pinchRenderTimer);
-                pinchRenderTimer = null;
+        function finishPinchZoom(shouldRender) {
+            const wrapper = document.getElementById('qbMainCanvasWrapper');
+            if (wrapper) {
+                wrapper.style.transform = '';
+                wrapper.style.willChange = '';
             }
-            if (immediately) {
-                renderActiveTabDocument();
-                return;
-            }
-            pinchRenderTimer = setTimeout(() => {
-                pinchRenderTimer = null;
-                renderActiveTabDocument();
-            }, 90);
+            if (shouldRender) renderActiveTabDocument();
         }
 
         mainDocScroller.addEventListener('touchstart', function(event) {
@@ -5577,20 +5571,24 @@
             activeTab.zoom = nextZoom;
             viewerPinchState.changed = true;
             document.getElementById('qbZoomLevelDisplay').innerText = `${Math.round(nextZoom * 100)}%`;
-            renderPinchZoom();
+            const wrapper = document.getElementById('qbMainCanvasWrapper');
+            if (wrapper) {
+                wrapper.style.willChange = 'transform';
+                wrapper.style.transform = `scale(${nextZoom / viewerPinchState.startZoom})`;
+            }
         }, { passive: false });
 
         mainDocScroller.addEventListener('touchend', function(event) {
             if (!viewerPinchState || event.touches.length >= 2) return;
             const shouldRender = viewerPinchState.changed;
             viewerPinchState = null;
-            if (shouldRender) renderPinchZoom(true);
+            finishPinchZoom(shouldRender);
         }, { passive: false });
 
         mainDocScroller.addEventListener('touchcancel', function() {
+            const shouldRender = viewerPinchState?.changed;
             viewerPinchState = null;
-            if (pinchRenderTimer) clearTimeout(pinchRenderTimer);
-            pinchRenderTimer = null;
+            finishPinchZoom(shouldRender);
         }, { passive: false });
 
         window.fitViewerDocWidth = function() {
