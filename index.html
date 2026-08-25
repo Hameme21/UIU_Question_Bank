@@ -2482,6 +2482,11 @@
                 </div>
             </section>
 
+            <div id="recentCoursesSection" style="display:none; margin-bottom: 3rem;">
+                <h3 class="section-title">Continue Studying</h3>
+                <div class="course-grid" id="recentCoursesGrid"></div>
+            </div>
+
             <h3 class="section-title">Browse by Trimester</h3>
             <div class="horizontal-scroll" id="trimesterList">
                 <!-- Populated via JS -->
@@ -2490,11 +2495,6 @@
             <h3 class="section-title">Browse by Academic Semester</h3>
             <div class="horizontal-scroll" id="semesterList">
                 <!-- Populated via JS -->
-            </div>
-
-            <div id="recentCoursesSection" style="display:none; margin-bottom: 3rem;">
-                <h3 class="section-title">Continue Studying</h3>
-                <div class="course-grid" id="recentCoursesGrid"></div>
             </div>
             
             <h3 class="section-title">Recently Added</h3>
@@ -5299,6 +5299,13 @@
             activeTab.zoom = Math.max(0.4, Math.min(3.0, activeTab.zoom + delta));
             renderActiveTabDocument();
         };
+
+        // Ctrl/Cmd + mouse wheel zooms the active question without blocking normal page scrolling.
+        document.getElementById('qbMainDocScroller').addEventListener('wheel', function(event) {
+            if (!event.ctrlKey && !event.metaKey) return;
+            event.preventDefault();
+            zoomViewerDoc(event.deltaY < 0 ? 0.15 : -0.15);
+        }, { passive: false });
 
         window.fitViewerDocWidth = function() {
             const activeTab = openViewerTabs[activeViewerTabIndex];
