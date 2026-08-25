@@ -2177,6 +2177,10 @@
             box-shadow: 0 10px 28px rgba(243, 112, 33, 0.65);
         }
 
+        .qb-mobile-document-actions {
+            display: none;
+        }
+
         .qb-anno-btn {
             width: 32px;
             height: 32px;
@@ -2439,6 +2443,50 @@
                 left: 12px !important;
                 bottom: calc(12px + env(safe-area-inset-bottom));
                 max-height: min(58vh, 430px);
+            }
+
+            .qb-topbar-actions > .qb-download-dropdown-wrapper,
+            .qb-topbar-actions > #qbViewerOpenExternal {
+                display: none;
+            }
+
+            .qb-mobile-document-actions {
+                position: absolute;
+                right: 14px;
+                bottom: calc(74px + env(safe-area-inset-bottom));
+                z-index: 59;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 0.65rem;
+            }
+
+            .qb-mobile-document-actions .qb-download-dropdown-wrapper {
+                position: relative;
+            }
+
+            .qb-mobile-document-actions .qb-btn-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                color: #ffffff;
+                border-color: transparent;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+            }
+
+            .qb-mobile-download-btn {
+                background: linear-gradient(135deg, #10b981, #059669);
+            }
+
+            .qb-mobile-open-btn {
+                background: linear-gradient(135deg, #3b82f6, #2563eb);
+            }
+
+            .qb-mobile-document-actions .qb-download-menu {
+                top: auto;
+                right: 0;
+                bottom: calc(100% + 0.65rem);
+                min-width: 220px;
             }
         }
 
@@ -2894,7 +2942,7 @@
                     </button>
                     <div class="qb-download-menu" id="qbViewerDownloadMenu">
                         <button type="button" onclick="downloadCurrentTabPaper(false)"><i class="fas fa-file-pdf"></i> Download Question PDF</button>
-                        <button type="button" id="qbDlSolutionOpt" onclick="downloadCurrentTabPaper(true)"><i class="fas fa-check-circle"></i> Download Solution PDF</button>
+                        <button type="button" id="qbDlSolutionOpt" data-solution-download-option onclick="downloadCurrentTabPaper(true)"><i class="fas fa-check-circle"></i> Download Solution PDF</button>
                         <button type="button" onclick="exportAnnotatedCanvasImage()"><i class="fas fa-file-image"></i> Export Annotated Image (PNG)</button>
                     </div>
                 </div>
@@ -3013,6 +3061,23 @@
             <button type="button" class="qb-floating-min-bubble" id="qbFloatingMinBubble" onclick="toggleFloatingToolbarMinimized(false)" title="Open Tools Palette">
                 <i class="fas fa-pen-nib"></i>
             </button>
+
+            <!-- Mobile-only floating document actions -->
+            <div class="qb-mobile-document-actions" aria-label="Document actions">
+                <div class="qb-download-dropdown-wrapper">
+                    <button type="button" class="qb-btn-icon qb-mobile-download-btn" onclick="toggleViewerDownloadMenu(event, 'qbMobileViewerDownloadMenu')" title="Download options" aria-label="Download options">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <div class="qb-download-menu" id="qbMobileViewerDownloadMenu">
+                        <button type="button" onclick="downloadCurrentTabPaper(false)"><i class="fas fa-file-pdf"></i> Download Question PDF</button>
+                        <button type="button" data-solution-download-option onclick="downloadCurrentTabPaper(true)"><i class="fas fa-check-circle"></i> Download Solution PDF</button>
+                        <button type="button" onclick="exportAnnotatedCanvasImage()"><i class="fas fa-file-image"></i> Export Annotated Image (PNG)</button>
+                    </div>
+                </div>
+                <a id="qbMobileViewerOpenExternal" href="#" target="_blank" class="qb-btn-icon qb-mobile-open-btn" title="Open PDF in a new tab" aria-label="Open PDF in a new tab">
+                    <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
             <!-- Main Pane (Active Tab) -->
             <div class="qb-viewer-pane" id="qbMainPane">
                 <div class="qb-doc-scroller" id="qbMainDocScroller">
@@ -4726,12 +4791,12 @@
             document.getElementById('qbViewerCourseCode').innerText = activeTab.paper.courseCode || 'CSE';
             document.getElementById('qbViewerDocTitle').innerText = activeTab.title;
             document.getElementById('qbViewerOpenExternal').href = activeTab.pdfUrl || '#';
+            document.getElementById('qbMobileViewerOpenExternal').href = activeTab.pdfUrl || '#';
             document.getElementById('qbZoomLevelDisplay').innerText = `${Math.round(activeTab.zoom * 100)}%`;
 
-            const solOpt = document.getElementById('qbDlSolutionOpt');
-            if (solOpt) {
-                solOpt.style.display = activeTab.solPdf ? 'flex' : 'none';
-            }
+            document.querySelectorAll('[data-solution-download-option]').forEach(option => {
+                option.style.display = activeTab.solPdf ? 'flex' : 'none';
+            });
 
             const wrapper = document.getElementById('qbMainCanvasWrapper');
             const iframeWrapper = document.getElementById('qbMainIframeWrapper');
@@ -5491,16 +5556,18 @@
             }
         });
 
-        window.toggleViewerDownloadMenu = function(event) {
+        window.toggleViewerDownloadMenu = function(event, menuId = 'qbViewerDownloadMenu') {
             if (event) event.stopPropagation();
-            const menu = document.getElementById('qbViewerDownloadMenu');
+            const menu = document.getElementById(menuId);
+            document.querySelectorAll('.qb-download-menu').forEach(otherMenu => {
+                if (otherMenu !== menu) otherMenu.classList.remove('active');
+            });
             if (menu) menu.classList.toggle('active');
         };
 
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.qb-download-dropdown-wrapper')) {
-                const menu = document.getElementById('qbViewerDownloadMenu');
-                if (menu) menu.classList.remove('active');
+                document.querySelectorAll('.qb-download-menu').forEach(menu => menu.classList.remove('active'));
             }
         });
 
