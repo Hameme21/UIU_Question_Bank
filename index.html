@@ -5243,11 +5243,29 @@
 
             function getCanvasCoords(e) {
                 const rect = canvas.getBoundingClientRect();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                // Use the actual ratio between the canvas internal resolution and its
+                // displayed CSS size. This handles DPR, zoom, CSS max-width clamping,
+                // and any layout scaling that changes the displayed size.
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+
+                let clientX, clientY;
+                if (e.touches && e.touches.length > 0) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else if (e.changedTouches && e.changedTouches.length > 0) {
+                    clientX = e.changedTouches[0].clientX;
+                    clientY = e.changedTouches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+
+                // Convert from screen pixels to canvas internal coordinate space,
+                // then divide by the annotation scale so stored coords are scale-independent
                 return {
-                    x: (clientX - rect.left) / scale,
-                    y: (clientY - rect.top) / scale
+                    x: ((clientX - rect.left) * scaleX) / scale,
+                    y: ((clientY - rect.top) * scaleY) / scale
                 };
             }
 
