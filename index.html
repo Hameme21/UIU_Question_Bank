@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script>
         if (typeof pdfjsLib !== 'undefined') {
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -1306,24 +1307,58 @@
            QUESTION BANK: PHOTO-MATCHED CARDS & SECTIONS
            ========================================================= */
         .qb-section-wrapper {
-            margin-bottom: 2.5rem;
+            margin-bottom: 1.5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .qb-section-wrapper:hover {
+            border-color: var(--border-hover);
         }
 
         .qb-section-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 1.25rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border);
+            padding: 0.9rem 1.25rem;
+            background: var(--surface);
+            cursor: pointer;
+            user-select: none;
             flex-wrap: wrap;
             gap: 0.75rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .qb-section-header:hover {
+            background-color: var(--surface-2);
         }
 
         .qb-section-title-wrap {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
+            gap: 0.75rem;
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .qb-section-chevron {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 16px;
+            text-align: center;
+        }
+
+        .qb-section-chevron.rotated {
+            transform: rotate(0deg);
+        }
+
+        .qb-section-chevron:not(.rotated) {
+            transform: rotate(-90deg);
         }
 
         .qb-section-dot {
@@ -1333,10 +1368,11 @@
             background: #3b82f6;
             display: inline-block;
             box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+            flex-shrink: 0;
         }
 
         .qb-section-title {
-            font-size: 1.15rem;
+            font-size: 1.05rem;
             font-weight: 700;
             color: var(--text-main);
             margin: 0;
@@ -1345,16 +1381,63 @@
             gap: 0.5rem;
         }
 
+        .qb-section-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.2rem 0.55rem;
+            border-radius: var(--radius-full);
+            background: var(--surface-2);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .qb-section-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .qb-section-dl-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.4rem 0.85rem;
+            background: rgba(243, 112, 33, 0.08);
+            border: 1px solid rgba(243, 112, 33, 0.3);
+            border-radius: var(--radius-sm);
+            color: var(--orange);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .qb-section-dl-btn:hover {
+            background: var(--orange);
+            color: #ffffff;
+            border-color: var(--orange);
+            box-shadow: 0 2px 8px rgba(243, 112, 33, 0.3);
+        }
+
+        .qb-section-dl-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .qb-sort-select {
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
-            padding: 0.45rem 1rem;
+            padding: 0.4rem 0.8rem;
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: var(--radius-sm);
             color: var(--text-main);
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             font-weight: 600;
             cursor: pointer;
             outline: none;
@@ -1365,6 +1448,46 @@
         .qb-sort-select:hover, .qb-sort-select:focus {
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .qb-section-body {
+            padding: 1.25rem;
+            border-top: 1px solid var(--border);
+            background: var(--bg);
+            animation: qbFadeIn 0.2s ease-out;
+        }
+
+        @keyframes qbFadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .qb-accordion-master-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .qb-master-toggle-btn {
+            font-size: 0.8rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-sm);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+        }
+
+        .qb-master-toggle-btn:hover {
+            color: var(--orange);
+            border-color: var(--orange);
         }
 
         .qb-box-grid {
@@ -1424,6 +1547,42 @@
             transform: translateY(-5px);
             border-color: #3b82f6;
             box-shadow: 0 10px 25px rgba(59, 130, 246, 0.25);
+        }
+
+        .qb-question-box.is-solution {
+            border-color: #bbf7d0;
+            border-bottom: 3.5px solid #16a34a;
+            box-shadow: 0 4px 14px rgba(22, 163, 74, 0.08);
+        }
+
+        [data-theme="dark"] .qb-question-box.is-solution {
+            border-color: rgba(34, 197, 94, 0.25);
+            border-bottom: 3.5px solid #16a34a;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .qb-question-box.is-solution:hover {
+            border-color: #16a34a;
+            box-shadow: 0 10px 25px rgba(22, 163, 74, 0.25);
+        }
+
+        .qb-sol-pill {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(22, 163, 74, 0.12);
+            color: #16a34a;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 0.15rem 0.45rem;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        [data-theme="dark"] .qb-sol-pill {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
         }
 
         .qb-trimester-badge {
@@ -3805,19 +3964,25 @@
         // ==========================================
         // PHOTO-MATCHED QUESTION CARD GENERATOR
         // ==========================================
-        function createPhotoMatchedQuestionBox(paper) {
+        function createPhotoMatchedQuestionBox(paper, isSolution = false) {
             const semObj = decodeSemester(paper.semester || paper.trimester);
             const codePill = paper.semester || (paper.trimester ? `${paper.trimester}` : '261');
             const semName = semObj.label;
             const mainPdf = paper.pdfUrl || paper.fileUrl || paper.notePdfUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType !== 'solution')?.pdfUrl) || (paper.materialAssets && paper.materialAssets[0]?.pdfUrl) || '';
             const solPdf = paper.solutionPdfUrl || paper.solutionUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType === 'solution')?.pdfUrl) || '';
-            const mainName = formatPdfDownloadName(paper, false);
+            
+            const targetPdf = isSolution ? (solPdf || mainPdf) : mainPdf;
+            const downloadName = formatPdfDownloadName(paper, isSolution);
             const hasSol = Boolean(solPdf);
 
+            const cardClass = isSolution ? 'qb-question-box is-solution' : 'qb-question-box';
+            const actionTitle = isSolution ? `Click to view Solution for ${paper.courseCode} ${semName}` : `Click to open ${paper.courseCode} ${semName} in Full Browser Viewer`;
+            const dlBtnTitle = isSolution ? 'Download Solution PDF' : 'Download Question PDF';
+
             return `
-                <div class="qb-question-box" onclick="openFullBrowserViewerById('${paper.id}')" title="Click to open ${paper.courseCode} ${semName} in Full Browser Viewer">
-                    ${hasSol ? `<span class="qb-card-sol-indicator" title="Solution Included"><i class="fas fa-check"></i></span>` : ''}
-                    <button type="button" class="qb-card-dl-btn" onclick="event.stopPropagation(); forceDownloadFile('${mainPdf}', '${mainName}')" title="Download Question PDF">
+                <div class="${cardClass}" onclick="openFullBrowserViewerById('${paper.id}', ${isSolution})" title="${actionTitle}">
+                    ${isSolution ? `<span class="qb-sol-pill"><i class="fas fa-check-circle"></i> Solution</span>` : (hasSol ? `<span class="qb-card-sol-indicator" title="Solution Included"><i class="fas fa-check"></i></span>` : '')}
+                    <button type="button" class="qb-card-dl-btn" onclick="event.stopPropagation(); forceDownloadFile('${targetPdf}', '${downloadName}')" title="${dlBtnTitle}">
                         <i class="fas fa-download"></i>
                     </button>
                     <div class="qb-trimester-badge">${codePill}</div>
@@ -3828,6 +3993,192 @@
         }
 
         const courseSectionSortOrders = {};
+        const courseSectionCollapsed = {};
+
+        function isSectionCollapsed(courseCode, sectionKey) {
+            const key = `${courseCode}_${sectionKey}`;
+            // By default, ALL sections will be collapsed
+            if (courseSectionCollapsed[key] === undefined) {
+                return true;
+            }
+            return Boolean(courseSectionCollapsed[key]);
+        }
+
+        window.toggleCourseSection = function(sectionKey, courseCode) {
+            const key = `${courseCode}_${sectionKey}`;
+            const currentState = isSectionCollapsed(courseCode, sectionKey);
+            const newState = !currentState;
+            courseSectionCollapsed[key] = newState;
+
+            const wrapper = document.getElementById(`qbSection_${sectionKey}`);
+            if (wrapper) {
+                const body = wrapper.querySelector('.qb-section-body');
+                const chevron = wrapper.querySelector('.qb-section-chevron');
+                if (body) {
+                    body.style.display = newState ? 'none' : 'block';
+                }
+                if (chevron) {
+                    chevron.classList.toggle('rotated', !newState);
+                }
+            }
+        };
+
+        window.toggleAllCourseSections = function(courseCode, expandAll) {
+            const wrappers = document.querySelectorAll('.qb-section-wrapper');
+            wrappers.forEach(wrapper => {
+                const secId = wrapper.id.replace('qbSection_', '');
+                courseSectionCollapsed[`${courseCode}_${secId}`] = !expandAll;
+                const body = wrapper.querySelector('.qb-section-body');
+                const chevron = wrapper.querySelector('.qb-section-chevron');
+                if (body) {
+                    body.style.display = expandAll ? 'block' : 'none';
+                }
+                if (chevron) {
+                    chevron.classList.toggle('rotated', expandAll);
+                }
+            });
+        };
+
+        window.downloadAllSectionFiles = async function(sectionKey, courseCode) {
+            const course = CURRICULUM.find(c => c.code.replace(/\s+/g,'').toLowerCase() === courseCode.replace(/\s+/g,'').toLowerCase());
+            if (!course) return;
+
+            let papers = approvedPapers.filter(p => p.courseCode.replace(/\s+/g,'').toLowerCase() === course.code.replace(/\s+/g,'').toLowerCase());
+            const semFilter = document.getElementById('courseSemesterFilter');
+            const examFilter = document.getElementById('courseExamTypeFilter');
+            if (semFilter && semFilter.value !== 'all') papers = papers.filter(p => p.semester === semFilter.value);
+            if (examFilter && examFilter.value !== 'all') papers = papers.filter(p => p.examType === examFilter.value);
+
+            const isSolutionSection = sectionKey === 'solutions';
+            let targetList = [];
+
+            if (sectionKey === 'midterm') {
+                targetList = papers.filter(p => (p.examType === 'Midterm' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('mid'))) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
+            } else if (sectionKey === 'final') {
+                targetList = papers.filter(p => (p.examType === 'Final' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('fin'))) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
+            } else if (sectionKey === 'solutions') {
+                targetList = papers.filter(p => p.type === 'Solution' || Boolean(p.solutionPdfUrl || p.solutionUrl || (p.materialAssets && p.materialAssets.some(a => a.assetType === 'solution'))));
+            } else if (sectionKey === 'notes') {
+                targetList = papers.filter(p => p.type === 'Notes' || p.materialType === 'note');
+            } else if (sectionKey === 'labs') {
+                targetList = papers.filter(p => p.type === 'Lab');
+            } else if (sectionKey === 'other') {
+                const mid = papers.filter(p => (p.examType === 'Midterm' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('mid'))) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
+                const fin = papers.filter(p => (p.examType === 'Final' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('fin'))) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
+                targetList = papers.filter(p => p.type === 'Question' && !mid.includes(p) && !fin.includes(p) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
+            }
+
+            const fileItems = [];
+            targetList.forEach(paper => {
+                let url = '';
+                let fileName = '';
+                if (isSolutionSection) {
+                    url = paper.solutionPdfUrl || paper.solutionUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType === 'solution')?.pdfUrl) || paper.pdfUrl || paper.fileUrl || '';
+                    fileName = formatPdfDownloadName(paper, true);
+                } else {
+                    url = paper.pdfUrl || paper.fileUrl || paper.notePdfUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType !== 'solution')?.pdfUrl) || (paper.materialAssets && paper.materialAssets[0]?.pdfUrl) || '';
+                    fileName = formatPdfDownloadName(paper, false);
+                }
+                if (url && url !== '#' && url !== 'null') {
+                    fileItems.push({ url, fileName, paper });
+                }
+            });
+
+            if (fileItems.length === 0) {
+                if (typeof showToast === 'function') showToast('No downloadable files available in this section.', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById(`qbDlBtn_${sectionKey}`);
+            const originalContent = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Zipping 0/${fileItems.length}...`;
+            }
+
+            if (typeof showToast === 'function') showToast(`Preparing ZIP archive for ${fileItems.length} file(s)...`, 'info');
+
+            try {
+                if (typeof JSZip === 'undefined') {
+                    throw new Error('JSZip library not ready');
+                }
+
+                const zip = new JSZip();
+                const usedNames = new Set();
+
+                for (let i = 0; i < fileItems.length; i++) {
+                    const item = fileItems[i];
+                    if (btn) btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Zipping ${i + 1}/${fileItems.length}...`;
+
+                    let targetUrl = item.url;
+                    if (targetUrl.includes('cloudinary.com') && targetUrl.includes('/upload/')) {
+                        targetUrl = targetUrl.replace('/upload/', '/upload/fl_attachment/');
+                    }
+
+                    try {
+                        const res = await fetch(targetUrl);
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        const blob = await res.blob();
+                        
+                        let finalName = item.fileName;
+                        if (!finalName.endsWith('.pdf')) finalName += '.pdf';
+                        let counter = 1;
+                        let candidate = finalName;
+                        while (usedNames.has(candidate)) {
+                            const base = finalName.replace(/\.pdf$/i, '');
+                            candidate = `${base}_(${counter}).pdf`;
+                            counter++;
+                        }
+                        usedNames.add(candidate);
+
+                        zip.file(candidate, blob);
+                    } catch (fetchErr) {
+                        console.warn(`Could not fetch ${item.fileName} into ZIP:`, fetchErr);
+                    }
+                }
+
+                const zipFilesCount = Object.keys(zip.files).length;
+                if (zipFilesCount === 0) {
+                    throw new Error('Direct fetch failed. Falling back to individual downloads.');
+                }
+
+                if (btn) btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Compressing...`;
+                const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+
+                const cleanCode = course.code.replace(/\s+/g, '').toUpperCase();
+                const sectionTitle = sectionKey.charAt(0).toUpperCase() + sectionKey.slice(1);
+                const zipName = `${cleanCode}_${sectionTitle}_UIU_QB.zip`;
+
+                const blobUrl = URL.createObjectURL(zipBlob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = zipName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
+
+                if (typeof showToast === 'function') {
+                    showToast(`Downloaded ${zipFilesCount} files as ${zipName}!`, 'success');
+                }
+            } catch (err) {
+                console.warn('ZIP creation error, falling back to sequential download:', err);
+                if (typeof showToast === 'function') {
+                    showToast(`Downloading ${fileItems.length} files individually...`, 'info');
+                }
+                for (let i = 0; i < fileItems.length; i++) {
+                    const f = fileItems[i];
+                    setTimeout(() => {
+                        forceDownloadFile(f.url, f.fileName);
+                    }, i * 600);
+                }
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalContent;
+                }
+            }
+        };
 
         window.sortSectionQuestions = function(sectionKey, order, courseCode) {
             courseSectionSortOrders[sectionKey] = order;
@@ -3893,49 +4244,59 @@
                 }
 
                 // Categorize papers matching UI layout
-                const midterms = papers.filter(p => (p.examType === 'Midterm' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('mid'))) && p.type !== 'Notes' && p.type !== 'Lab');
-                const finals = papers.filter(p => (p.examType === 'Final' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('fin'))) && p.type !== 'Notes' && p.type !== 'Lab');
-                const otherQuestions = papers.filter(p => p.type === 'Question' && !midterms.includes(p) && !finals.includes(p) && p.type !== 'Notes' && p.type !== 'Lab');
+                const midterms = papers.filter(p => (p.examType === 'Midterm' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('mid'))) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
+                const finals = papers.filter(p => (p.examType === 'Final' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('fin'))) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
+                const otherQuestions = papers.filter(p => p.type === 'Question' && !midterms.includes(p) && !finals.includes(p) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
+                
+                // Dedicated Solutions section: questions that have solutions attached OR standalone solutions
+                const solutions = papers.filter(p => p.type === 'Solution' || Boolean(p.solutionPdfUrl || p.solutionUrl || (p.materialAssets && p.materialAssets.some(a => a.assetType === 'solution'))));
+                
                 const notes = papers.filter(p => p.type === 'Notes' || p.materialType === 'note');
                 const labs = papers.filter(p => p.type === 'Lab');
 
-                function renderBoxSection(title, key, list) {
+                function renderBoxSection(title, key, list, dotColor = '#3b82f6', isSolutionSection = false) {
                     if (list.length === 0) return '';
                     const sortOrder = courseSectionSortOrders[key] || 'newest';
                     const sortedList = sortPapers(list, sortOrder);
+                    const isCollapsed = isSectionCollapsed(course.code, key);
+
                     return `
                         <div class="qb-section-wrapper" id="qbSection_${key}">
-                            <div class="qb-section-header">
+                            <div class="qb-section-header" onclick="toggleCourseSection('${key}', '${course.code}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){toggleCourseSection('${key}','${course.code}');event.preventDefault();}" title="Click to expand/collapse ${title}">
                                 <div class="qb-section-title-wrap">
-                                    <span class="qb-section-dot"></span>
+                                    <i class="fas fa-chevron-down qb-section-chevron ${isCollapsed ? '' : 'rotated'}"></i>
+                                    <span class="qb-section-dot" style="background: ${dotColor}; box-shadow: 0 0 8px ${dotColor}88;"></span>
                                     <h3 class="qb-section-title">${title}</h3>
+                                    <span class="qb-section-badge">${list.length} ${list.length === 1 ? 'item' : 'items'}</span>
                                 </div>
-                                <select class="qb-sort-select" onchange="sortSectionQuestions('${key}', this.value, '${course.code}')">
-                                    <option value="newest" ${sortOrder === 'newest' ? 'selected' : ''}>⇅ Newest First</option>
-                                    <option value="oldest" ${sortOrder === 'oldest' ? 'selected' : ''}>⇅ Oldest First</option>
-                                </select>
+                                <div class="qb-section-actions">
+                                    <select class="qb-sort-select" onclick="event.stopPropagation()" onchange="sortSectionQuestions('${key}', this.value, '${course.code}')" title="Sort order">
+                                        <option value="newest" ${sortOrder === 'newest' ? 'selected' : ''}>⇅ Newest First</option>
+                                        <option value="oldest" ${sortOrder === 'oldest' ? 'selected' : ''}>⇅ Oldest First</option>
+                                    </select>
+                                    <button type="button" class="qb-section-dl-btn" id="qbDlBtn_${key}" onclick="event.stopPropagation(); downloadAllSectionFiles('${key}', '${course.code}')" title="Download all ${list.length} files in this section as ZIP">
+                                        <i class="fas fa-file-archive"></i> Download All (${list.length})
+                                    </button>
+                                </div>
                             </div>
-                            <div class="qb-box-grid">
-                                ${sortedList.map(p => createPhotoMatchedQuestionBox(p)).join('')}
+                            <div class="qb-section-body" style="display: ${isCollapsed ? 'none' : 'block'};">
+                                <div class="qb-box-grid">
+                                    ${sortedList.map(p => createPhotoMatchedQuestionBox(p, isSolutionSection)).join('')}
+                                </div>
                             </div>
                         </div>
                     `;
                 }
 
-                let html = '';
-                html += renderBoxSection('Mid-Term Questions', 'midterm', midterms);
-                html += renderBoxSection('Final Questions', 'final', finals);
-                if (otherQuestions.length > 0) {
-                    html += renderBoxSection('Other Questions & Quizzes', 'other', otherQuestions);
-                }
-                if (notes.length > 0) {
-                    html += renderBoxSection('Class Notes', 'notes', notes);
-                }
-                if (labs.length > 0) {
-                    html += renderBoxSection('Lab Materials', 'labs', labs);
-                }
+                let sectionsHtml = '';
+                if (midterms.length > 0) sectionsHtml += renderBoxSection('Mid-Term Questions', 'midterm', midterms, '#3b82f6', false);
+                if (finals.length > 0) sectionsHtml += renderBoxSection('Final Questions', 'final', finals, '#6366f1', false);
+                if (solutions.length > 0) sectionsHtml += renderBoxSection('Solutions', 'solutions', solutions, '#10b981', true);
+                if (notes.length > 0) sectionsHtml += renderBoxSection('Class Notes', 'notes', notes, '#f59e0b', false);
+                if (labs.length > 0) sectionsHtml += renderBoxSection('Lab Materials', 'labs', labs, '#8b5cf6', false);
+                if (otherQuestions.length > 0) sectionsHtml += renderBoxSection('Other Questions & Quizzes', 'other', otherQuestions, '#06b6d4', false);
 
-                if (!html) {
+                if (!sectionsHtml) {
                     container.innerHTML = `
                         <div style="padding:3.5rem 1.5rem; text-align:center; border:2px dashed var(--border); border-radius:var(--radius-lg); background:var(--surface); margin-top:2rem;">
                             <i class="fas fa-folder-open" style="font-size:2.5rem; color:var(--text-muted); margin-bottom:1rem;"></i>
@@ -3945,7 +4306,20 @@
                         </div>
                     `;
                 } else {
-                    container.innerHTML = html;
+                    const masterToolbar = `
+                        <div class="qb-accordion-master-toolbar">
+                            <span style="font-size:0.82rem; color:var(--text-muted); margin-right:auto; font-weight:600; display:flex; align-items:center; gap:0.4rem;">
+                                <i class="fas fa-layer-group" style="color:var(--orange);"></i> Course Sections (Default Collapsed)
+                            </span>
+                            <button type="button" class="qb-master-toggle-btn" onclick="toggleAllCourseSections('${course.code}', true)" title="Expand all sections">
+                                <i class="fas fa-angles-down"></i> Expand All
+                            </button>
+                            <button type="button" class="qb-master-toggle-btn" onclick="toggleAllCourseSections('${course.code}', false)" title="Collapse all sections">
+                                <i class="fas fa-angles-up"></i> Collapse All
+                            </button>
+                        </div>
+                    `;
+                    container.innerHTML = masterToolbar + sectionsHtml;
                 }
             }
         }
@@ -4595,13 +4969,13 @@
             return `${course}_${sem}_${exam}_${topic}`;
         }
 
-        window.openFullBrowserViewerById = function(paperId) {
+        window.openFullBrowserViewerById = function(paperId, initialIsSolution = false) {
             const paper = approvedPapers.find(p => p.id === paperId || getPaperUniqueId(p) === paperId);
             if (!paper) return;
-            openFullBrowserViewer(paper);
+            openFullBrowserViewer(paper, initialIsSolution);
         };
 
-        window.openFullBrowserViewer = function(paper) {
+        window.openFullBrowserViewer = function(paper, initialIsSolution = false) {
             if (!paper) return;
             const tabId = getPaperUniqueId(paper);
             const mainPdf = paper.pdfUrl || paper.fileUrl || paper.notePdfUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType !== 'solution')?.pdfUrl) || (paper.materialAssets && paper.materialAssets[0]?.pdfUrl) || '';
@@ -4612,6 +4986,9 @@
             const existingIdx = openViewerTabs.findIndex(t => t.id === tabId);
             if (existingIdx >= 0) {
                 activeViewerTabIndex = existingIdx;
+                if (initialIsSolution && openViewerTabs[existingIdx].solPdf) {
+                    openViewerTabs[existingIdx].isShowingSolution = true;
+                }
             } else {
                 const tab = {
                     id: tabId,
@@ -4619,7 +4996,7 @@
                     title: title,
                     pdfUrl: mainPdf,
                     solPdf: solPdf,
-                    isShowingSolution: false,
+                    isShowingSolution: Boolean(initialIsSolution && solPdf),
                     currentPage: 1,
                     totalPages: 1,
                     zoom: 2.0,
@@ -4917,6 +5294,7 @@
                         const annoCanvas = document.createElement('canvas');
                         annoCanvas.className = 'qb-anno-canvas';
                         annoCanvas.dataset.pageNum = pageNum;
+                        annoCanvas.dataset.scale = scale;
                         annoCanvas.width = viewport.width;
                         annoCanvas.height = viewport.height;
                         annoCanvas.style.width = `${displayViewport.width}px`;
@@ -5082,7 +5460,7 @@
                     c.style.cursor = 'default';
                     c.style.pointerEvents = 'none';
                 } else if (tool === 'eraser') {
-                    c.style.cursor = 'cell';
+                    c.style.cursor = 'crosshair';
                     c.style.pointerEvents = 'auto';
                 } else if (tool === 'text') {
                     c.style.cursor = 'text';
@@ -5237,46 +5615,201 @@
             });
         }
 
+        function distToSegmentSquared(px, py, vx, vy, wx, wy) {
+            const l2 = (wx - vx) * (wx - vx) + (wy - vy) * (wy - vy);
+            if (l2 === 0) return (px - vx) * (px - vx) + (py - vy) * (py - vy);
+            let t = ((px - vx) * (wx - vx) + (py - vy) * (wy - vy)) / l2;
+            t = Math.max(0, Math.min(1, t));
+            const projX = vx + t * (wx - vx);
+            const projY = vy + t * (wy - vy);
+            return (px - projX) * (px - projX) + (py - projY) * (py - projY);
+        }
+
+        function isAnnotationHitByEraser(anno, coords) {
+            const ERASER_RADIUS = 22; // Effective touch radius in unscaled canvas coordinate space
+            const px = coords.x;
+            const py = coords.y;
+
+            if (anno.type === 'freehand' && Array.isArray(anno.points)) {
+                const pts = anno.points;
+                if (pts.length === 0) return false;
+                const strokeW = anno.width || 4;
+                const hitThresholdSq = (ERASER_RADIUS + strokeW / 2) ** 2;
+
+                if (pts.length === 1) {
+                    const d2 = (pts[0].x - px) ** 2 + (pts[0].y - py) ** 2;
+                    return d2 <= hitThresholdSq;
+                }
+
+                for (let i = 1; i < pts.length; i++) {
+                    const d2 = distToSegmentSquared(px, py, pts[i - 1].x, pts[i - 1].y, pts[i].x, pts[i].y);
+                    if (d2 <= hitThresholdSq) return true;
+                }
+                return false;
+            }
+
+            if (anno.type === 'line' || anno.type === 'arrow') {
+                if (!anno.start || !anno.end) return false;
+                const strokeW = anno.width || 4;
+                const hitThresholdSq = (ERASER_RADIUS + strokeW / 2) ** 2;
+                const d2 = distToSegmentSquared(px, py, anno.start.x, anno.start.y, anno.end.x, anno.end.y);
+                return d2 <= hitThresholdSq;
+            }
+
+            if (anno.type === 'rectangle') {
+                if (!anno.start || !anno.end) return false;
+                const strokeW = anno.width || 4;
+                const hitThreshold = ERASER_RADIUS + strokeW / 2;
+                const hitThresholdSq = hitThreshold ** 2;
+
+                const x1 = Math.min(anno.start.x, anno.end.x);
+                const x2 = Math.max(anno.start.x, anno.end.x);
+                const y1 = Math.min(anno.start.y, anno.end.y);
+                const y2 = Math.max(anno.start.y, anno.end.y);
+
+                if (px >= x1 - strokeW && px <= x2 + strokeW && py >= y1 - strokeW && py <= y2 + strokeW) {
+                    if ((x2 - x1) <= 50 && (y2 - y1) <= 50) return true;
+                }
+
+                if (distToSegmentSquared(px, py, x1, y1, x2, y1) <= hitThresholdSq) return true;
+                if (distToSegmentSquared(px, py, x2, y1, x2, y2) <= hitThresholdSq) return true;
+                if (distToSegmentSquared(px, py, x2, y2, x1, y2) <= hitThresholdSq) return true;
+                if (distToSegmentSquared(px, py, x1, y2, x1, y1) <= hitThresholdSq) return true;
+                return false;
+            }
+
+            if (anno.type === 'circle') {
+                if (!anno.start || !anno.end) return false;
+                const strokeW = anno.width || 4;
+                const hitThreshold = ERASER_RADIUS + strokeW / 2;
+
+                const cx = (anno.start.x + anno.end.x) / 2;
+                const cy = (anno.start.y + anno.end.y) / 2;
+                const rx = Math.abs(anno.end.x - anno.start.x) / 2;
+                const ry = Math.abs(anno.end.y - anno.start.y) / 2;
+
+                if (rx < 2 || ry < 2) {
+                    return Math.hypot(px - cx, py - cy) <= hitThreshold;
+                }
+
+                if (rx <= 40 && ry <= 40) {
+                    const normDistSq = ((px - cx) / rx) ** 2 + ((py - cy) / ry) ** 2;
+                    if (normDistSq <= 1.2) return true;
+                }
+
+                const theta = Math.atan2(py - cy, px - cx);
+                const borderX = cx + rx * Math.cos(theta);
+                const borderY = cy + ry * Math.sin(theta);
+                const d2 = (px - borderX) ** 2 + (py - borderY) ** 2;
+                return d2 <= hitThreshold ** 2;
+            }
+
+            if (anno.type === 'text') {
+                const fontSize = anno.fontSize || 18;
+                const textLen = (anno.text || '').length || 4;
+                const approxWidth = textLen * fontSize * 0.65;
+                const approxHeight = fontSize * 1.2;
+
+                const left = anno.x - ERASER_RADIUS;
+                const right = anno.x + approxWidth + ERASER_RADIUS;
+                const top = anno.y - approxHeight - ERASER_RADIUS;
+                const bottom = anno.y + ERASER_RADIUS;
+
+                return px >= left && px <= right && py >= top && py <= bottom;
+            }
+
+            if (anno.type === 'stamp') {
+                const size = (anno.size || 24) + ERASER_RADIUS;
+                return Math.hypot(px - anno.x, py - anno.y) <= size;
+            }
+
+            return false;
+        }
+
+        function redrawAllViewerCanvases() {
+            const activeTab = openViewerTabs[activeViewerTabIndex];
+            if (!activeTab) return;
+            document.querySelectorAll('.qb-anno-canvas').forEach(c => {
+                const pNum = parseInt(c.dataset.pageNum, 10);
+                const s = parseFloat(c.dataset.scale) || ((window.devicePixelRatio || 1) * activeTab.zoom);
+                drawPageAnnotations(c, pNum, s);
+            });
+        }
+
         function setupAnnotationCanvasEvents(canvas, pageNum, scale = 1) {
             const activeTab = openViewerTabs[activeViewerTabIndex];
             if (!activeTab) return;
 
+            let activePointerId = null;
+            let erasedInGesture = [];
+            let lastEraserCoords = null;
+
             function getCanvasCoords(e) {
                 const rect = canvas.getBoundingClientRect();
-                // Use the actual ratio between the canvas internal resolution and its
-                // displayed CSS size. This handles DPR, zoom, CSS max-width clamping,
-                // and any layout scaling that changes the displayed size.
+                if (!rect.width || !rect.height) return { x: 0, y: 0 };
                 const scaleX = canvas.width / rect.width;
                 const scaleY = canvas.height / rect.height;
 
-                let clientX, clientY;
-                if (e.touches && e.touches.length > 0) {
-                    clientX = e.touches[0].clientX;
-                    clientY = e.touches[0].clientY;
-                } else if (e.changedTouches && e.changedTouches.length > 0) {
-                    clientX = e.changedTouches[0].clientX;
-                    clientY = e.changedTouches[0].clientY;
-                } else {
-                    clientX = e.clientX;
-                    clientY = e.clientY;
-                }
+                const clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+                const clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
 
-                // Convert from screen pixels to canvas internal coordinate space,
-                // then divide by the annotation scale so stored coords are scale-independent
                 return {
                     x: ((clientX - rect.left) * scaleX) / scale,
                     y: ((clientY - rect.top) * scaleY) / scale
                 };
             }
 
+            function eraseAtPosition(coords) {
+                const currentTab = openViewerTabs[activeViewerTabIndex];
+                if (!currentTab || !currentTab.annotations || currentTab.annotations.length === 0) return;
+
+                const remaining = [];
+                let hasErased = false;
+
+                for (let i = 0; i < currentTab.annotations.length; i++) {
+                    const a = currentTab.annotations[i];
+                    if (a.pageNum === pageNum && isAnnotationHitByEraser(a, coords)) {
+                        erasedInGesture.push(a);
+                        hasErased = true;
+                    } else {
+                        remaining.push(a);
+                    }
+                }
+
+                if (hasErased) {
+                    currentTab.annotations = remaining;
+                    persistAnnotations(currentTab.id, currentTab.annotations);
+                    drawPageAnnotations(canvas, pageNum, scale);
+                }
+            }
+
             function onPointerDown(e) {
                 if (currentAnnotationTool === 'select') return;
+                if (e.button !== undefined && e.button !== 0) return;
                 e.preventDefault();
+
+                try {
+                    canvas.setPointerCapture(e.pointerId);
+                } catch (_) {}
+
+                activePointerId = e.pointerId;
                 isDrawing = true;
+                erasedInGesture = [];
+                lastEraserCoords = null;
+
                 const coords = getCanvasCoords(e);
 
                 if (currentAnnotationTool === 'pen' || currentAnnotationTool === 'highlighter') {
                     currentStrokePoints = [coords];
+                    const ctx = canvas.getContext('2d');
+                    ctx.save();
+                    ctx.fillStyle = currentAnnotationColor;
+                    ctx.beginPath();
+                    const radius = ((currentAnnotationTool === 'highlighter' ? 16 : currentAnnotationStrokeWidth) * scale) / 2;
+                    ctx.arc(coords.x * scale, coords.y * scale, Math.max(1, radius), 0, Math.PI * 2);
+                    if (currentAnnotationTool === 'highlighter') ctx.globalAlpha = 0.35;
+                    ctx.fill();
+                    ctx.restore();
                 } else if (['rectangle', 'circle', 'arrow', 'line'].includes(currentAnnotationTool)) {
                     currentShapeStart = coords;
                 } else if (currentAnnotationTool.startsWith('stamp-')) {
@@ -5292,11 +5825,14 @@
                         savedScale: 1
                     };
                     activeTab.annotations.push(stampAnno);
+                    if (!activeTab.undoStack) activeTab.undoStack = [];
                     activeTab.undoStack.push({ action: 'add', anno: stampAnno });
                     activeTab.redoStack = [];
                     persistAnnotations(activeTab.id, activeTab.annotations);
                     drawPageAnnotations(canvas, pageNum, scale);
                     isDrawing = false;
+                    activePointerId = null;
+                    try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
                 } else if (currentAnnotationTool === 'text') {
                     const text = prompt('Enter Teacher Comment / Note:', '');
                     if (text && text.trim()) {
@@ -5311,19 +5847,23 @@
                             savedScale: 1
                         };
                         activeTab.annotations.push(textAnno);
+                        if (!activeTab.undoStack) activeTab.undoStack = [];
                         activeTab.undoStack.push({ action: 'add', anno: textAnno });
                         activeTab.redoStack = [];
                         persistAnnotations(activeTab.id, activeTab.annotations);
                         drawPageAnnotations(canvas, pageNum, scale);
                     }
                     isDrawing = false;
+                    activePointerId = null;
+                    try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
                 } else if (currentAnnotationTool === 'eraser') {
-                    eraseAtCoords(coords, pageNum);
+                    lastEraserCoords = coords;
+                    eraseAtPosition(coords);
                 }
             }
 
             function onPointerMove(e) {
-                if (!isDrawing) return;
+                if (!isDrawing || (activePointerId !== null && e.pointerId !== activePointerId)) return;
                 e.preventDefault();
                 const coords = getCanvasCoords(e);
 
@@ -5345,7 +5885,7 @@
                         ctx.stroke();
                     }
                     ctx.restore();
-                } else if (['rectangle', 'circle', 'arrow', 'line'].includes(currentAnnotationTool)) {
+                } else if (['rectangle', 'circle', 'arrow', 'line'].includes(currentAnnotationTool) && currentShapeStart) {
                     drawPageAnnotations(canvas, pageNum, scale);
                     const ctx = canvas.getContext('2d');
                     ctx.save();
@@ -5378,30 +5918,55 @@
                     }
                     ctx.restore();
                 } else if (currentAnnotationTool === 'eraser') {
-                    eraseAtCoords(coords, pageNum);
+                    if (lastEraserCoords) {
+                        const dist = Math.hypot(coords.x - lastEraserCoords.x, coords.y - lastEraserCoords.y);
+                        const steps = Math.max(1, Math.min(20, Math.ceil(dist / 8)));
+                        for (let s = 1; s <= steps; s++) {
+                            const t = s / steps;
+                            const pt = {
+                                x: lastEraserCoords.x + (coords.x - lastEraserCoords.x) * t,
+                                y: lastEraserCoords.y + (coords.y - lastEraserCoords.y) * t
+                            };
+                            eraseAtPosition(pt);
+                        }
+                    } else {
+                        eraseAtPosition(coords);
+                    }
+                    lastEraserCoords = coords;
                 }
             }
 
             function onPointerUp(e) {
-                if (!isDrawing) return;
+                if (!isDrawing || (activePointerId !== null && e.pointerId !== activePointerId)) return;
                 isDrawing = false;
+                activePointerId = null;
+                try {
+                    canvas.releasePointerCapture(e.pointerId);
+                } catch (_) {}
+
                 const coords = getCanvasCoords(e);
+                const currentTab = openViewerTabs[activeViewerTabIndex];
+                if (!currentTab) return;
+                if (!currentTab.undoStack) currentTab.undoStack = [];
+                if (!currentTab.redoStack) currentTab.redoStack = [];
 
                 if (currentAnnotationTool === 'pen' || currentAnnotationTool === 'highlighter') {
-                    if (currentStrokePoints.length > 1) {
+                    if (currentStrokePoints.length > 0) {
                         const strokeAnno = {
                             type: 'freehand',
                             tool: currentAnnotationTool,
                             color: currentAnnotationColor,
                             width: currentAnnotationTool === 'highlighter' ? 16 : currentAnnotationStrokeWidth,
-                            points: [...currentStrokePoints],
+                            points: currentStrokePoints.length === 1 
+                                ? [currentStrokePoints[0], { x: currentStrokePoints[0].x + 0.1, y: currentStrokePoints[0].y + 0.1 }] 
+                                : [...currentStrokePoints],
                             pageNum,
                             savedScale: 1
                         };
-                        activeTab.annotations.push(strokeAnno);
-                        activeTab.undoStack.push({ action: 'add', anno: strokeAnno });
-                        activeTab.redoStack = [];
-                        persistAnnotations(activeTab.id, activeTab.annotations);
+                        currentTab.annotations.push(strokeAnno);
+                        currentTab.undoStack.push({ action: 'add', anno: strokeAnno });
+                        currentTab.redoStack = [];
+                        persistAnnotations(currentTab.id, currentTab.annotations);
                     }
                     currentStrokePoints = [];
                 } else if (['rectangle', 'circle', 'arrow', 'line'].includes(currentAnnotationTool) && currentShapeStart) {
@@ -5414,83 +5979,126 @@
                         pageNum,
                         savedScale: 1
                     };
-                    activeTab.annotations.push(shapeAnno);
-                    activeTab.undoStack.push({ action: 'add', anno: shapeAnno });
-                    activeTab.redoStack = [];
-                    persistAnnotations(activeTab.id, activeTab.annotations);
+                    currentTab.annotations.push(shapeAnno);
+                    currentTab.undoStack.push({ action: 'add', anno: shapeAnno });
+                    currentTab.redoStack = [];
+                    persistAnnotations(currentTab.id, currentTab.annotations);
                     currentShapeStart = null;
+                } else if (currentAnnotationTool === 'eraser') {
+                    lastEraserCoords = null;
+                    if (erasedInGesture.length > 0) {
+                        currentTab.undoStack.push({ action: 'erase', annos: [...erasedInGesture] });
+                        currentTab.redoStack = [];
+                        persistAnnotations(currentTab.id, currentTab.annotations);
+                        erasedInGesture = [];
+                    }
                 }
 
                 drawPageAnnotations(canvas, pageNum, scale);
             }
 
-            function eraseAtCoords(coords, pNum) {
-                const threshold = 15;
-                const initLen = activeTab.annotations.length;
-                activeTab.annotations = activeTab.annotations.filter(a => {
-                    if (a.pageNum !== pNum) return true;
-                    if (a.type === 'freehand' && a.points) {
-                        return !a.points.some(pt => Math.hypot(pt.x - coords.x, pt.y - coords.y) < threshold);
-                    } else if (a.start && a.end) {
-                        const minX = Math.min(a.start.x, a.end.x) - threshold;
-                        const maxX = Math.max(a.start.x, a.end.x) + threshold;
-                        const minY = Math.min(a.start.y, a.end.y) - threshold;
-                        const maxY = Math.max(a.start.y, a.end.y) + threshold;
-                        return !(coords.x >= minX && coords.x <= maxX && coords.y >= minY && coords.y <= maxY);
-                    } else if (a.x !== undefined && a.y !== undefined) {
-                        return Math.hypot(a.x - coords.x, a.y - coords.y) > threshold * 1.5;
-                    }
-                    return true;
-                });
-
-                if (activeTab.annotations.length !== initLen) {
-                    persistAnnotations(activeTab.id, activeTab.annotations);
-                    drawPageAnnotations(canvas, pNum, scale);
-                }
-            }
-
-            canvas.onmousedown = onPointerDown;
-            canvas.onmousemove = onPointerMove;
-            window.addEventListener('mouseup', onPointerUp);
-            canvas.ontouchstart = onPointerDown;
-            canvas.ontouchmove = onPointerMove;
-            window.addEventListener('touchend', onPointerUp);
+            canvas.onpointerdown = onPointerDown;
+            canvas.onpointermove = onPointerMove;
+            canvas.onpointerup = onPointerUp;
+            canvas.onpointercancel = onPointerUp;
         }
 
         window.undoAnnotation = function() {
             const activeTab = openViewerTabs[activeViewerTabIndex];
-            if (!activeTab || !activeTab.annotations || activeTab.annotations.length === 0) return;
-            const popped = activeTab.annotations.pop();
-            activeTab.redoStack.push(popped);
+            if (!activeTab) return;
+            if (!activeTab.undoStack) activeTab.undoStack = [];
+            if (!activeTab.redoStack) activeTab.redoStack = [];
+
+            if (activeTab.undoStack.length === 0) {
+                if (activeTab.annotations && activeTab.annotations.length > 0) {
+                    const popped = activeTab.annotations.pop();
+                    activeTab.redoStack.push({ action: 'add', anno: popped });
+                    persistAnnotations(activeTab.id, activeTab.annotations);
+                    redrawAllViewerCanvases();
+                    showToast('Undid annotation', 'info');
+                } else {
+                    showToast('Nothing to undo', 'info');
+                }
+                return;
+            }
+
+            const item = activeTab.undoStack.pop();
+
+            if (item.action === 'add') {
+                const idx = activeTab.annotations.lastIndexOf(item.anno);
+                if (idx >= 0) {
+                    activeTab.annotations.splice(idx, 1);
+                } else {
+                    const fIdx = activeTab.annotations.findIndex(a => 
+                        a.pageNum === item.anno.pageNum && a.type === item.anno.type
+                    );
+                    if (fIdx >= 0) activeTab.annotations.splice(fIdx, 1);
+                }
+                activeTab.redoStack.push(item);
+            } else if (item.action === 'erase') {
+                if (Array.isArray(item.annos)) {
+                    activeTab.annotations.push(...item.annos);
+                }
+                activeTab.redoStack.push(item);
+            } else if (item.action === 'clear') {
+                if (Array.isArray(item.annos)) {
+                    activeTab.annotations = [...item.annos];
+                }
+                activeTab.redoStack.push(item);
+            }
+
             persistAnnotations(activeTab.id, activeTab.annotations);
-            document.querySelectorAll('.qb-anno-canvas').forEach(c => {
-                drawPageAnnotations(c, parseInt(c.dataset.pageNum, 10), (window.devicePixelRatio || 1) * activeTab.zoom);
-            });
+            redrawAllViewerCanvases();
+            showToast('Undid last action', 'info');
         };
 
         window.redoAnnotation = function() {
             const activeTab = openViewerTabs[activeViewerTabIndex];
-            if (!activeTab || !activeTab.redoStack || activeTab.redoStack.length === 0) return;
-            const restored = activeTab.redoStack.pop();
-            activeTab.annotations.push(restored);
+            if (!activeTab) return;
+            if (!activeTab.undoStack) activeTab.undoStack = [];
+            if (!activeTab.redoStack || activeTab.redoStack.length === 0) {
+                showToast('Nothing to redo', 'info');
+                return;
+            }
+
+            const item = activeTab.redoStack.pop();
+
+            if (item.action === 'add') {
+                activeTab.annotations.push(item.anno);
+                activeTab.undoStack.push(item);
+            } else if (item.action === 'erase') {
+                if (Array.isArray(item.annos)) {
+                    const set = new Set(item.annos);
+                    activeTab.annotations = activeTab.annotations.filter(a => !set.has(a));
+                }
+                activeTab.undoStack.push(item);
+            } else if (item.action === 'clear') {
+                activeTab.annotations = [];
+                activeTab.undoStack.push(item);
+            } else if (item.type || item.points) {
+                activeTab.annotations.push(item);
+                activeTab.undoStack.push({ action: 'add', anno: item });
+            }
+
             persistAnnotations(activeTab.id, activeTab.annotations);
-            document.querySelectorAll('.qb-anno-canvas').forEach(c => {
-                drawPageAnnotations(c, parseInt(c.dataset.pageNum, 10), (window.devicePixelRatio || 1) * activeTab.zoom);
-            });
+            redrawAllViewerCanvases();
+            showToast('Redid action', 'info');
         };
 
         window.clearAllAnnotations = function() {
             const activeTab = openViewerTabs[activeViewerTabIndex];
-            if (!activeTab) return;
+            if (!activeTab || !activeTab.annotations || activeTab.annotations.length === 0) {
+                showToast('No annotations to clear', 'info');
+                return;
+            }
             if (!confirm('Clear all teacher annotations for this question paper?')) return;
-            activeTab.annotations = [];
-            activeTab.undoStack = [];
+            if (!activeTab.undoStack) activeTab.undoStack = [];
+            activeTab.undoStack.push({ action: 'clear', annos: [...activeTab.annotations] });
             activeTab.redoStack = [];
+            activeTab.annotations = [];
             persistAnnotations(activeTab.id, []);
-            document.querySelectorAll('.qb-anno-canvas').forEach(c => {
-                drawPageAnnotations(c, parseInt(c.dataset.pageNum, 10), (window.devicePixelRatio || 1) * activeTab.zoom);
-            });
-            showToast('Annotations cleared', 'info');
+            redrawAllViewerCanvases();
+            showToast('Annotations cleared (Undo with Ctrl+Z)', 'info');
         };
 
         window.exportAnnotatedCanvasImage = function() {
