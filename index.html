@@ -762,6 +762,8 @@
             position: relative;
             color: var(--text-muted);
             transition: var(--transition);
+            cursor: pointer;
+            user-select: none;
         }
         .step-dot.active {
             border-color: var(--orange);
@@ -2936,9 +2938,9 @@
             
             <div class="upload-stepper">
                 <div class="step-indicator">
-                    <div class="step-dot active" data-step="1">1</div>
-                    <div class="step-dot" data-step="2">2</div>
-                    <div class="step-dot" data-step="3">3</div>
+                    <div class="step-dot active" data-step="1" onclick="nextStep(1)" title="Go to Step 1: Course Info">1</div>
+                    <div class="step-dot" data-step="2" onclick="nextStep(2)" title="Go to Step 2: Material Details">2</div>
+                    <div class="step-dot" data-step="3" onclick="nextStep(3)" title="Go to Step 3: Files & Submit">3</div>
                 </div>
 
                 <form id="uploadForm">
@@ -3008,20 +3010,20 @@
                         <h3>Upload Files</h3>
                         
                         <div class="input-group">
-                            <label class="input-label">Main File (PDF/Image) <span style="font-size:0.8rem; color:var(--orange); font-weight:500;">(Max 5MB)</span></label>
-                            <div class="file-drop-area" id="mainFileDropzone" onclick="document.getElementById('upMainFile').click()">
-                                <input type="file" id="upMainFile" accept=".pdf,.png,.jpg,.jpeg" required style="display:none;">
+                            <label class="input-label" id="upMainFileLabel">Main File (PDF / Word / PPT / Excel / Image) <span style="font-size:0.8rem; color:var(--orange); font-weight:500;">(Max 5MB)</span></label>
+                            <div class="file-drop-area" id="mainFileDropzone">
+                                <input type="file" id="upMainFile" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg" required style="display:none;">
                                 <div class="dropzone-content" id="mainFileDropContent">
                                     <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--orange); margin-bottom:0.5rem;"></i>
                                     <div style="font-weight:600; margin-bottom:0.25rem;">Drag & drop main file here or <span style="color:var(--orange); text-decoration:underline;">browse</span></div>
-                                    <div style="font-size:0.8rem; color:var(--text-muted);">Supports PDF, PNG, JPG, JPEG (Max 5MB)</div>
+                                    <div style="font-size:0.8rem; color:var(--text-muted);">Supports PDF, PPT, PPTX, DOC, DOCX, XLS, XLSX, PNG, JPG (Max 5MB)</div>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="input-group" id="solutionFileGroup">
                             <label class="input-label">Solution File (Optional) <span style="font-size:0.8rem; color:var(--orange); font-weight:500;">(Max 5MB)</span></label>
-                            <div class="file-drop-area" id="solFileDropzone" onclick="document.getElementById('upSolutionFile').click()">
+                            <div class="file-drop-area" id="solFileDropzone">
                                 <input type="file" id="upSolutionFile" accept=".pdf,.png,.jpg,.jpeg" style="display:none;">
                                 <div class="dropzone-content" id="solFileDropContent">
                                     <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--orange); margin-bottom:0.5rem;"></i>
@@ -3802,6 +3804,26 @@
             `;
         }
 
+        function getPaperFileExtension(paper, isSolution = false) {
+            if (!paper) return 'pdf';
+            const url = isSolution ? (paper.solutionPdfUrl || paper.solutionUrl) : (paper.pdfUrl || paper.fileUrl || paper.notePdfUrl || (paper.materialAssets && paper.materialAssets[0]?.pdfUrl) || '');
+            const orig = paper.originalFilename || '';
+            if (orig && orig.includes('.')) {
+                const ext = orig.split('.').pop().toLowerCase();
+                if (['pdf', 'docx', 'doc', 'pptx', 'ppt', 'xlsx', 'xls', 'png', 'jpg', 'jpeg'].includes(ext)) {
+                    return ext;
+                }
+            }
+            if (url) {
+                const clean = url.split('?')[0].split('#')[0];
+                const ext = clean.split('.').pop().toLowerCase();
+                if (['pdf', 'docx', 'doc', 'pptx', 'ppt', 'xlsx', 'xls', 'png', 'jpg', 'jpeg'].includes(ext)) {
+                    return ext;
+                }
+            }
+            return 'pdf';
+        }
+
         function formatPdfDownloadName(paper, isSolution = false) {
             if (!paper) return 'download.pdf';
             const courseCodeRaw = (paper.courseCode || 'CSE1111').trim();
@@ -3820,8 +3842,9 @@
             if (!examName) examName = 'Exam';
             
             const trimesterCode = paper.semester || (paper.trimester ? `251` : '251');
+            const ext = getPaperFileExtension(paper, isSolution);
             
-            return `${dept}_${cleanCourseCode}_${examName}_${trimesterCode}.pdf`;
+            return `${dept}_${cleanCourseCode}_${examName}_${trimesterCode}.${ext}`;
         }
 
         function createResourceCard(paper) {
@@ -3834,10 +3857,24 @@
             const mainPdf = paper.pdfUrl || paper.fileUrl || paper.notePdfUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType !== 'solution')?.pdfUrl) || (paper.materialAssets && paper.materialAssets[0]?.pdfUrl);
             const solPdf = paper.solutionPdfUrl || paper.solutionUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType === 'solution')?.pdfUrl);
 
+            const ext = getPaperFileExtension(paper, false);
+            let viewMainIcon = 'fa-file-pdf';
+            let viewMainText = 'View PDF';
+            if (['ppt', 'pptx'].includes(ext)) {
+                viewMainIcon = 'fa-file-powerpoint';
+                viewMainText = 'View PPT';
+            } else if (['doc', 'docx'].includes(ext)) {
+                viewMainIcon = 'fa-file-word';
+                viewMainText = 'View Doc';
+            } else if (['xls', 'xlsx'].includes(ext)) {
+                viewMainIcon = 'fa-file-excel';
+                viewMainText = 'View Sheet';
+            }
+
             let downloadLinks = '';
             if (mainPdf) {
                 const mainName = formatPdfDownloadName(paper, false);
-                downloadLinks += `<button class="btn btn-outline" onclick="openPdfViewer('${mainPdf}', '${paper.courseCode} - ${paper.topic || paper.type}', false)" style="padding:0.45rem 0.85rem; font-size:0.85rem;"><i class="fas fa-eye"></i> View PDF</button>
+                downloadLinks += `<button class="btn btn-outline" onclick="openPdfViewer('${mainPdf}', '${paper.courseCode} - ${paper.topic || paper.type}', false)" style="padding:0.45rem 0.85rem; font-size:0.85rem;"><i class="fas ${viewMainIcon}"></i> ${viewMainText}</button>
                                   <button type="button" onclick="forceDownloadFile('${mainPdf}', '${mainName}')" class="btn btn-primary" style="padding:0.45rem 0.85rem; font-size:0.85rem;"><i class="fas fa-download"></i> Download</button>`;
             }
             if (solPdf) {
@@ -3977,10 +4014,21 @@
 
             const cardClass = isSolution ? 'qb-question-box is-solution' : 'qb-question-box';
             const actionTitle = isSolution ? `Click to view Solution for ${paper.courseCode} ${semName}` : `Click to open ${paper.courseCode} ${semName} in Full Browser Viewer`;
-            const dlBtnTitle = isSolution ? 'Download Solution PDF' : 'Download Question PDF';
+            const dlBtnTitle = isSolution ? 'Download Solution File' : 'Download File';
+
+            const ext = getPaperFileExtension(paper, isSolution);
+            let docTypeBadge = '';
+            if (['ppt', 'pptx'].includes(ext)) {
+                docTypeBadge = `<span class="qb-doc-type-pill" style="position:absolute; top:8px; left:8px; background:rgba(234, 88, 12, 0.15); color:#ea580c; border:1px solid rgba(234, 88, 12, 0.35); font-size:0.68rem; font-weight:700; padding:0.12rem 0.45rem; border-radius:4px; z-index:2;"><i class="fas fa-file-powerpoint"></i> PPT</span>`;
+            } else if (['doc', 'docx'].includes(ext)) {
+                docTypeBadge = `<span class="qb-doc-type-pill" style="position:absolute; top:8px; left:8px; background:rgba(37, 99, 235, 0.15); color:#2563eb; border:1px solid rgba(37, 99, 235, 0.35); font-size:0.68rem; font-weight:700; padding:0.12rem 0.45rem; border-radius:4px; z-index:2;"><i class="fas fa-file-word"></i> DOC</span>`;
+            } else if (['xls', 'xlsx'].includes(ext)) {
+                docTypeBadge = `<span class="qb-doc-type-pill" style="position:absolute; top:8px; left:8px; background:rgba(22, 163, 74, 0.15); color:#16a34a; border:1px solid rgba(22, 163, 74, 0.35); font-size:0.68rem; font-weight:700; padding:0.12rem 0.45rem; border-radius:4px; z-index:2;"><i class="fas fa-file-excel"></i> XLS</span>`;
+            }
 
             return `
                 <div class="${cardClass}" onclick="openFullBrowserViewerById('${paper.id}', ${isSolution})" title="${actionTitle}">
+                    ${docTypeBadge}
                     ${isSolution ? `<span class="qb-sol-pill"><i class="fas fa-check-circle"></i> Solution</span>` : (hasSol ? `<span class="qb-card-sol-indicator" title="Solution Included"><i class="fas fa-check"></i></span>` : '')}
                     <button type="button" class="qb-card-dl-btn" onclick="event.stopPropagation(); forceDownloadFile('${targetPdf}', '${downloadName}')" title="${dlBtnTitle}">
                         <i class="fas fa-download"></i>
@@ -4581,6 +4629,16 @@
                         const val = e.target.value;
                         document.getElementById('examTypeGroup').style.display = val === 'Question' ? 'block' : 'none';
                         document.getElementById('solutionFileGroup').style.display = val === 'Question' ? 'block' : 'none';
+                        
+                        const mainLabel = document.getElementById('upMainFileLabel');
+                        if (mainLabel) {
+                            if (val === 'Notes') {
+                                mainLabel.innerHTML = 'Main Notes File (PDF / Word / PPT / Excel / Image) <span style="font-size:0.8rem; color:var(--orange); font-weight:500;">(Max 5MB)</span>';
+                            } else {
+                                mainLabel.innerHTML = 'Main File (PDF / Image) <span style="font-size:0.8rem; color:var(--orange); font-weight:500;">(Max 5MB)</span>';
+                            }
+                        }
+
                         // Update topic label: Required for Notes, Optional for Questions/Lab
                         const topicLabel = document.getElementById('upTopicLabel');
                         if (val === 'Notes') {
@@ -4618,16 +4676,24 @@
                     return;
                 }
                 const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                const ext = (file.name.split('.').pop() || '').toLowerCase();
+                let iconClass = 'fa-file-pdf';
+                let iconColor = 'var(--orange)';
+                if (['ppt', 'pptx'].includes(ext)) { iconClass = 'fa-file-powerpoint'; iconColor = '#ea580c'; }
+                else if (['doc', 'docx'].includes(ext)) { iconClass = 'fa-file-word'; iconColor = '#2563eb'; }
+                else if (['xls', 'xlsx'].includes(ext)) { iconClass = 'fa-file-excel'; iconColor = '#16a34a'; }
+                else if (['png', 'jpg', 'jpeg'].includes(ext)) { iconClass = 'fa-file-image'; iconColor = '#8b5cf6'; }
+
                 content.innerHTML = `
-                    <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; text-align:left;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; text-align:left; width:100%;">
                         <div style="display:flex; align-items:center; gap:0.75rem; overflow:hidden;">
-                            <i class="fas fa-file-pdf" style="font-size:1.8rem; color:var(--orange);"></i>
+                            <i class="fas ${iconClass}" style="font-size:1.8rem; color:${iconColor}; flex-shrink:0;"></i>
                             <div style="overflow:hidden;">
                                 <div style="font-weight:600; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; color:var(--text-main); font-size:0.9rem;">${file.name}</div>
                                 <div style="font-size:0.75rem; color:var(--text-muted);">${sizeMB} MB • Ready for upload</div>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-outline" style="padding:0.25rem 0.6rem; font-size:0.75rem; color:var(--danger); border-color:var(--danger);" onclick="event.stopPropagation(); resetDropzone('${dropzoneId}','${inputId}','${contentId}');">
+                        <button type="button" class="btn btn-outline" style="padding:0.25rem 0.65rem; font-size:0.75rem; color:var(--danger); border-color:var(--danger); flex-shrink:0; cursor:pointer;" onclick="event.preventDefault(); event.stopPropagation(); window.resetDropzone('${dropzoneId}','${inputId}','${contentId}');">
                             <i class="fas fa-times"></i> Remove
                         </button>
                     </div>
@@ -4664,20 +4730,26 @@
             });
         }
 
-        function resetDropzone(dropzoneId, inputId, contentId) {
+        window.resetDropzone = function(dropzoneId, inputId, contentId) {
             const input = document.getElementById(inputId);
-            if (input) input.value = '';
+            if (input) {
+                input.value = '';
+                try { input.type = ''; input.type = 'file'; } catch(_) {}
+            }
             const content = document.getElementById(contentId);
             const dropzone = document.getElementById(dropzoneId);
-            if (dropzone) dropzone.classList.remove('has-file');
+            if (dropzone) {
+                dropzone.classList.remove('has-file');
+                dropzone.classList.remove('dragover');
+            }
             if (content) {
                 content.innerHTML = `
                     <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--orange); margin-bottom:0.5rem;"></i>
                     <div style="font-weight:600; margin-bottom:0.25rem;">Drag & drop file here or <span style="color:var(--orange); text-decoration:underline;">browse</span></div>
-                    <div style="font-size:0.8rem; color:var(--text-muted);">Supports PDF, PNG, JPG, JPEG (Max 5MB)</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted);">Supports PDF, PPT, PPTX, DOC, DOCX, XLS, XLSX, PNG, JPG (Max 5MB)</div>
                 `;
             }
-        }
+        };
 
         const BACKEND_URL = 'https://question-bank-x5pu.onrender.com';
 
@@ -4833,7 +4905,7 @@
                 // Strictly forbid duplicate question papers for same course + exam + semester (Midterm / Final only)
                 if ((type === 'Question' || type === 'Lab') && (examType.toLowerCase() === 'midterm' || examType.toLowerCase() === 'final')) {
                     const cleanCourse = courseCode.replace(/\s+/g, '').toUpperCase();
-                    const isDuplicate = allPapers.some(p => {
+                    const isDuplicate = (approvedPapers || []).some(p => {
                         const pType = (p.type || p.materialType || 'Question').toLowerCase();
                         if (pType !== type.toLowerCase() && pType !== 'question') return false;
                         
@@ -5235,6 +5307,18 @@
                 return;
             }
 
+            // If the document is a PowerPoint, Word, or Excel document, embed directly in iframe viewer
+            const isOfficeDoc = /\.(pptx?|docx?|xlsx?)($|\?)/i.test(pdfUrl) || (activeTab.paper && /\.(pptx?|docx?|xlsx?)$/i.test(activeTab.paper.originalFilename || ''));
+            if (isOfficeDoc) {
+                wrapper.style.display = 'none';
+                iframeWrapper.style.display = 'flex';
+                iframe.src = `https://docs.google.com/gview?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
+                activeTab.totalPages = 1;
+                document.getElementById('qbTotalPagesNum').innerText = '1';
+                document.getElementById('qbCurrentPageNum').innerText = '1';
+                return;
+            }
+
             // PDF.js high-performance canvas rendering
             if (typeof pdfjsLib !== 'undefined') {
                 try {
@@ -5459,15 +5543,19 @@
                 if (tool === 'select') {
                     c.style.cursor = 'default';
                     c.style.pointerEvents = 'none';
+                    c.style.touchAction = 'auto';
                 } else if (tool === 'eraser') {
                     c.style.cursor = 'crosshair';
                     c.style.pointerEvents = 'auto';
+                    c.style.touchAction = 'none';
                 } else if (tool === 'text') {
                     c.style.cursor = 'text';
                     c.style.pointerEvents = 'auto';
+                    c.style.touchAction = 'none';
                 } else {
                     c.style.cursor = 'crosshair';
                     c.style.pointerEvents = 'auto';
+                    c.style.touchAction = 'none';
                 }
             });
         };
@@ -5750,8 +5838,20 @@
                 const scaleX = canvas.width / rect.width;
                 const scaleY = canvas.height / rect.height;
 
-                const clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
-                const clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+                let clientX = e.clientX;
+                let clientY = e.clientY;
+                if (clientX === undefined || clientY === undefined) {
+                    if (e.touches && e.touches.length > 0) {
+                        clientX = e.touches[0].clientX;
+                        clientY = e.touches[0].clientY;
+                    } else if (e.changedTouches && e.changedTouches.length > 0) {
+                        clientX = e.changedTouches[0].clientX;
+                        clientY = e.changedTouches[0].clientY;
+                    } else {
+                        clientX = 0;
+                        clientY = 0;
+                    }
+                }
 
                 return {
                     x: ((clientX - rect.left) * scaleX) / scale,
@@ -5785,14 +5885,18 @@
 
             function onPointerDown(e) {
                 if (currentAnnotationTool === 'select') return;
-                if (e.button !== undefined && e.button !== 0) return;
+                if (e.button !== undefined && e.button > 0) return;
                 e.preventDefault();
 
-                try {
-                    canvas.setPointerCapture(e.pointerId);
-                } catch (_) {}
+                if (e.pointerId !== undefined) {
+                    try {
+                        canvas.setPointerCapture(e.pointerId);
+                    } catch (_) {}
+                    activePointerId = e.pointerId;
+                } else {
+                    activePointerId = 1;
+                }
 
-                activePointerId = e.pointerId;
                 isDrawing = true;
                 erasedInGesture = [];
                 lastEraserCoords = null;
@@ -5831,8 +5935,10 @@
                     persistAnnotations(activeTab.id, activeTab.annotations);
                     drawPageAnnotations(canvas, pageNum, scale);
                     isDrawing = false;
+                    if (e.pointerId !== undefined) {
+                        try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+                    }
                     activePointerId = null;
-                    try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
                 } else if (currentAnnotationTool === 'text') {
                     const text = prompt('Enter Teacher Comment / Note:', '');
                     if (text && text.trim()) {
@@ -5854,8 +5960,10 @@
                         drawPageAnnotations(canvas, pageNum, scale);
                     }
                     isDrawing = false;
+                    if (e.pointerId !== undefined) {
+                        try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+                    }
                     activePointerId = null;
-                    try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
                 } else if (currentAnnotationTool === 'eraser') {
                     lastEraserCoords = coords;
                     eraseAtPosition(coords);
@@ -5863,7 +5971,8 @@
             }
 
             function onPointerMove(e) {
-                if (!isDrawing || (activePointerId !== null && e.pointerId !== activePointerId)) return;
+                if (!isDrawing) return;
+                if (activePointerId !== null && e.pointerId !== undefined && e.pointerId !== activePointerId) return;
                 e.preventDefault();
                 const coords = getCanvasCoords(e);
 
@@ -5937,12 +6046,15 @@
             }
 
             function onPointerUp(e) {
-                if (!isDrawing || (activePointerId !== null && e.pointerId !== activePointerId)) return;
+                if (!isDrawing) return;
+                if (activePointerId !== null && e.pointerId !== undefined && e.pointerId !== activePointerId) return;
                 isDrawing = false;
+                if (e.pointerId !== undefined) {
+                    try {
+                        canvas.releasePointerCapture(e.pointerId);
+                    } catch (_) {}
+                }
                 activePointerId = null;
-                try {
-                    canvas.releasePointerCapture(e.pointerId);
-                } catch (_) {}
 
                 const coords = getCanvasCoords(e);
                 const currentTab = openViewerTabs[activeViewerTabIndex];
@@ -5997,10 +6109,22 @@
                 drawPageAnnotations(canvas, pageNum, scale);
             }
 
-            canvas.onpointerdown = onPointerDown;
-            canvas.onpointermove = onPointerMove;
-            canvas.onpointerup = onPointerUp;
-            canvas.onpointercancel = onPointerUp;
+            canvas.addEventListener('pointerdown', onPointerDown, { passive: false });
+            canvas.addEventListener('pointermove', onPointerMove, { passive: false });
+            canvas.addEventListener('pointerup', onPointerUp, { passive: false });
+            canvas.addEventListener('pointercancel', onPointerUp, { passive: false });
+
+            // Prevent mobile browser gesture cancellation / scroll stealing when annotating
+            canvas.addEventListener('touchstart', (e) => {
+                if (currentAnnotationTool !== 'select' && e.touches && e.touches.length === 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            canvas.addEventListener('touchmove', (e) => {
+                if (currentAnnotationTool !== 'select' && e.touches && e.touches.length === 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
         }
 
         window.undoAnnotation = function() {
