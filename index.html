@@ -4486,6 +4486,21 @@
         // ROUTER & NAVIGATION
         // ==========================================
         function parseHash() {
+            // Support query params (e.g. ?course=CSE1111 or ?page=courses) for 100% compliant SEO URLs without '#'
+            const searchParams = new URLSearchParams(window.location.search);
+            if (searchParams.has('course')) {
+                return { page: 'course', param: searchParams.get('course'), query: searchParams };
+            }
+            if (searchParams.has('trimester')) {
+                return { page: 'trimester', param: searchParams.get('trimester'), query: searchParams };
+            }
+            if (searchParams.has('page')) {
+                const p = searchParams.get('page');
+                const param = searchParams.get('id') || searchParams.get('param') || null;
+                return { page: p, param: param, query: searchParams };
+            }
+
+            // Standard hash routing (#course/CSE1111)
             const rawHash = location.hash.slice(1) || 'dashboard';
             const [path, queryStr] = rawHash.split('?');
             const parts = path.split('/');
@@ -4550,7 +4565,7 @@
             if (route.page === 'courses') {
                 pageTitle = 'All Courses Directory | UIU CSE Question Bank';
                 pageDesc = 'Explore all 92 undergraduate courses in the United International University (UIU) CSE curriculum with past exams, solutions, and lecture notes.';
-                canonicalUrl = 'https://uiu-question-bank.vercel.app/#courses';
+                canonicalUrl = 'https://uiu-question-bank.vercel.app/?page=courses';
             } else if (route.page === 'course' && route.param) {
                 const clean = String(route.param).replace(/\s+/g, '').toLowerCase();
                 const course = CURRICULUM.find(c => c.code.replace(/\s+/g, '').toLowerCase() === clean);
@@ -4560,20 +4575,20 @@
                 } else {
                     pageTitle = `${route.param.toUpperCase()} Question Papers & Solutions | UIU Question Bank`;
                 }
-                canonicalUrl = `https://uiu-question-bank.vercel.app/#course/${route.param}`;
+                canonicalUrl = `https://uiu-question-bank.vercel.app/?course=${clean}`;
             } else if (route.page === 'trimester' && route.param) {
                 const trimNum = route.param;
                 pageTitle = `Trimester ${trimNum === '0' ? 'Electives' : trimNum} Past Questions & Course Curriculum | UIU Question Bank`;
                 pageDesc = `Browse past midterm and final examination questions, solutions, and notes for all Trimester ${trimNum} courses at United International University.`;
-                canonicalUrl = `https://uiu-question-bank.vercel.app/#trimester/${trimNum}`;
+                canonicalUrl = `https://uiu-question-bank.vercel.app/?trimester=${trimNum}`;
             } else if (route.page === 'upload') {
                 pageTitle = 'Upload Past Exam Questions, Solutions & Notes | UIU Question Bank';
                 pageDesc = 'Contribute to the UIU Question Bank. Upload past question papers, answer solutions, or lecture notes to help fellow UIU CSE students.';
-                canonicalUrl = 'https://uiu-question-bank.vercel.app/#upload';
+                canonicalUrl = 'https://uiu-question-bank.vercel.app/?page=upload';
             } else if (route.page === 'favorites') {
                 pageTitle = 'My Saved Courses & Favorite Resources | UIU Question Bank';
                 pageDesc = 'Quick access to your bookmarked UIU CSE courses, midterm papers, final exam questions, and lecture notes.';
-                canonicalUrl = 'https://uiu-question-bank.vercel.app/#favorites';
+                canonicalUrl = 'https://uiu-question-bank.vercel.app/?page=favorites';
             }
 
             document.title = pageTitle;

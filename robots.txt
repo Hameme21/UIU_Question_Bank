@@ -4,7 +4,6 @@
 
 User-agent: Googlebot
 Allow: /
-Allow: /#*
 Allow: /manifest.json
 Allow: /sitemap.xml
 
@@ -37,7 +36,6 @@ Allow: /
 
 User-agent: *
 Allow: /
-Allow: /#*
 
 Sitemap: https://uiu-question-bank.vercel.app/sitemap.xml
 Host: https://uiu-question-bank.vercel.app
