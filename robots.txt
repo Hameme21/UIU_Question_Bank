@@ -38,4 +38,5 @@ User-agent: *
 Allow: /
 
 Sitemap: https://uiu-question-bank.vercel.app/sitemap.xml
+Sitemap: https://uiu-question-bank.vercel.app/sitemap.txt
 Host: https://uiu-question-bank.vercel.app
