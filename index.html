@@ -3087,12 +3087,31 @@
                 <div class="courses-controls">
                     <div class="search-input-wrapper">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-input-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                        <input type="text" id="coursesSearch" class="input-control courses-search-input" placeholder="Search course name or code...">
+                        <input type="text" id="coursesSearch" class="input-control courses-search-input" placeholder="Search course, code, or faculty...">
                     </div>
                     <select id="coursesTrimesterFilter" class="input-control courses-filter-select">
                         <option value="all">All Trimesters</option>
                         <!-- Populated via JS -->
                     </select>
+                    <select id="coursesFacultyFilter" class="input-control courses-filter-select">
+                        <option value="all">All Faculty</option>
+                        <!-- Populated via JS -->
+                    </select>
+                </div>
+            </div>
+            <!-- Dedicated Section for Faculty/Search-Matched Question Papers -->
+            <div id="facultyQuestionsSection" style="margin-bottom: 2rem; display: none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem; background:var(--surface-1); padding:0.85rem 1.25rem; border-radius:var(--radius-md); border:1px solid var(--border);">
+                    <h3 id="facultyQuestionsTitle" style="display:flex; align-items:center; gap:0.5rem; font-size:1.05rem; color:var(--text-main); margin:0;">
+                        <i class="fas fa-chalkboard-teacher" style="color:var(--orange);"></i> Question Papers by Faculty
+                    </h3>
+                    <div style="display:flex; align-items:center; gap:0.75rem;">
+                        <span id="facultyQuestionsCount" class="pill primary" style="font-weight:600;">0 papers</span>
+                        <button type="button" class="btn btn-outline" id="clearFacultyFilterBtn" style="padding:0.25rem 0.65rem; font-size:0.75rem;">Clear Filter</button>
+                    </div>
+                </div>
+                <div class="qb-box-grid" id="facultyQuestionsGrid">
+                    <!-- Populated via JS -->
                 </div>
             </div>
             <div class="course-grid" id="allCoursesGrid">
@@ -3219,9 +3238,16 @@
                             <input type="text" id="upTopic" class="input-control" placeholder="e.g. Chapter 3 Summary">
                         </div>
 
-                        <div class="input-group" id="facultyGroup">
-                            <label class="input-label" id="upFacultyLabel">Faculty Name / Initial <span id="upFacultyHint" style="color:var(--text-muted);font-weight:400">(Optional)</span></label>
-                            <input type="text" id="upFaculty" class="input-control" placeholder="e.g. Dr. John Doe / AKM">
+                        <div class="input-group" id="facultyGroup" style="position:relative;">
+                            <label class="input-label" id="upFacultyLabel">Faculty Member <span id="upFacultyHint" style="color:var(--text-muted);font-weight:400">(Optional)</span></label>
+                            <div style="position:relative; display:flex; align-items:center;">
+                                <input type="text" id="upFacultySearch" class="input-control" placeholder="Search by name or code (e.g., AnHq, Anindya)..." autocomplete="off" style="padding-right: 2.25rem;">
+                                <button type="button" id="upFacultyClearBtn" style="position:absolute; right:0.6rem; background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem; line-height:1; display:none; padding:4px;" title="Clear selected faculty">&times;</button>
+                            </div>
+                            <input type="hidden" id="upFacultyId" value="">
+                            <input type="hidden" id="upFacultyName" value="">
+                            <input type="hidden" id="upFacultyCode" value="">
+                            <div id="upFacultyDropdown" class="autocomplete-dropdown" style="position:absolute; top:100%; left:0; right:0; max-height:220px; overflow-y:auto; z-index:1000; display:none;"></div>
                         </div>
 
                         <div style="display: flex; justify-content: space-between;">
@@ -3588,7 +3614,7 @@
         // ==========================================
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
         import {
-            addDoc, collection, doc, getFirestore, onSnapshot, query, serverTimestamp, setDoc, where
+            addDoc, collection, doc, getDocs, getFirestore, onSnapshot, orderBy, query, serverTimestamp, setDoc, where
         } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
         const firebaseConfig = {
@@ -3864,9 +3890,11 @@
         // ROUTER & NAVIGATION
         // ==========================================
         function parseHash() {
-            const hash = location.hash.slice(1) || 'dashboard';
-            const parts = hash.split('/');
-            return { page: parts[0], param: parts[1] || null };
+            const rawHash = location.hash.slice(1) || 'dashboard';
+            const [path, queryStr] = rawHash.split('?');
+            const parts = path.split('/');
+            const queryParams = new URLSearchParams(queryStr || '');
+            return { page: parts[0], param: parts[1] || null, query: queryParams };
         }
 
         function handleRouteChange() {
@@ -4122,6 +4150,7 @@
                             <span class="pill">${type}</span>
                             ${examLabel ? `<span class="pill">${examLabel}</span>` : ''}
                             ${semLabel ? `<span class="pill">${semLabel}</span>` : ''}
+                            ${paper.facultyName ? `<span class="pill" style="background:rgba(255,145,77,0.15); color:var(--orange); border:1px solid rgba(255,145,77,0.3); font-weight:600;"><i class="fas fa-chalkboard-teacher"></i> ${paper.facultyName}</span>` : ''}
                         </div>
                         ${topicStr}
                         <div class="resource-meta">
@@ -4186,10 +4215,124 @@
             recentList.innerHTML = approvedPapers.slice(0, 8).map(p => createResourceCard(p)).join('');
         }
 
+        // ==========================================
+        // FACULTIES STATE & FIRESTORE QUERIES
+        // ==========================================
+        let facultiesList = [
+            { "id": 6496, "name": "Anindya Hoque (AnHq)", "code": "AnHq" },
+            { "id": 1001, "name": "Dr. Salekul Islam (SKI)", "code": "SKI" },
+            { "id": 1002, "name": "Dr. Md. Motaharul Islam (MMI)", "code": "MMI" },
+            { "id": 1003, "name": "Dr. Mohammad Nurul Huda (MNH)", "code": "MNH" },
+            { "id": 1004, "name": "Dr. Swakkhar Shatabda (SS)", "code": "SS" },
+            { "id": 1005, "name": "Dr. Dewan Md. Farid (DMF)", "code": "DMF" },
+            { "id": 1006, "name": "Dr. Hasan Sarwar (HS)", "code": "HS" },
+            { "id": 1007, "name": "Dr. Suman Ahmmed (SA)", "code": "SA" },
+            { "id": 1008, "name": "Dr. Novia Nurain (NN)", "code": "NN" },
+            { "id": 1009, "name": "Dr. Saddam Hossain Mukta (SHM)", "code": "SHM" },
+            { "id": 1010, "name": "Rubaiya Rahtin Khan (RRK)", "code": "RRK" },
+            { "id": 1011, "name": "Ferdous Sarwar (FS)", "code": "FS" },
+            { "id": 1012, "name": "Mirza Mohd. Shahriar Maswood (SMS)", "code": "SMS" },
+            { "id": 1013, "name": "Ahmed Hossain (AH)", "code": "AH" },
+            { "id": 1014, "name": "Tahsin Aziz (TA)", "code": "TA" },
+            { "id": 1015, "name": "Md. Tarek Hasan (TH)", "code": "TH" },
+            { "id": 1016, "name": "Nazmul Alam (NA)", "code": "NA" },
+            { "id": 1017, "name": "Sadia Sharmin (SSh)", "code": "SSh" },
+            { "id": 1018, "name": "Shoeb Mohammad (SM)", "code": "SM" },
+            { "id": 1019, "name": "Tanmoy Sen (TS)", "code": "TS" },
+            { "id": 1020, "name": "Chowdhury Mofizur Rahman (CMR)", "code": "CMR" }
+        ];
+
+        async function loadFaculties() {
+            try {
+                const res = await safeFetchJson('/api/faculties');
+                if (Array.isArray(res) && res.length > 0) {
+                    facultiesList = res;
+                    localStorage.setItem('qb_faculties_cache', JSON.stringify(res));
+                }
+            } catch (e) {
+                console.warn('Could not fetch faculties from backend, using fallback:', e);
+                const cached = localStorage.getItem('qb_faculties_cache');
+                if (cached) {
+                    try { facultiesList = JSON.parse(cached); } catch(_) {}
+                }
+            }
+            populateCoursesFacultyFilter();
+        }
+
+        function populateCoursesFacultyFilter() {
+            const facFilter = document.getElementById('coursesFacultyFilter');
+            if (!facFilter) return;
+            const currentVal = facFilter.value;
+            facFilter.innerHTML = '<option value="all">All Faculty</option>' +
+                facultiesList.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+            if (currentVal && currentVal !== 'all') facFilter.value = currentVal;
+        }
+
+        // Exact Firestore query by keyword / search token
+        async function queryFirestoreBySearchToken(searchTerm) {
+            const term = (searchTerm || '').toLowerCase().trim();
+            if (!term) return [];
+            try {
+                const q = query(
+                    collection(db, "questionPapers"),
+                    where("status", "==", "approved"),
+                    where("searchTokens", "array-contains", term),
+                    orderBy("createdAt", "desc")
+                );
+                const snap = await getDocs(q);
+                const results = [];
+                snap.forEach(doc => results.push({ id: doc.id, ...doc.data() }));
+                if (results.length > 0) return results;
+            } catch (err) {
+                console.warn('Firestore searchTokens query fallback to local cache:', err);
+            }
+            // Fallback to approvedPapers in memory
+            return (approvedPapers || []).filter(p => {
+                if (p.searchTokens && Array.isArray(p.searchTokens) && p.searchTokens.includes(term)) return true;
+                const fac = (p.facultyName || '').toLowerCase();
+                const code = (p.facultyCode || '').toLowerCase();
+                const course = (p.courseCode || '').toLowerCase();
+                const topic = (p.topic || '').toLowerCase();
+                return fac.includes(term) || code.includes(term) || course.includes(term) || topic.includes(term);
+            });
+        }
+
+        // Exact Firestore query by exact faculty ID
+        async function queryFirestoreByFacultyId(selectedFacultyId) {
+            const facIdNum = Number(selectedFacultyId);
+            if (!facIdNum) return [];
+            try {
+                const q = query(
+                    collection(db, "questionPapers"),
+                    where("status", "==", "approved"),
+                    where("facultyId", "==", facIdNum),
+                    orderBy("createdAt", "desc")
+                );
+                const snap = await getDocs(q);
+                const results = [];
+                snap.forEach(doc => results.push({ id: doc.id, ...doc.data() }));
+                if (results.length > 0) return results;
+            } catch (err) {
+                console.warn('Firestore facultyId query fallback to local cache:', err);
+            }
+            // Fallback to approvedPapers in memory
+            return (approvedPapers || []).filter(p => Number(p.facultyId) === facIdNum);
+        }
+
+        window.selectFacultyFromHero = function(facultyId) {
+            location.hash = `#courses?faculty=${facultyId}`;
+        };
+
         function renderCoursesPage() {
             const grid = document.getElementById('allCoursesGrid');
             const searchInput = document.getElementById('coursesSearch');
             const trimFilter = document.getElementById('coursesTrimesterFilter');
+            const facFilter = document.getElementById('coursesFacultyFilter');
+            const facSection = document.getElementById('facultyQuestionsSection');
+            const facGrid = document.getElementById('facultyQuestionsGrid');
+            const facTitle = document.getElementById('facultyQuestionsTitle');
+            const facCount = document.getElementById('facultyQuestionsCount');
+            const clearFacBtn = document.getElementById('clearFacultyFilterBtn');
             
             if (trimFilter.options.length === 1) {
                 for (let i = 1; i <= 12; i++) trimFilter.innerHTML += `<option value="${i}">Trimester ${i}</option>`;
@@ -4200,12 +4343,71 @@
                 trimFilter.addEventListener('change', updateCoursesGrid);
             }
 
+            if (facFilter && facFilter.options.length <= 1) {
+                populateCoursesFacultyFilter();
+            }
+
+            if (facFilter && !facFilter._hasListener) {
+                facFilter._hasListener = true;
+                facFilter.addEventListener('change', updateCoursesGrid);
+            }
+
+            if (clearFacBtn && !clearFacBtn._hasListener) {
+                clearFacBtn._hasListener = true;
+                clearFacBtn.addEventListener('click', () => {
+                    if (facFilter) facFilter.value = 'all';
+                    if (searchInput) searchInput.value = '';
+                    updateCoursesGrid();
+                });
+            }
+
+            // Sync with hash query params if any (e.g. #courses?faculty=6496 or #courses?sem=261)
+            if (currentRoute && currentRoute.query) {
+                const facParam = currentRoute.query.get('faculty');
+                if (facParam && facFilter) {
+                    facFilter.value = facParam;
+                }
+            }
+
             updateCoursesGrid();
 
-            function updateCoursesGrid() {
-                const term = searchInput.value.toLowerCase();
+            async function updateCoursesGrid() {
+                const term = searchInput.value.toLowerCase().trim();
                 const trim = trimFilter.value;
-                
+                const selectedFacId = facFilter ? facFilter.value : 'all';
+
+                let matchedPapers = [];
+                let isFacultyActive = false;
+
+                if (selectedFacId !== 'all') {
+                    isFacultyActive = true;
+                    const facultyObj = facultiesList.find(f => String(f.id) === String(selectedFacId));
+                    const facName = facultyObj ? facultyObj.name : 'Selected Faculty';
+                    if (facTitle) facTitle.innerHTML = `<i class="fas fa-chalkboard-teacher" style="color:var(--orange);"></i> Question Papers by ${facName}`;
+                    matchedPapers = await queryFirestoreByFacultyId(selectedFacId);
+                } else if (term) {
+                    // Check if term matches faculty or tokens
+                    const isFacTerm = facultiesList.some(f => f.name.toLowerCase().includes(term) || f.code.toLowerCase().includes(term));
+                    if (isFacTerm) {
+                        isFacultyActive = true;
+                        if (facTitle) facTitle.innerHTML = `<i class="fas fa-search" style="color:var(--orange);"></i> Question Papers Matching "${term}"`;
+                        matchedPapers = await queryFirestoreBySearchToken(term);
+                    }
+                }
+
+                if (isFacultyActive && facSection && facGrid) {
+                    facSection.style.display = 'block';
+                    if (matchedPapers.length > 0) {
+                        facGrid.innerHTML = matchedPapers.map(p => createPhotoMatchedQuestionBox(p)).join('');
+                        if (facCount) facCount.innerText = `${matchedPapers.length} ${matchedPapers.length === 1 ? 'paper' : 'papers'}`;
+                    } else {
+                        facGrid.innerHTML = `<div style="grid-column: 1 / -1; padding: 2rem; text-align: center; color: var(--text-muted); background: var(--surface-1); border-radius: var(--radius-md); border: 1px dashed var(--border);">No question papers found for this faculty/search query.</div>`;
+                        if (facCount) facCount.innerText = '0 papers';
+                    }
+                } else if (facSection) {
+                    facSection.style.display = 'none';
+                }
+
                 const filtered = CURRICULUM.filter(c => {
                     const matchSearch = c.code.toLowerCase().includes(term) || c.title.toLowerCase().includes(term) || c.aliases.some(a=>a.toLowerCase().includes(term));
                     const matchTrim = trim === 'all' || c.trimester.toString() === trim;
@@ -4628,7 +4830,7 @@
         function fuzzySearch(rawQuery) {
             const q = rawQuery.toLowerCase().replace(/[\s\-\_]/g, '');
             const qWords = rawQuery.toLowerCase().trim();
-            if (!q) return { courses: [], trimesters: [], semesters: [] };
+            if (!q) return { courses: [], trimesters: [], semesters: [], faculties: [] };
 
             // Match courses
             const courses = CURRICULUM.filter(c =>
@@ -4654,7 +4856,14 @@
                 s.code.includes(q) || s.label.toLowerCase().includes(qWords)
             ).slice(0, 4);
 
-            return { courses, trimesters: trimesters.slice(0, 3), semesters };
+            // Match faculties
+            const faculties = (facultiesList || []).filter(f =>
+                f.name.toLowerCase().includes(qWords) ||
+                f.code.toLowerCase().includes(q) ||
+                f.name.toLowerCase().replace(/[\s\(\)\.]/g, '').includes(q)
+            ).slice(0, 4);
+
+            return { courses, trimesters: trimesters.slice(0, 3), semesters, faculties };
         }
 
         searchInput.addEventListener('input', (e) => {
@@ -4675,6 +4884,18 @@
                         <div style="text-align:left; width:100%;">
                             <div style="font-weight:700; font-size:0.95rem; color:var(--text-main); text-align:left;">${c.code}</div>
                             <div style="font-size:0.825rem; color:var(--text-muted); text-align:left; margin-top:0.15rem;">${c.title} · ${c.trimester === 0 ? 'Elective' : 'Trim ' + c.trimester}</div>
+                        </div>
+                    </div>`;
+                });
+            }
+
+            if (results.faculties && results.faculties.length > 0) {
+                resultsHTML += `<div style="padding:0.5rem 1.25rem; font-size:0.75rem; font-weight:700; color:var(--text-muted); background:var(--surface-2); text-align:left; letter-spacing:0.5px; border-bottom:1px solid var(--border);">👨‍🏫 FACULTY MEMBERS</div>`;
+                results.faculties.forEach(f => {
+                    resultsHTML += `<div class="autocomplete-item" onclick="selectFacultyFromHero('${f.id}'); document.getElementById('heroAutocomplete').classList.remove('active');">
+                        <div style="text-align:left; width:100%;">
+                            <div style="font-weight:700; font-size:0.95rem; color:var(--text-main); text-align:left;">${f.name}</div>
+                            <div style="font-size:0.825rem; color:var(--orange); text-align:left; margin-top:0.15rem;"><i class="fas fa-chalkboard-teacher"></i> Code: ${f.code} · View Papers</div>
                         </div>
                     </div>`;
                 });
@@ -4880,6 +5101,95 @@
                         resultsDiv.style.display = 'none';
                     }
                 });
+
+                // Faculty Autocomplete Logic
+                const facultySearch = document.getElementById('upFacultySearch');
+                const facultyDropdown = document.getElementById('upFacultyDropdown');
+                const facultyClearBtn = document.getElementById('upFacultyClearBtn');
+                const facultyIdInp = document.getElementById('upFacultyId');
+                const facultyNameInp = document.getElementById('upFacultyName');
+                const facultyCodeInp = document.getElementById('upFacultyCode');
+
+                function renderFacultyResults(filter) {
+                    if (!facultyDropdown) return;
+                    const q = (filter || '').toLowerCase().trim();
+                    const matches = q ? facultiesList.filter(f => {
+                        const nameMatch = f.name.toLowerCase().includes(q);
+                        const codeMatch = f.code.toLowerCase().includes(q);
+                        const cleanNameMatch = f.name.toLowerCase().replace(/[\s\(\)\.]/g, '').includes(q.replace(/[\s\(\)\.]/g, ''));
+                        return nameMatch || codeMatch || cleanNameMatch;
+                    }) : facultiesList;
+
+                    if (matches.length === 0) {
+                        facultyDropdown.innerHTML = '<div style="padding:0.75rem 1rem; color:var(--text-muted); text-align:center; font-size:0.85rem;">No matching faculty found</div>';
+                    } else {
+                        facultyDropdown.innerHTML = matches.map(f => `
+                            <div class="faculty-search-item" data-id="${f.id}" data-name="${f.name}" data-code="${f.code}" style="padding:0.6rem 1rem; cursor:pointer; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; transition:background 0.15s;">
+                                <div>
+                                    <div style="font-weight:600; font-size:0.88rem; color:var(--text-main);">${f.name}</div>
+                                </div>
+                                <span class="pill" style="font-size:0.72rem; padding:0.15rem 0.5rem; background:rgba(255,145,77,0.15); color:var(--orange); border:1px solid rgba(255,145,77,0.3); font-weight:600;">${f.code}</span>
+                            </div>
+                        `).join('');
+                    }
+                    facultyDropdown.style.display = 'block';
+                }
+
+                if (facultySearch && !facultySearch._hasListener) {
+                    facultySearch._hasListener = true;
+                    facultySearch.addEventListener('focus', () => renderFacultyResults(facultySearch.value));
+                    facultySearch.addEventListener('input', () => {
+                        renderFacultyResults(facultySearch.value);
+                        if (!facultySearch.value.trim()) {
+                            if (facultyIdInp) facultyIdInp.value = '';
+                            if (facultyNameInp) facultyNameInp.value = '';
+                            if (facultyCodeInp) facultyCodeInp.value = '';
+                            if (facultyClearBtn) facultyClearBtn.style.display = 'none';
+                        }
+                    });
+
+                    facultyDropdown.addEventListener('click', (e) => {
+                        const item = e.target.closest('.faculty-search-item');
+                        if (!item) return;
+                        const id = item.dataset.id;
+                        const name = item.dataset.name;
+                        const code = item.dataset.code;
+
+                        if (facultyIdInp) facultyIdInp.value = id;
+                        if (facultyNameInp) facultyNameInp.value = name;
+                        if (facultyCodeInp) facultyCodeInp.value = code;
+                        facultySearch.value = name;
+                        facultyDropdown.style.display = 'none';
+                        if (facultyClearBtn) facultyClearBtn.style.display = 'block';
+                    });
+
+                    facultyDropdown.addEventListener('mouseover', (e) => {
+                        const item = e.target.closest('.faculty-search-item');
+                        if (item) item.style.background = 'var(--surface-2)';
+                    });
+                    facultyDropdown.addEventListener('mouseout', (e) => {
+                        const item = e.target.closest('.faculty-search-item');
+                        if (item) item.style.background = '';
+                    });
+
+                    if (facultyClearBtn) {
+                        facultyClearBtn.addEventListener('click', () => {
+                            if (facultyIdInp) facultyIdInp.value = '';
+                            if (facultyNameInp) facultyNameInp.value = '';
+                            if (facultyCodeInp) facultyCodeInp.value = '';
+                            facultySearch.value = '';
+                            facultyClearBtn.style.display = 'none';
+                            facultyDropdown.style.display = 'none';
+                            facultySearch.focus();
+                        });
+                    }
+
+                    document.addEventListener('click', (e) => {
+                        if (!e.target.closest('#facultyGroup')) {
+                            if (facultyDropdown) facultyDropdown.style.display = 'none';
+                        }
+                    });
+                }
 
                 document.querySelectorAll('input[name="materialType"]').forEach(radio => {
                     radio.addEventListener('change', (e) => {
@@ -5182,7 +5492,9 @@
                 const type = document.querySelector('input[name="materialType"]:checked').value;
                 const examType = (type === 'Question' || type === 'Solution') ? document.getElementById('upExamType').value : (type === 'Lab' ? 'Lab' : 'Notes');
                 const topic = document.getElementById('upTopic').value.trim();
-                const facultyName = (document.getElementById('upFaculty')?.value || '').trim();
+                const facultyId = document.getElementById('upFacultyId')?.value ? Number(document.getElementById('upFacultyId').value) : null;
+                const facultyName = (document.getElementById('upFacultyName')?.value || document.getElementById('upFacultySearch')?.value || '').trim();
+                const facultyCode = (document.getElementById('upFacultyCode')?.value || '').trim();
                 const submitterName = document.getElementById('upSubmitterName').value.trim();
                 const submitterEmail = document.getElementById('upSubmitterEmail').value.trim().toLowerCase();
 
@@ -5259,7 +5571,9 @@
                     courseCode: courseCode.replace(/\s+/g, ' ').toUpperCase(),
                     courseName: course.title,
                     topic: topic || (type === 'Solution' ? `${examType} Solution ${courseCode}` : `${examType} ${courseCode}`),
+                    facultyId: facultyId || null,
                     facultyName: facultyName || '',
+                    facultyCode: facultyCode || '',
                     trimester: String(trimester),
                     examType,
                     materialAssets
@@ -5273,12 +5587,15 @@
 
                 await addDoc(collection(db, QUESTION_COLLECTION), {
                     ...validationData.submission,
+                    facultyId: validationData.submission?.facultyId || (facultyId || null),
+                    facultyName: validationData.submission?.facultyName || facultyName || '',
+                    facultyCode: validationData.submission?.facultyCode || facultyCode || '',
+                    searchTokens: validationData.submission?.searchTokens || [],
                     semester,
                     type: type,
                     materialType: type === 'Solution' ? 'solution' : (type === 'Notes' ? 'note' : (type === 'Lab' ? 'Lab' : 'Question')),
                     solutionPdfUrl: type === 'Solution' ? mainAsset.pdfUrl : (solFile ? materialAssets.find(a => a.assetType === 'solution')?.pdfUrl : null),
-                    facultyName: facultyName || '',
-                    courseSearch: `${courseCode} ${course.title} ${topic} ${facultyName}`.toLowerCase(),
+                    courseSearch: `${courseCode} ${course.title} ${topic} ${facultyName} ${facultyCode}`.toLowerCase(),
                     materialGroup: type === 'Notes' ? 'notes' : (type === 'Solution' ? 'solutions' : 'questions'),
                     submittedAt: serverTimestamp(),
                     createdAt: serverTimestamp()
@@ -5288,8 +5605,16 @@
                 showToast('Material submitted for admin review.', 'success');
                 setTimeout(() => {
                     document.getElementById('uploadForm').reset();
-                    const upFac = document.getElementById('upFaculty');
-                    if (upFac) upFac.value = '';
+                    const upFacSearch = document.getElementById('upFacultySearch');
+                    const upFacClear = document.getElementById('upFacultyClearBtn');
+                    const upFacId = document.getElementById('upFacultyId');
+                    const upFacName = document.getElementById('upFacultyName');
+                    const upFacCode = document.getElementById('upFacultyCode');
+                    if (upFacSearch) upFacSearch.value = '';
+                    if (upFacClear) upFacClear.style.display = 'none';
+                    if (upFacId) upFacId.value = '';
+                    if (upFacName) upFacName.value = '';
+                    if (upFacCode) upFacCode.value = '';
                     resetDropzone('mainFileDropzone', 'upMainFile', 'mainFileDropContent');
                     resetDropzone('solFileDropzone', 'upSolutionFile', 'solFileDropContent');
                     nextStep(1);
@@ -7928,15 +8253,28 @@
                             solPdfUrl = solAsset.pdfUrl;
                         }
 
+                        const itemTopic = item.topic || `${item.examType} ${item.courseCode}`;
+                        const itemCourseName = item.courseName || getCourseTitle(item.courseCode);
+                        const itemTokens = [item.courseCode, itemCourseName, itemTopic, item.facultyName || '', item.facultyCode || '']
+                            .filter(Boolean)
+                            .flatMap(str => String(str).toLowerCase().split(/[\s,._\-\/]+/))
+                            .map(t => t.replace(/[^a-z0-9]/g, ''))
+                            .filter(t => t.length > 0);
+                        const zipSearchTokens = Array.from(new Set(itemTokens));
+
                         const newDocData = {
                             courseCode: item.courseCode.replace(/\s+/g, ' ').toUpperCase(),
-                            courseName: item.courseName || getCourseTitle(item.courseCode),
+                            courseName: itemCourseName,
                             semester: item.semester,
                             trimester: String(item.trimester || 1),
                             type: item.materialType || 'Question',
                             materialType: (item.materialType || 'Question').toLowerCase(),
                             examType: item.examType || 'Midterm',
-                            topic: item.topic || `${item.examType} ${item.courseCode}`,
+                            topic: itemTopic,
+                            facultyId: item.facultyId || null,
+                            facultyName: item.facultyName || '',
+                            facultyCode: item.facultyCode || '',
+                            searchTokens: zipSearchTokens,
                             materialAssets,
                             pdfUrl: mainAsset.pdfUrl,
                             solutionPdfUrl: solPdfUrl,
@@ -7945,7 +8283,7 @@
                             approvedBy: 'Question Bank (Bulk ZIP)',
                             submitterName: 'Question Bank (Bulk ZIP)',
                             submitterEmail: 'bulk-zip@uiu.ac.bd',
-                            courseSearch: `${item.courseCode} ${item.courseName} ${item.topic}`.toLowerCase(),
+                            courseSearch: `${item.courseCode} ${itemCourseName} ${itemTopic}`.toLowerCase(),
                             materialGroup: item.materialType === 'Notes' ? 'notes' : (item.materialType === 'Lab' ? 'lab' : 'questions'),
                             submittedAt: serverTimestamp(),
                             createdAt: serverTimestamp()
@@ -7992,6 +8330,7 @@
 
         // Init
         initTheme();
+        loadFaculties();
         listenForApprovedPapers();
         pingLivePresence();
         setInterval(pingLivePresence, 10000);
