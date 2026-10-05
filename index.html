@@ -5453,6 +5453,172 @@
             `;
         }
 
+        // =========================================================
+        // BACKGROUND UPLOAD KEEP-ALIVE & PROCESS MANAGER
+        // Keeps uploads running at full speed even when tab is hidden/inactive
+        // =========================================================
+        const BackgroundUploadManager = (() => {
+            let audioCtx = null;
+            let oscillator = null;
+            let gainNode = null;
+            let wakeLock = null;
+            let activeUploadCount = 0;
+            const originalTitle = document.title;
+            let worker = null;
+
+            // 1. Inline Web Worker for unthrottled timer delays in background tabs
+            try {
+                const workerCode = `
+                    self.onmessage = function(e) {
+                        var id = e.data.id;
+                        var ms = e.data.ms;
+                        setTimeout(function() {
+                            self.postMessage({ id: id });
+                        }, ms);
+                    };
+                `;
+                const blob = new Blob([workerCode], { type: 'application/javascript' });
+                worker = new Worker(URL.createObjectURL(blob));
+            } catch (wErr) {
+                console.warn('[BackgroundKeepAlive] Worker creation fallback to window timers:', wErr);
+            }
+
+            let nextTimerId = 1;
+            const pendingTimers = new Map();
+            if (worker) {
+                worker.onmessage = function(e) {
+                    const resolve = pendingTimers.get(e.data.id);
+                    if (resolve) {
+                        pendingTimers.delete(e.data.id);
+                        resolve();
+                    }
+                };
+            }
+
+            function delay(ms) {
+                if (!worker) {
+                    return new Promise(r => setTimeout(r, ms));
+                }
+                return new Promise(resolve => {
+                    const id = nextTimerId++;
+                    pendingTimers.set(id, resolve);
+                    worker.postMessage({ id, ms });
+                });
+            }
+
+            async function start(reason = 'upload') {
+                activeUploadCount++;
+                if (activeUploadCount > 1) return; // Already active
+
+                // A. Web Audio Keep-Alive: Browser treats media playing tabs as active, preventing tab freezing & throttling
+                try {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContextClass) {
+                        if (!audioCtx || audioCtx.state === 'closed') {
+                            audioCtx = new AudioContextClass();
+                        }
+                        if (audioCtx.state === 'suspended') {
+                            await audioCtx.resume();
+                        }
+                        if (!oscillator) {
+                            oscillator = audioCtx.createOscillator();
+                            gainNode = audioCtx.createGain();
+                            // Inaudible gain (0.00001) keeps audio engine running continuously without sound
+                            gainNode.gain.setValueAtTime(0.00001, audioCtx.currentTime);
+                            oscillator.connect(gainNode);
+                            gainNode.connect(audioCtx.destination);
+                            oscillator.start();
+                        }
+                    }
+                } catch (audioErr) {
+                    console.debug('[BackgroundKeepAlive] Audio keep-alive unavailable:', audioErr);
+                }
+
+                // B. Screen Wake Lock: Keeps system awake during long batch uploads
+                try {
+                    if ('wakeLock' in navigator && !wakeLock) {
+                        wakeLock = await navigator.wakeLock.request('screen');
+                        wakeLock.addEventListener('release', () => { wakeLock = null; });
+                    }
+                } catch (wlErr) {
+                    console.debug('[BackgroundKeepAlive] Wake lock unavailable:', wlErr);
+                }
+            }
+
+            function stop() {
+                activeUploadCount = Math.max(0, activeUploadCount - 1);
+                if (activeUploadCount > 0) return; // Other uploads still active
+
+                // Release AudioContext
+                try {
+                    if (oscillator) {
+                        oscillator.stop();
+                        oscillator.disconnect();
+                        oscillator = null;
+                    }
+                    if (gainNode) {
+                        gainNode.disconnect();
+                        gainNode = null;
+                    }
+                    if (audioCtx && audioCtx.state !== 'closed') {
+                        audioCtx.close();
+                        audioCtx = null;
+                    }
+                } catch (e) {
+                    console.debug('[BackgroundKeepAlive] Error releasing audio keep-alive:', e);
+                }
+
+                // Release WakeLock
+                try {
+                    if (wakeLock) {
+                        wakeLock.release();
+                        wakeLock = null;
+                    }
+                } catch (e) {}
+
+                // Reset document title after a short delay
+                setTimeout(() => {
+                    if (activeUploadCount === 0) {
+                        document.title = originalTitle;
+                    }
+                }, 3000);
+            }
+
+            function updateTitle(statusText) {
+                if (activeUploadCount > 0 && statusText) {
+                    document.title = `${statusText} · UIU Question Bank`;
+                }
+            }
+
+            // Protect against closing or navigating away during active upload
+            window.addEventListener('beforeunload', (e) => {
+                if (activeUploadCount > 0) {
+                    e.preventDefault();
+                    e.returnValue = 'Upload is currently in progress. If you leave or close this tab, your upload will be cancelled.';
+                    return e.returnValue;
+                }
+            });
+
+            // Visibility logger
+            document.addEventListener('visibilitychange', () => {
+                if (activeUploadCount > 0) {
+                    if (document.hidden) {
+                        console.log('[BackgroundKeepAlive] Tab switched to background. Keep-alive active; background uploads continue unthrottled.');
+                    } else {
+                        console.log('[BackgroundKeepAlive] Tab returned to foreground.');
+                    }
+                }
+            });
+
+            return {
+                start,
+                stop,
+                delay,
+                updateTitle,
+                isActive: () => activeUploadCount > 0
+            };
+        })();
+
         async function uploadToCloudinary(assetType, file, courseCode, topic, onProgress, onStatus) {
             const maxAttempts = 4;
             let attempt = 0;
@@ -5515,7 +5681,7 @@
                         if (typeof onStatus === 'function') {
                             onStatus(`Rate limited or retry needed (attempt ${attempt}/${maxAttempts}). Waiting ${(waitMs/1000).toFixed(1)}s...`);
                         }
-                        await new Promise(r => setTimeout(r, waitMs));
+                        await BackgroundUploadManager.delay(waitMs);
                     }
                 }
             }
@@ -5531,6 +5697,9 @@
             status.innerHTML = '';
 
             try {
+                await BackgroundUploadManager.start('upload');
+                BackgroundUploadManager.updateTitle('Uploading material...');
+
                 const courseCode = document.getElementById('upCourse').value;
                 if (!courseCode) throw new Error('Please search and select a course.');
                 const course = CURRICULUM.find(c => c.code === courseCode);
@@ -5602,23 +5771,28 @@
                 const totalSteps = solFile ? 2 : 1;
 
                 updateUploadProgress(10, 'Uploading main file...');
+                BackgroundUploadManager.updateTitle('[10%] Uploading main file...');
                 const mainAsset = await uploadToCloudinary(mainAssetType, mainFile, courseCode, topic, (p) => {
                     const overall = Math.round(10 + (p * 0.75 / totalSteps));
                     updateUploadProgress(overall, `Uploading main file...`);
+                    BackgroundUploadManager.updateTitle(`[${overall}%] Uploading main file...`);
                 });
 
                 const materialAssets = [mainAsset];
 
                 if (type === 'Question' && solFile) {
                     updateUploadProgress(50, 'Uploading solution file...');
+                    BackgroundUploadManager.updateTitle('[50%] Uploading solution file...');
                     const solAsset = await uploadToCloudinary('solution', solFile, courseCode, topic, (p) => {
                         const overall = Math.round(50 + (p * 0.45));
                         updateUploadProgress(overall, `Uploading solution file...`);
+                        BackgroundUploadManager.updateTitle(`[${overall}%] Uploading solution file...`);
                     });
                     materialAssets.push(solAsset);
                 }
 
                 updateUploadProgress(95, 'Uploading complete! Submitting...');
+                BackgroundUploadManager.updateTitle('[95%] Submitting...');
 
                 const payload = {
                     submitterName,
@@ -5659,6 +5833,7 @@
                 });
 
                 updateUploadProgress(100, 'Submitted successfully for admin review!');
+                BackgroundUploadManager.updateTitle('Upload Successful!');
                 showToast('Material submitted for admin review.', 'success');
                 setTimeout(() => {
                     document.getElementById('uploadForm').reset();
@@ -5685,6 +5860,8 @@
                 status.innerHTML = `<span style="color:var(--error)">Error: ${err.message}</span>`;
                 btn.disabled = false;
                 btn.innerText = 'Submit Material';
+            } finally {
+                BackgroundUploadManager.stop();
             }
         });
 
@@ -7333,6 +7510,9 @@
                 status.innerHTML = '';
 
                 try {
+                    await BackgroundUploadManager.start('solution');
+                    BackgroundUploadManager.updateTitle('Uploading solution...');
+
                     const questionId = document.getElementById('solTargetQuestionId').value;
                     const courseCode = document.getElementById('solTargetCourseCode').value;
                     const examType = document.getElementById('solTargetExamType').value;
@@ -7348,9 +7528,12 @@
 
                     status.innerHTML = '<div style="font-size:0.8rem; color:var(--orange); margin-top:0.5rem;"><i class="fas fa-spinner fa-spin"></i> Uploading solution PDF to Cloudinary...</div>';
 
-                    const solAsset = await uploadToCloudinary('solution', solFile, courseCode, `${examType} Solution`);
+                    const solAsset = await uploadToCloudinary('solution', solFile, courseCode, `${examType} Solution`, (p) => {
+                        BackgroundUploadManager.updateTitle(`[${p}%] Uploading solution...`);
+                    });
 
                     status.innerHTML = '<div style="font-size:0.8rem; color:var(--success); margin-top:0.5rem;"><i class="fas fa-spinner fa-spin"></i> Submitting solution for admin review...</div>';
+                    BackgroundUploadManager.updateTitle('Submitting solution...');
 
                     await addDoc(collection(db, QUESTION_COLLECTION), {
                         targetQuestionId: questionId,
@@ -7371,6 +7554,7 @@
                     });
 
                     status.innerHTML = '<div style="font-size:0.85rem; color:var(--success); font-weight:600; margin-top:0.5rem;">Solution submitted successfully for admin review!</div>';
+                    BackgroundUploadManager.updateTitle('Solution Submitted!');
                     showToast('Solution submitted for admin review.', 'success');
                     setTimeout(() => {
                         solForm.reset();
@@ -7385,6 +7569,8 @@
                     status.innerHTML = `<span style="color:var(--error); font-size:0.85rem;">Error: ${err.message}</span>`;
                     btn.disabled = false;
                     btn.innerHTML = 'Submit Solution';
+                } finally {
+                    BackgroundUploadManager.stop();
                 }
             });
         }
@@ -8269,98 +8455,105 @@
                     userZipConsoleLog.scrollTop = userZipConsoleLog.scrollHeight;
                 };
 
-                for (let i = 0; i < selectedItems.length; i++) {
-                    const item = selectedItems[i];
-                    const percent = Math.round(((i) / selectedItems.length) * 100);
-                    
-                    userZipProgressPercent.textContent = `${percent}%`;
-                    userZipProgressFill.style.width = `${percent}%`;
-                    userZipProgressLabel.innerHTML = `<i class="fas fa-spinner fa-spin"></i> [${i + 1}/${selectedItems.length}] Uploading ${item.courseCode} ${item.examType}...`;
+                try {
+                    await BackgroundUploadManager.start('bulk_zip');
+                    BackgroundUploadManager.updateTitle(`[0/${selectedItems.length}] Batch Uploading...`);
 
-                    if (i > 0) {
-                        await new Promise(r => setTimeout(r, 1500));
-                    }
+                    for (let i = 0; i < selectedItems.length; i++) {
+                        const item = selectedItems[i];
+                        const percent = Math.round(((i) / selectedItems.length) * 100);
+                        
+                        userZipProgressPercent.textContent = `${percent}%`;
+                        userZipProgressFill.style.width = `${percent}%`;
+                        userZipProgressLabel.innerHTML = `<i class="fas fa-spinner fa-spin"></i> [${i + 1}/${selectedItems.length}] Uploading ${item.courseCode} ${item.examType}...`;
+                        BackgroundUploadManager.updateTitle(`[${i + 1}/${selectedItems.length} · ${percent}%] Uploading ${item.courseCode}...`);
 
-                    try {
-                        const mainBlob = await item.zipEntry.async('blob');
-                        const mainFile = new File([mainBlob], item.originalFilename, { type: 'application/pdf' });
-
-                        userZipConsoleLog.innerHTML += `<div>[${i + 1}/${selectedItems.length}] Uploading Cloudinary asset for ${item.courseCode} (${item.originalFilename})...</div>`;
-                        userZipConsoleLog.scrollTop = userZipConsoleLog.scrollHeight;
-
-                        const mainAsset = await uploadToCloudinary(item.materialType === 'Notes' ? 'note' : (item.materialType === 'Solution' ? 'solution' : 'question'), mainFile, item.courseCode, item.topic, null, logStatus);
-                        const materialAssets = [mainAsset];
-
-                        let solPdfUrl = null;
-                        if (item.materialType === 'Solution') {
-                            solPdfUrl = mainAsset.pdfUrl;
+                        if (i > 0) {
+                            await BackgroundUploadManager.delay(1500);
                         }
 
-                        if (item.pairedSolution && item.pairedSolution.zipEntry) {
-                            await new Promise(r => setTimeout(r, 1000));
-                            userZipConsoleLog.innerHTML += `<div style="color:#38bdf8;">→ Uploading paired solution (${item.pairedSolution.originalFilename})...</div>`;
-                            const solBlob = await item.pairedSolution.zipEntry.async('blob');
-                            const solFile = new File([solBlob], item.pairedSolution.originalFilename, { type: 'application/pdf' });
-                            const solAsset = await uploadToCloudinary('solution', solFile, item.courseCode, item.topic, null, logStatus);
-                            materialAssets.push(solAsset);
-                            solPdfUrl = solAsset.pdfUrl;
+                        try {
+                            const mainBlob = await item.zipEntry.async('blob');
+                            const mainFile = new File([mainBlob], item.originalFilename, { type: 'application/pdf' });
+
+                            userZipConsoleLog.innerHTML += `<div>[${i + 1}/${selectedItems.length}] Uploading Cloudinary asset for ${item.courseCode} (${item.originalFilename})...</div>`;
+                            userZipConsoleLog.scrollTop = userZipConsoleLog.scrollHeight;
+
+                            const mainAsset = await uploadToCloudinary(item.materialType === 'Notes' ? 'note' : (item.materialType === 'Solution' ? 'solution' : 'question'), mainFile, item.courseCode, item.topic, null, logStatus);
+                            const materialAssets = [mainAsset];
+
+                            let solPdfUrl = null;
+                            if (item.materialType === 'Solution') {
+                                solPdfUrl = mainAsset.pdfUrl;
+                            }
+
+                            if (item.pairedSolution && item.pairedSolution.zipEntry) {
+                                await BackgroundUploadManager.delay(1000);
+                                userZipConsoleLog.innerHTML += `<div style="color:#38bdf8;">→ Uploading paired solution (${item.pairedSolution.originalFilename})...</div>`;
+                                const solBlob = await item.pairedSolution.zipEntry.async('blob');
+                                const solFile = new File([solBlob], item.pairedSolution.originalFilename, { type: 'application/pdf' });
+                                const solAsset = await uploadToCloudinary('solution', solFile, item.courseCode, item.topic, null, logStatus);
+                                materialAssets.push(solAsset);
+                                solPdfUrl = solAsset.pdfUrl;
+                            }
+
+                            const itemTopic = item.topic || `${item.examType} ${item.courseCode}`;
+                            const itemCourseName = item.courseName || getCourseTitle(item.courseCode);
+                            const itemTokens = [item.courseCode, itemCourseName, itemTopic, item.facultyName || '', item.facultyCode || '']
+                                .filter(Boolean)
+                                .flatMap(str => String(str).toLowerCase().split(/[\s,._\-\/]+/))
+                                .map(t => t.replace(/[^a-z0-9]/g, ''))
+                                .filter(t => t.length > 0);
+                            const zipSearchTokens = Array.from(new Set(itemTokens));
+
+                            const newDocData = {
+                                courseCode: item.courseCode.replace(/\s+/g, ' ').toUpperCase(),
+                                courseName: itemCourseName,
+                                semester: item.semester,
+                                trimester: String(item.trimester || 1),
+                                type: item.materialType || 'Question',
+                                materialType: (item.materialType || 'Question').toLowerCase(),
+                                examType: item.examType || 'Midterm',
+                                topic: itemTopic,
+                                facultyId: item.facultyId || null,
+                                facultyName: item.facultyName || '',
+                                facultyCode: item.facultyCode || '',
+                                searchTokens: zipSearchTokens,
+                                materialAssets,
+                                pdfUrl: mainAsset.pdfUrl,
+                                solutionPdfUrl: solPdfUrl,
+                                status: 'approved',
+                                approvedAt: serverTimestamp(),
+                                approvedBy: 'Question Bank (Bulk ZIP)',
+                                submitterName: 'Question Bank (Bulk ZIP)',
+                                submitterEmail: 'bulk-zip@uiu.ac.bd',
+                                courseSearch: `${item.courseCode} ${itemCourseName} ${itemTopic}`.toLowerCase(),
+                                materialGroup: item.materialType === 'Notes' ? 'notes' : 'questions',
+                                submittedAt: serverTimestamp(),
+                                createdAt: serverTimestamp()
+                            };
+
+                            const newDocRef = await addDoc(collection(db, QUESTION_COLLECTION), newDocData);
+
+                            successCount++;
+                            item.selected = false;
+                            item.isDuplicate = true;
+                            item.isUploaded = true;
+                            userZipConsoleLog.innerHTML += `<div style="color:#10b981;">✔ Successfully published: ${item.courseCode} - ${item.examType} (${item.semester}) [ID: ${newDocRef.id}]</div>`;
+                            userZipConsoleLog.scrollTop = userZipConsoleLog.scrollHeight;
+
+                        } catch (uploadErr) {
+                            failureCount++;
+                            console.error(`Failed uploading ${item.originalFilename}:`, uploadErr);
+                            userZipConsoleLog.innerHTML += `<div style="color:#ef4444;">✖ Error on ${item.originalFilename}: ${uploadErr.message}</div>`;
+                            userZipConsoleLog.scrollTop = userZipConsoleLog.scrollHeight;
                         }
-
-                        const itemTopic = item.topic || `${item.examType} ${item.courseCode}`;
-                        const itemCourseName = item.courseName || getCourseTitle(item.courseCode);
-                        const itemTokens = [item.courseCode, itemCourseName, itemTopic, item.facultyName || '', item.facultyCode || '']
-                            .filter(Boolean)
-                            .flatMap(str => String(str).toLowerCase().split(/[\s,._\-\/]+/))
-                            .map(t => t.replace(/[^a-z0-9]/g, ''))
-                            .filter(t => t.length > 0);
-                        const zipSearchTokens = Array.from(new Set(itemTokens));
-
-                        const newDocData = {
-                            courseCode: item.courseCode.replace(/\s+/g, ' ').toUpperCase(),
-                            courseName: itemCourseName,
-                            semester: item.semester,
-                            trimester: String(item.trimester || 1),
-                            type: item.materialType || 'Question',
-                            materialType: (item.materialType || 'Question').toLowerCase(),
-                            examType: item.examType || 'Midterm',
-                            topic: itemTopic,
-                            facultyId: item.facultyId || null,
-                            facultyName: item.facultyName || '',
-                            facultyCode: item.facultyCode || '',
-                            searchTokens: zipSearchTokens,
-                            materialAssets,
-                            pdfUrl: mainAsset.pdfUrl,
-                            solutionPdfUrl: solPdfUrl,
-                            status: 'approved',
-                            approvedAt: serverTimestamp(),
-                            approvedBy: 'Question Bank (Bulk ZIP)',
-                            submitterName: 'Question Bank (Bulk ZIP)',
-                            submitterEmail: 'bulk-zip@uiu.ac.bd',
-                            courseSearch: `${item.courseCode} ${itemCourseName} ${itemTopic}`.toLowerCase(),
-                            materialGroup: item.materialType === 'Notes' ? 'notes' : 'questions',
-                            submittedAt: serverTimestamp(),
-                            createdAt: serverTimestamp()
-                        };
-
-                        const newDocRef = await addDoc(collection(db, QUESTION_COLLECTION), newDocData);
-
-                        successCount++;
-                        item.selected = false;
-                        item.isDuplicate = true;
-                        item.isUploaded = true;
-                        userZipConsoleLog.innerHTML += `<div style="color:#10b981;">✔ Successfully published: ${item.courseCode} - ${item.examType} (${item.semester}) [ID: ${newDocRef.id}]</div>`;
-                        userZipConsoleLog.scrollTop = userZipConsoleLog.scrollHeight;
-
-                    } catch (uploadErr) {
-                        failureCount++;
-                        console.error(`Failed uploading ${item.originalFilename}:`, uploadErr);
-                        userZipConsoleLog.innerHTML += `<div style="color:#ef4444;">✖ Error on ${item.originalFilename}: ${uploadErr.message}</div>`;
-                        userZipConsoleLog.scrollTop = userZipConsoleLog.scrollHeight;
                     }
+                } finally {
+                    isUploadingUserZip = false;
+                    BackgroundUploadManager.stop();
+                    if (btnUserZipReset) btnUserZipReset.disabled = false;
                 }
-
-                isUploadingUserZip = false;
-                if (btnUserZipReset) btnUserZipReset.disabled = false;
 
                 parsedUserZipEntries = parsedUserZipEntries.filter(item => !item.isUploaded);
                 document.getElementById('user-zip-stat-total').textContent = parsedUserZipEntries.length;
@@ -8372,6 +8565,7 @@
                 userZipProgressPercent.textContent = '100%';
                 userZipProgressFill.style.width = '100%';
                 userZipProgressLabel.innerHTML = `<i class="fas fa-check-circle" style="color:var(--success);"></i> Batch Upload Complete! (${successCount} published, ${failureCount} failed)`;
+                BackgroundUploadManager.updateTitle(`[Done] ${successCount} uploaded`);
                 
                 userZipConsoleLog.innerHTML += `<div style="color:#34d399; font-weight:bold; margin-top:0.4rem;">[DONE] Batch upload finished: ${successCount} successful, ${failureCount} errors. Published files removed from queue.</div>`;
                 userZipConsoleLog.scrollTop = userZipConsoleLog.scrollHeight;
