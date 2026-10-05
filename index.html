@@ -3673,17 +3673,166 @@
 
         <!-- Upload Page -->
         <div id="page-upload" class="page">
-            <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="text-align: center; margin-bottom: 1.5rem;">
                 <h2>Contribute Material</h2>
-                <p class="text-muted">Help your peers by sharing past questions, solutions, or notes.</p>
-                <div style="display:flex; justify-content:center; gap:0.75rem; margin-top:0.75rem;">
+                <p class="text-muted">Share past questions, solutions, or notes. Submissions are reviewed by admin before publication.</p>
+                <div style="display:flex; justify-content:center; gap:0.6rem; margin-top:1rem; flex-wrap:wrap;">
+                    <button type="button" class="btn btn-primary" id="btn-mode-direct-upload" style="font-weight:700; display:inline-flex; align-items:center; gap:0.5rem; padding:0.45rem 1.25rem;">
+                        <i class="fas fa-bolt"></i> Direct Auto-Detect Upload
+                    </button>
+                    <button type="button" class="btn btn-outline" id="btn-mode-manual-upload" style="font-weight:600; display:inline-flex; align-items:center; gap:0.5rem; padding:0.45rem 1.25rem;">
+                        <i class="fas fa-edit"></i> Manual Single Form
+                    </button>
                     <button type="button" class="btn btn-outline" id="btn-open-user-zip" style="border-color:var(--orange); color:var(--orange); font-weight:700; display:inline-flex; align-items:center; gap:0.5rem; padding:0.45rem 1.25rem;">
                         <i class="fas fa-file-archive"></i> Bulk ZIP Upload
                     </button>
                 </div>
             </div>
-            
-            <div class="upload-stepper">
+
+            <!-- Direct Upload Section (Auto-Detection & Multi-File) -->
+            <div id="direct-upload-section" style="display:block; max-width:960px; margin:0 auto; width:100%; box-sizing:border-box;">
+                <!-- Submitter Academic Email (Mandatory) -->
+                <div style="background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-md); padding:1rem 1.25rem; margin-bottom:1.25rem; width:100%; box-sizing:border-box;">
+                    <label for="directUploadAcademicEmail" style="font-weight:700; font-size:0.9rem; display:flex; align-items:center; gap:0.5rem; color:var(--text-main); margin-bottom:0.35rem;">
+                        <i class="fas fa-university" style="color:var(--orange);"></i> Your UIU Academic Email <span style="color:var(--error); font-weight:700;">*</span>
+                    </label>
+                    <input type="email" id="directUploadAcademicEmail" class="input-control" placeholder="e.g. yourname@bscse.uiu.ac.bd" required style="width:100%; max-width:440px; font-size:0.9rem; padding:0.55rem 0.85rem; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--text-main);">
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.4rem; display:flex; align-items:center; gap:0.4rem;">
+                        <i class="fas fa-shield-alt" style="color:var(--info);"></i> Academic email is required. Submissions are sent for Admin review and approval before publication.
+                    </div>
+                </div>
+
+                <!-- Step 1: Drop Files Area -->
+                <div id="direct-drop-area-wrapper">
+                    <div class="zip-drop-area" id="directUploadDropzone" onclick="document.getElementById('directUploadFileInput').click()">
+                        <input type="file" id="directUploadFileInput" accept=".pdf,.png,.jpg,.jpeg" multiple style="display:none;">
+                        <i class="fas fa-cloud-upload-alt" style="font-size:3rem; color:var(--orange); margin-bottom:0.75rem;"></i>
+                        <h3 style="margin-bottom:0.4rem; font-size:1.15rem; color:var(--text-main);">Drag & drop question & solution file(s) here</h3>
+                        <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">Or click to browse PDF/Image files from your device (Multiple files supported)</p>
+                        <div style="display:flex; justify-content:center; gap:0.5rem; flex-wrap:wrap;">
+                            <span class="zip-pill-tag"><i class="fas fa-magic" style="color:var(--orange);"></i> Auto-Detects Course Code (e.g. CSE 1111, OOP, DSA)</span>
+                            <span class="zip-pill-tag"><i class="fas fa-pen-alt" style="color:var(--orange);"></i> Auto-Detects Exam Name (Midterm / Final / Quiz)</span>
+                            <span class="zip-pill-tag"><i class="fas fa-calendar" style="color:var(--orange);"></i> Auto-Detects Semester (241, 251, Sp24)</span>
+                            <span class="zip-pill-tag"><i class="fas fa-link" style="color:var(--orange);"></i> Auto-Pairs Solutions (_sol / _solution)</span>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:1.25rem; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-md); padding:1rem;">
+                        <h4 style="font-size:0.85rem; font-weight:700; color:var(--text-main); margin-bottom:0.5rem; display:flex; align-items:center; gap:0.4rem;">
+                            <i class="fas fa-info-circle" style="color:var(--info);"></i> How Automatic Filename Detection Works:
+                        </h4>
+                        <ul style="font-size:0.8rem; color:var(--text-muted); line-height:1.6; padding-left:1.25rem; margin:0;">
+                            <li><strong>Standard formats:</strong> <code>CSE 1115_Midterm_241.pdf</code>, <code>MATH 2201 - Final Exam - Spring 2024.pdf</code></li>
+                            <li><strong>Short names / Aliases:</strong> <code>OOP_Mid_251.pdf</code>, <code>DLD_Final_233.pdf</code>, <code>DSA_Quiz1_242.pdf</code></li>
+                            <li><strong>Solution pairing:</strong> Files ending with <code>_solution.pdf</code> or <code>_sol.pdf</code> (e.g. <code>CSE1115_Mid_241_sol.pdf</code>) are automatically paired with their corresponding question!</li>
+                            <li><strong>Admin Review:</strong> Uploaded materials are sent for Admin approval, not published directly.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Step 2: Direct Upload Review Queue -->
+                <div id="direct-review-section" style="display:none; flex-direction:column; width:100%; box-sizing:border-box;">
+                    <div class="zip-summary-bar">
+                        <div style="display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap;">
+                            <span class="zip-stat-pill" style="color:var(--orange);"><i class="fas fa-file-pdf"></i> <span id="direct-stat-total">0</span> Questions in Queue</span>
+                            <span class="zip-stat-pill" style="color:var(--success);"><i class="fas fa-link"></i> <span id="direct-stat-solutions">0</span> Solutions Paired</span>
+                            <span class="zip-stat-pill" style="color:var(--error);" id="direct-duplicate-stat"><i class="fas fa-exclamation-circle"></i> <span id="direct-stat-duplicates">0</span> Already in Bank</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                            <input type="file" id="directAddMoreInput" accept=".pdf,.png,.jpg,.jpeg" multiple style="display:none;">
+                            <button type="button" class="btn btn-outline" style="padding:0.3rem 0.75rem; font-size:0.8rem; border-color:var(--orange); color:var(--orange); font-weight:600;" id="direct-btn-add-more-top" title="Add more files to this queue">
+                                <i class="fas fa-plus"></i> Add More Files
+                            </button>
+                            <button type="button" class="btn btn-outline" style="padding:0.3rem 0.75rem; font-size:0.8rem;" id="direct-btn-select-all">
+                                <i class="fas fa-check-square"></i> Select All
+                            </button>
+                            <button type="button" class="btn btn-outline" style="padding:0.3rem 0.75rem; font-size:0.8rem; color:var(--error); border-color:var(--error);" id="direct-btn-remove-selected" title="Remove selected files from queue">
+                                <i class="fas fa-trash-alt"></i> Remove Selected
+                            </button>
+                            <button type="button" class="btn btn-outline" style="padding:0.3rem 0.75rem; font-size:0.8rem;" id="direct-btn-reset">
+                                <i class="fas fa-redo"></i> Reset Queue
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Batch Override Toolbar -->
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:0.75rem; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-md); padding:0.6rem 0.85rem; margin-bottom:0.75rem; flex-wrap:wrap; width:100%; box-sizing:border-box;">
+                        <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
+                            <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;"><i class="fas fa-sliders-h"></i> Batch Override:</span>
+                            <select id="direct-batch-course-select" class="filter-select" style="padding:0.3rem 0.6rem; font-size:0.8rem; max-width:210px; border:1px solid var(--border); border-radius:6px; background:var(--surface);">
+                                <option value="">-- Select Course --</option>
+                            </select>
+                            <button type="button" class="btn btn-outline" style="padding:0.3rem 0.6rem; font-size:0.75rem;" id="direct-btn-batch-apply-course">Apply Course to All</button>
+
+                            <select id="direct-batch-exam-select" class="filter-select" style="padding:0.3rem 0.6rem; font-size:0.8rem; border:1px solid var(--border); border-radius:6px; background:var(--surface);">
+                                <option value="Midterm">Midterm</option>
+                                <option value="Final">Final</option>
+                                <option value="Quiz 1">Quiz 1</option>
+                                <option value="Quiz 2">Quiz 2</option>
+                                <option value="Quiz 3">Quiz 3</option>
+                                <option value="Quiz 4">Quiz 4</option>
+                                <option value="Quiz">Quiz</option>
+                                <option value="Assignment">Assignment</option>
+                                <option value="Lab">Lab</option>
+                                <option value="Notes">Notes</option>
+                            </select>
+                            <button type="button" class="btn btn-outline" style="padding:0.3rem 0.6rem; font-size:0.75rem;" id="direct-btn-batch-apply-exam">Apply Exam to All</button>
+                        </div>
+                    </div>
+
+                    <!-- Queue Table -->
+                    <div class="zip-table-container">
+                        <table class="zip-table" id="direct-parsed-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:40px; text-align:center;"><input type="checkbox" id="direct-th-checkbox" checked></th>
+                                    <th>File Name</th>
+                                    <th style="min-width:180px;">Course Code</th>
+                                    <th style="min-width:130px;">Exam Name</th>
+                                    <th style="min-width:130px;">Semester</th>
+                                    <th style="min-width:110px;">Type</th>
+                                    <th style="min-width:160px;">Topic / Title</th>
+                                    <th>Solution</th>
+                                    <th>Status</th>
+                                    <th style="width:50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="direct-table-tbody">
+                                <!-- JS Populated -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Progress Bar & Status Area -->
+                    <div id="direct-upload-progress-area" style="display:none;" class="zip-progress-container">
+                        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; font-weight:600;">
+                            <span id="direct-progress-label"><i class="fas fa-spinner fa-spin"></i> Submitting files for Admin review...</span>
+                            <span id="direct-progress-percent">0%</span>
+                        </div>
+                        <div class="zip-progress-track">
+                            <div class="zip-progress-fill" id="direct-progress-fill"></div>
+                        </div>
+                        <div class="zip-console-log" id="direct-console-log"></div>
+                    </div>
+
+                    <!-- Bottom Action Buttons -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border); flex-wrap:wrap; gap:0.5rem; width:100%; box-sizing:border-box;">
+                        <button type="button" class="btn btn-outline" id="direct-btn-cancel-upload">Cancel / Reset</button>
+                        <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
+                            <button type="button" class="btn btn-outline" id="direct-btn-add-another-file" style="padding:0.45rem 1rem; font-size:0.85rem; border-color:var(--orange); color:var(--orange); font-weight:700; display:inline-flex; align-items:center; gap:0.4rem;">
+                                <i class="fas fa-plus"></i> Add More Files
+                            </button>
+                            <button type="button" class="btn btn-primary" id="direct-btn-submit" style="background:linear-gradient(135deg, var(--orange), #ea580c); border:none; display:inline-flex; align-items:center; gap:0.5rem; font-weight:700; padding:0.45rem 1.25rem;">
+                                <i class="fas fa-paper-plane"></i> Submit for Admin Approval (<span id="direct-selected-count">0</span>)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manual Single Form Section -->
+            <div id="manual-upload-section" style="display:none;">
+                <div class="upload-stepper">
                 <div class="step-indicator">
                     <div class="step-dot active" data-step="1" onclick="nextStep(1)" title="Go to Step 1: Course Info">1</div>
                     <div class="step-dot" data-step="2" onclick="nextStep(2)" title="Go to Step 2: Material Details">2</div>
@@ -3808,6 +3957,7 @@
                         <div id="uploadStatus" style="margin-top: 1rem; text-align:center;"></div>
                     </div>
                 </form>
+            </div>
             </div>
         </div>
 
@@ -8971,6 +9121,8 @@
             if (userZipUploadModal) {
                 populateUserBatchCourseDropdown();
                 resetUserZipUploader();
+                const zipEmailInput = document.getElementById('userZipAcademicEmail');
+                if (zipEmailInput) zipEmailInput.value = localStorage.getItem('user_academic_email') || '';
                 userZipUploadModal.classList.add('active');
                 document.body.style.overflow = 'hidden';
             }
@@ -9579,7 +9731,7 @@
                 if (unuploadedSelected > 0) {
                     btnUserStartZipUpload.style.display = 'inline-flex';
                     btnUserStartZipUpload.disabled = false;
-                    btnUserStartZipUpload.innerHTML = `<i class="fas fa-cloud-upload-alt"></i> Publish Selected (<span id="user-zip-selected-count">${unuploadedSelected}</span>) Questions`;
+                    btnUserStartZipUpload.innerHTML = `<i class="fas fa-paper-plane"></i> Submit for Admin Approval (<span id="user-zip-selected-count">${unuploadedSelected}</span>)`;
                 } else {
                     btnUserStartZipUpload.style.display = 'none';
                 }
@@ -9660,13 +9812,27 @@
                     return;
                 }
 
+                const academicEmailInput = document.getElementById('userZipAcademicEmail');
+                const academicEmail = (academicEmailInput?.value || '').trim();
+                const academicEmailRegex = /^[a-zA-Z0-9._%+-]+@(?:[a-zA-Z0-9-]+\.)*uiu\.ac\.bd$/i;
+                if (!academicEmail || !academicEmailRegex.test(academicEmail)) {
+                    showToast('Please enter a valid UIU academic email (e.g. yourname@bscse.uiu.ac.bd) for admin review.', 'warning');
+                    if (academicEmailInput) {
+                        academicEmailInput.focus();
+                        academicEmailInput.style.borderColor = 'var(--error)';
+                    }
+                    return;
+                }
+                localStorage.setItem('user_academic_email', academicEmail);
+                if (academicEmailInput) academicEmailInput.style.borderColor = '';
+
                 const invalidCourse = selectedItems.find(i => !i.courseCode);
                 if (invalidCourse) {
                     showToast(`Please select a course for: ${invalidCourse.originalFilename}`, 'error');
                     return;
                 }
 
-                if (!confirm(`Are you sure you want to upload and publish ${selectedItems.length} questions directly to the Question Bank?`)) {
+                if (!confirm(`Are you sure you want to submit ${selectedItems.length} question(s) from this archive to the Admin for approval? Submissions will be verified by moderators before publishing.`)) {
                     return;
                 }
 
@@ -9674,7 +9840,7 @@
                 updateUserZipActionButtons();
                 if (btnUserZipReset) btnUserZipReset.disabled = true;
                 userZipUploadProgressArea.style.display = 'block';
-                userZipConsoleLog.innerHTML = `<div style="color:#60a5fa;">[START] Starting batch upload of ${selectedItems.length} questions...</div>`;
+                userZipConsoleLog.innerHTML = `<div style="color:#60a5fa;">[START] Starting submission of ${selectedItems.length} questions for Admin review...</div>`;
 
                 let successCount = 0;
                 let failureCount = 0;
@@ -9684,9 +9850,12 @@
                     userZipConsoleLog.scrollTop = userZipConsoleLog.scrollHeight;
                 };
 
+                const batchId = `zip_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+                const batchName = selectedItems[0]?.sourceZipName || 'Bulk ZIP Submission';
+
                 try {
                     await BackgroundUploadManager.start('bulk_zip');
-                    BackgroundUploadManager.updateTitle(`[0/${selectedItems.length}] Batch Uploading...`);
+                    BackgroundUploadManager.updateTitle(`[0/${selectedItems.length}] Batch Submitting...`);
 
                     for (let i = 0; i < selectedItems.length; i++) {
                         const item = selectedItems[i];
@@ -9694,8 +9863,8 @@
                         
                         userZipProgressPercent.textContent = `${percent}%`;
                         userZipProgressFill.style.width = `${percent}%`;
-                        userZipProgressLabel.innerHTML = `<i class="fas fa-spinner fa-spin"></i> [${i + 1}/${selectedItems.length}] Uploading ${item.courseCode} ${item.examType}...`;
-                        BackgroundUploadManager.updateTitle(`[${i + 1}/${selectedItems.length} · ${percent}%] Uploading ${item.courseCode}...`);
+                        userZipProgressLabel.innerHTML = `<i class="fas fa-spinner fa-spin"></i> [${i + 1}/${selectedItems.length}] Processing ${item.courseCode} ${item.examType}...`;
+                        BackgroundUploadManager.updateTitle(`[${i + 1}/${selectedItems.length} · ${percent}%] Submitting ${item.courseCode}...`);
 
                         if (i > 0) {
                             await BackgroundUploadManager.delay(1500);
@@ -9751,11 +9920,12 @@
                                 materialAssets,
                                 pdfUrl: mainAsset.pdfUrl,
                                 solutionPdfUrl: solPdfUrl,
-                                status: 'approved',
-                                approvedAt: serverTimestamp(),
-                                approvedBy: 'Question Bank (Bulk ZIP)',
-                                submitterName: 'Question Bank (Bulk ZIP)',
-                                submitterEmail: 'bulk-zip@uiu.ac.bd',
+                                status: 'pending',                 // FOR ADMIN REVIEW - NOT PUBLISHED!
+                                isBulkZip: true,                    // BULK ZIP FLAG
+                                batchId: batchId,                  // BATCH ID FOR ADMIN BATCH REVIEW
+                                batchName: item.sourceZipName || batchName,
+                                submitterName: academicEmail.split('@')[0],
+                                submitterEmail: academicEmail.toLowerCase().trim(),
                                 courseSearch: `${item.courseCode} ${itemCourseName} ${itemTopic}`.toLowerCase(),
                                 materialGroup: item.materialType === 'Notes' ? 'notes' : 'questions',
                                 submittedAt: serverTimestamp(),
@@ -9768,7 +9938,7 @@
                             item.selected = false;
                             item.isDuplicate = true;
                             item.isUploaded = true;
-                            userZipConsoleLog.innerHTML += `<div style="color:#10b981;">✔ Successfully published: ${item.courseCode} - ${item.examType} (${item.semester}) [ID: ${newDocRef.id}]</div>`;
+                            userZipConsoleLog.innerHTML += `<div style="color:#10b981;">✔ Submitted for admin approval: ${item.courseCode} - ${item.examType} (${item.semester}) [ID: ${newDocRef.id}]</div>`;
                             userZipConsoleLog.scrollTop = userZipConsoleLog.scrollHeight;
 
                         } catch (uploadErr) {
@@ -9793,14 +9963,664 @@
 
                 userZipProgressPercent.textContent = '100%';
                 userZipProgressFill.style.width = '100%';
-                userZipProgressLabel.innerHTML = `<i class="fas fa-check-circle" style="color:var(--success);"></i> Batch Upload Complete! (${successCount} published, ${failureCount} failed)`;
-                BackgroundUploadManager.updateTitle(`[Done] ${successCount} uploaded`);
+                userZipProgressLabel.innerHTML = `<i class="fas fa-check-circle" style="color:var(--success);"></i> Batch Submitted for Admin Approval! (${successCount} requested, ${failureCount} failed)`;
+                BackgroundUploadManager.updateTitle(`[Done] ${successCount} submitted`);
                 
-                userZipConsoleLog.innerHTML += `<div style="color:#34d399; font-weight:bold; margin-top:0.4rem;">[DONE] Batch upload finished: ${successCount} successful, ${failureCount} errors. Published files removed from queue.</div>`;
+                userZipConsoleLog.innerHTML += `<div style="color:#34d399; font-weight:bold; margin-top:0.4rem;">[DONE] Batch submission complete: ${successCount} sent for Admin review, ${failureCount} errors. Items removed from queue.</div>`;
                 userZipConsoleLog.scrollTop = userZipConsoleLog.scrollHeight;
 
-                showToast(`Batch Upload Complete: ${successCount} questions published directly!`, successCount > 0 ? 'success' : 'error');
+                showToast(`Batch Submitted: ${successCount} question(s) sent for Admin approval!`, successCount > 0 ? 'success' : 'error');
                 updateUserZipActionButtons();
+            });
+        }
+
+        // =========================================================
+        // DIRECT QUESTION UPLOADER (AUTO-DETECTION & MULTI-FILE)
+        // =========================================================
+        const btnModeDirect = document.getElementById('btn-mode-direct-upload');
+        const btnModeManual = document.getElementById('btn-mode-manual-upload');
+        const directUploadSection = document.getElementById('direct-upload-section');
+        const manualUploadSection = document.getElementById('manual-upload-section');
+
+        if (btnModeDirect && btnModeManual) {
+            btnModeDirect.addEventListener('click', () => {
+                if (directUploadSection) directUploadSection.style.display = 'block';
+                if (manualUploadSection) manualUploadSection.style.display = 'none';
+                btnModeDirect.className = 'btn btn-primary';
+                btnModeManual.className = 'btn btn-outline';
+            });
+            btnModeManual.addEventListener('click', () => {
+                if (directUploadSection) directUploadSection.style.display = 'none';
+                if (manualUploadSection) manualUploadSection.style.display = 'block';
+                btnModeManual.className = 'btn btn-primary';
+                btnModeDirect.className = 'btn btn-outline';
+            });
+        }
+
+        const directUploadAcademicEmail = document.getElementById('directUploadAcademicEmail');
+        const userZipAcademicEmail = document.getElementById('userZipAcademicEmail');
+
+        // Sync stored academic email between forms
+        const initAcademicEmailSync = () => {
+            const savedEmail = localStorage.getItem('user_academic_email') || '';
+            if (directUploadAcademicEmail && savedEmail) directUploadAcademicEmail.value = savedEmail;
+            if (userZipAcademicEmail && savedEmail) userZipAcademicEmail.value = savedEmail;
+
+            if (directUploadAcademicEmail) {
+                directUploadAcademicEmail.addEventListener('input', (e) => {
+                    const val = e.target.value.trim();
+                    localStorage.setItem('user_academic_email', val);
+                    if (userZipAcademicEmail) userZipAcademicEmail.value = val;
+                });
+            }
+            if (userZipAcademicEmail) {
+                userZipAcademicEmail.addEventListener('input', (e) => {
+                    const val = e.target.value.trim();
+                    localStorage.setItem('user_academic_email', val);
+                    if (directUploadAcademicEmail) directUploadAcademicEmail.value = val;
+                });
+            }
+        };
+        initAcademicEmailSync();
+
+        let parsedDirectEntries = [];
+        let isUploadingDirect = false;
+
+        const directDropzone = document.getElementById('directUploadDropzone');
+        const directFileInput = document.getElementById('directUploadFileInput');
+        const directAddMoreInput = document.getElementById('directAddMoreInput');
+        const directDropAreaWrapper = document.getElementById('direct-drop-area-wrapper');
+        const directReviewSection = document.getElementById('direct-review-section');
+        const directTableTbody = document.getElementById('direct-table-tbody');
+        const directThCheckbox = document.getElementById('direct-th-checkbox');
+        const directBtnSelectAll = document.getElementById('direct-btn-select-all');
+        const directBtnRemoveSelected = document.getElementById('direct-btn-remove-selected');
+        const directBtnReset = document.getElementById('direct-btn-reset');
+        const directBtnCancelUpload = document.getElementById('direct-btn-cancel-upload');
+        const directBtnSubmit = document.getElementById('direct-btn-submit');
+        const directBtnAddAnotherFile = document.getElementById('direct-btn-add-another-file');
+        const directBtnAddMoreTop = document.getElementById('direct-btn-add-more-top');
+        const directBatchCourseSelect = document.getElementById('direct-batch-course-select');
+        const directBtnBatchApplyCourse = document.getElementById('direct-btn-batch-apply-course');
+        const directBatchExamSelect = document.getElementById('direct-batch-exam-select');
+        const directBtnBatchApplyExam = document.getElementById('direct-btn-batch-apply-exam');
+        const directUploadProgressArea = document.getElementById('direct-upload-progress-area');
+        const directProgressLabel = document.getElementById('direct-progress-label');
+        const directProgressPercent = document.getElementById('direct-progress-percent');
+        const directProgressFill = document.getElementById('direct-progress-fill');
+        const directConsoleLog = document.getElementById('direct-console-log');
+
+        function populateDirectBatchCourseDropdown() {
+            if (directBatchCourseSelect && directBatchCourseSelect.options.length <= 1) {
+                directBatchCourseSelect.innerHTML = '<option value="">-- Select Course --</option>';
+                CURRICULUM.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.code;
+                    opt.textContent = `${c.code} - ${c.title}`;
+                    directBatchCourseSelect.appendChild(opt);
+                });
+            }
+        }
+        populateDirectBatchCourseDropdown();
+
+        function handleDirectFileSelection(inputFiles) {
+            if (!inputFiles) return;
+            const fileList = Array.isArray(inputFiles) ? inputFiles : Array.from(inputFiles);
+            const validExts = ['.pdf', '.png', '.jpg', '.jpeg'];
+            const validFiles = fileList.filter(f => {
+                const ext = f.name.slice(f.name.lastIndexOf('.')).toLowerCase();
+                return validExts.includes(ext);
+            });
+
+            if (validFiles.length === 0) {
+                showToast('Please select PDF or Image files (.pdf, .png, .jpg, .jpeg)', 'warning');
+                return;
+            }
+
+            const newRawList = [];
+            const newSolList = [];
+
+            validFiles.forEach(file => {
+                const parsed = parseUserZipQuestionMetadata(file.name, file.name);
+                parsed.file = file;
+                parsed.fileSize = file.size;
+                parsed.originalFilename = file.name;
+                parsed.filePath = file.name;
+
+                if (parsed.isSolution) {
+                    newSolList.push(parsed);
+                } else {
+                    newRawList.push(parsed);
+                }
+            });
+
+            // Pair solutions with questions
+            newSolList.forEach(s => {
+                const sBase = s.originalFilename.replace(/\.[^/.]+$/, "").toLowerCase().replace(/[^a-z0-9]/g, '');
+                const matchingQ = newRawList.find(q => {
+                    if (q.pairedSolution) return false;
+                    const qBase = q.originalFilename.replace(/\.[^/.]+$/, "").toLowerCase().replace(/[^a-z0-9]/g, '');
+                    return sBase.includes(qBase) || (s.courseCode && s.courseCode === q.courseCode && s.examType === q.examType && s.semester === q.semester);
+                });
+                if (matchingQ) {
+                    matchingQ.pairedSolution = s;
+                } else {
+                    newRawList.push(s);
+                }
+            });
+
+            const startIndex = parsedDirectEntries.length;
+            newRawList.forEach((qItem, idx) => {
+                qItem.id = `direct_item_${startIndex + idx}_${Date.now()}`;
+                qItem.selected = true;
+                qItem.isUploaded = false;
+                const isDup = isQueuedZipFileAlreadyUploaded(qItem);
+                qItem.isDuplicate = isDup;
+                if (isDup) qItem.selected = false;
+            });
+
+            parsedDirectEntries.push(...newRawList);
+            refreshDirectUploadedStatus();
+
+            if (directDropAreaWrapper) directDropAreaWrapper.style.display = 'none';
+            if (directReviewSection) directReviewSection.style.display = 'flex';
+            showToast(`Loaded ${newRawList.length} question file(s)! Total in queue: ${parsedDirectEntries.length}`, 'success');
+        }
+
+        function refreshDirectUploadedStatus() {
+            let dupCount = 0;
+            parsedDirectEntries.forEach(item => {
+                const isDup = isQueuedZipFileAlreadyUploaded(item);
+                item.isDuplicate = isDup;
+                if (isDup) {
+                    dupCount++;
+                    item.selected = false;
+                }
+            });
+
+            const totalEl = document.getElementById('direct-stat-total');
+            const solEl = document.getElementById('direct-stat-solutions');
+            const dupStatEl = document.getElementById('direct-duplicate-stat');
+            const dupEl = document.getElementById('direct-stat-duplicates');
+
+            if (totalEl) totalEl.textContent = parsedDirectEntries.length;
+            if (solEl) solEl.textContent = parsedDirectEntries.filter(i => i.pairedSolution).length;
+            if (dupStatEl) dupStatEl.style.display = dupCount > 0 ? 'inline-flex' : 'none';
+            if (dupEl) dupEl.textContent = dupCount;
+
+            renderDirectParsedTable();
+            updateDirectSelectedCount();
+        }
+
+        function renderDirectParsedTable() {
+            if (!directTableTbody) return;
+            directTableTbody.innerHTML = '';
+
+            if (parsedDirectEntries.length === 0) {
+                directTableTbody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:var(--text-muted); padding:2rem;"><i class="fas fa-check-circle" style="color:var(--success); font-size:1.5rem; display:block; margin-bottom:0.5rem;"></i> No files in queue.</td></tr>';
+                updateDirectSelectedCount();
+                return;
+            }
+
+            parsedDirectEntries.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.dataset.index = index;
+
+                const courseOpts = CURRICULUM.map(c => `
+                    <option value="${c.code}" ${c.code === item.courseCode ? 'selected' : ''}>${c.code} - ${c.title}</option>
+                `).join('');
+
+                const semOpts = SEMESTERS.map(s => `
+                    <option value="${s.code}" ${s.code === item.semester ? 'selected' : ''}>${s.label}</option>
+                `).join('');
+
+                const examOpts = ['Midterm', 'Final', 'Quiz 1', 'Quiz 2', 'Quiz 3', 'Quiz 4', 'Quiz', 'Assignment', 'Lab', 'Notes'].map(e => `
+                    <option value="${e}" ${e === item.examType ? 'selected' : ''}>${e}</option>
+                `).join('');
+
+                const typeOpts = ['Question', 'Solution', 'Notes'].map(t => `
+                    <option value="${t}" ${t === item.materialType ? 'selected' : ''}>${t}</option>
+                `).join('');
+
+                let statusBadge = `<span class="badge" style="font-size:0.7rem; background:rgba(245,158,11,0.1); color:var(--warning); border:1px solid var(--warning); padding:0.2rem 0.5rem; border-radius:4px;"><i class="fas fa-clock"></i> Ready for Review</span>`;
+                if (!item.courseCode) {
+                    statusBadge = `<span class="badge" style="font-size:0.7rem; background:rgba(220,53,69,0.1); color:var(--error); border:1px solid var(--error); padding:0.2rem 0.5rem; border-radius:4px;"><i class="fas fa-exclamation-circle"></i> Select Course</span>`;
+                } else if (item.isDuplicate) {
+                    statusBadge = `<span class="badge" style="font-size:0.7rem; background:rgba(245,158,11,0.1); color:var(--orange); border:1px solid var(--orange); padding:0.2rem 0.5rem; border-radius:4px;" title="A verified question for this course/exam/sem already exists"><i class="fas fa-exclamation-triangle"></i> Exists in DB</span>`;
+                }
+
+                const solBadge = item.pairedSolution 
+                    ? `<span style="color:var(--success); font-weight:600; font-size:0.75rem;" title="${item.pairedSolution.originalFilename}"><i class="fas fa-check-circle"></i> Paired</span>` 
+                    : `<span style="color:var(--text-muted); font-size:0.75rem;">None</span>`;
+
+                tr.innerHTML = `
+                    <td style="text-align:center;">
+                        <input type="checkbox" class="direct-item-checkbox" data-index="${index}" ${item.selected ? 'checked' : ''} ${item.isUploaded ? 'disabled' : ''}>
+                    </td>
+                    <td style="max-width:200px;">
+                        <div style="font-weight:600; font-size:0.8rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-main);" title="${item.originalFilename}">
+                            <i class="fas fa-file-pdf" style="color:var(--error); margin-right:0.3rem;"></i> ${item.originalFilename}
+                        </div>
+                        <div style="font-size:0.7rem; color:var(--text-muted);">${(item.fileSize / 1024).toFixed(1)} KB</div>
+                    </td>
+                    <td>
+                        <select class="direct-row-course" data-index="${index}">
+                            <option value="">-- Select Course --</option>
+                            ${courseOpts}
+                        </select>
+                    </td>
+                    <td>
+                        <select class="direct-row-exam" data-index="${index}">
+                            ${examOpts}
+                        </select>
+                    </td>
+                    <td>
+                        <select class="direct-row-sem" data-index="${index}">
+                            ${semOpts}
+                        </select>
+                    </td>
+                    <td>
+                        <select class="direct-row-type" data-index="${index}">
+                            ${typeOpts}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" class="direct-row-topic" data-index="${index}" value="${item.topic || ''}" placeholder="Topic / Title">
+                    </td>
+                    <td style="text-align:center;">${solBadge}</td>
+                    <td>${statusBadge}</td>
+                    <td style="text-align:center;">
+                        <button type="button" class="btn btn-outline" style="padding:0.2rem 0.4rem; font-size:0.7rem; color:var(--error); border-color:var(--error);" onclick="removeDirectRow(${index})" title="Remove item">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                `;
+
+                directTableTbody.appendChild(tr);
+            });
+
+            attachDirectRowListeners();
+            updateDirectSelectedCount();
+        }
+
+        function attachDirectRowListeners() {
+            document.querySelectorAll('.direct-item-checkbox').forEach(cb => {
+                cb.addEventListener('change', (e) => {
+                    const idx = parseInt(e.target.dataset.index, 10);
+                    if (parsedDirectEntries[idx]) {
+                        parsedDirectEntries[idx].selected = e.target.checked;
+                        updateDirectSelectedCount();
+                    }
+                });
+            });
+
+            document.querySelectorAll('.direct-row-course').forEach(sel => {
+                sel.addEventListener('change', (e) => {
+                    const idx = parseInt(e.target.dataset.index, 10);
+                    if (parsedDirectEntries[idx]) {
+                        parsedDirectEntries[idx].courseCode = e.target.value;
+                        parsedDirectEntries[idx].courseName = getCourseTitle(e.target.value);
+                        const cObj = CURRICULUM.find(c => c.code === e.target.value);
+                        if (cObj && cObj.trimester) parsedDirectEntries[idx].trimester = cObj.trimester;
+                        renderDirectParsedTable();
+                    }
+                });
+            });
+
+            document.querySelectorAll('.direct-row-exam').forEach(sel => {
+                sel.addEventListener('change', (e) => {
+                    const idx = parseInt(e.target.dataset.index, 10);
+                    if (parsedDirectEntries[idx]) {
+                        parsedDirectEntries[idx].examType = e.target.value;
+                        const semLabelStr = parsedDirectEntries[idx].semester ? (decodeSemester(parsedDirectEntries[idx].semester).label || parsedDirectEntries[idx].semester) : '';
+                        parsedDirectEntries[idx].topic = `${e.target.value} Question ${semLabelStr}`.trim();
+                        renderDirectParsedTable();
+                    }
+                });
+            });
+
+            document.querySelectorAll('.direct-row-sem').forEach(sel => {
+                sel.addEventListener('change', (e) => {
+                    const idx = parseInt(e.target.dataset.index, 10);
+                    if (parsedDirectEntries[idx]) {
+                        parsedDirectEntries[idx].semester = e.target.value;
+                        const semLabelStr = decodeSemester(e.target.value).label || e.target.value;
+                        parsedDirectEntries[idx].topic = `${parsedDirectEntries[idx].examType} Question ${semLabelStr}`.trim();
+                        renderDirectParsedTable();
+                    }
+                });
+            });
+
+            document.querySelectorAll('.direct-row-type').forEach(sel => {
+                sel.addEventListener('change', (e) => {
+                    const idx = parseInt(e.target.dataset.index, 10);
+                    if (parsedDirectEntries[idx]) {
+                        parsedDirectEntries[idx].materialType = e.target.value;
+                    }
+                });
+            });
+
+            document.querySelectorAll('.direct-row-topic').forEach(inp => {
+                inp.addEventListener('input', (e) => {
+                    const idx = parseInt(e.target.dataset.index, 10);
+                    if (parsedDirectEntries[idx]) {
+                        parsedDirectEntries[idx].topic = e.target.value.trim();
+                    }
+                });
+            });
+        }
+
+        window.removeDirectRow = function(index) {
+            parsedDirectEntries.splice(index, 1);
+            refreshDirectUploadedStatus();
+            if (parsedDirectEntries.length === 0) {
+                resetDirectUploader();
+            }
+        };
+
+        function updateDirectSelectedCount() {
+            const count = parsedDirectEntries.filter(i => i.selected && !i.isUploaded).length;
+            const el = document.getElementById('direct-selected-count');
+            if (el) el.textContent = count;
+            if (directBtnSubmit) {
+                directBtnSubmit.style.display = count > 0 ? 'inline-flex' : 'none';
+            }
+        }
+
+        function resetDirectUploader() {
+            parsedDirectEntries = [];
+            isUploadingDirect = false;
+            if (directFileInput) directFileInput.value = '';
+            if (directAddMoreInput) directAddMoreInput.value = '';
+            if (directDropAreaWrapper) directDropAreaWrapper.style.display = 'block';
+            if (directReviewSection) directReviewSection.style.display = 'none';
+            if (directUploadProgressArea) directUploadProgressArea.style.display = 'none';
+            if (directTableTbody) directTableTbody.innerHTML = '';
+            if (directConsoleLog) directConsoleLog.innerHTML = '';
+            updateDirectSelectedCount();
+        }
+
+        if (directBtnReset) directBtnReset.addEventListener('click', resetDirectUploader);
+        if (directBtnCancelUpload) directBtnCancelUpload.addEventListener('click', resetDirectUploader);
+
+        if (directThCheckbox) {
+            directThCheckbox.addEventListener('change', (e) => {
+                const checked = e.target.checked;
+                parsedDirectEntries.forEach(item => {
+                    if (!item.isUploaded) item.selected = checked;
+                });
+                renderDirectParsedTable();
+            });
+        }
+
+        if (directBtnSelectAll) {
+            directBtnSelectAll.addEventListener('click', () => {
+                const unuploaded = parsedDirectEntries.filter(i => !i.isUploaded);
+                const allSelected = unuploaded.length > 0 && unuploaded.every(i => i.selected);
+                unuploaded.forEach(item => item.selected = !allSelected);
+                if (directThCheckbox) directThCheckbox.checked = !allSelected;
+                directBtnSelectAll.innerHTML = !allSelected ? '<i class="fas fa-times-square"></i> Deselect All' : '<i class="fas fa-check-square"></i> Select All';
+                renderDirectParsedTable();
+            });
+        }
+
+        if (directBtnRemoveSelected) {
+            directBtnRemoveSelected.addEventListener('click', () => {
+                parsedDirectEntries = parsedDirectEntries.filter(i => !i.selected);
+                refreshDirectUploadedStatus();
+                if (parsedDirectEntries.length === 0) resetDirectUploader();
+            });
+        }
+
+        if (directBtnBatchApplyCourse && directBatchCourseSelect) {
+            directBtnBatchApplyCourse.addEventListener('click', () => {
+                const targetCourse = directBatchCourseSelect.value;
+                if (!targetCourse) {
+                    showToast('Please select a course to apply.', 'warning');
+                    return;
+                }
+                const cObj = CURRICULUM.find(c => c.code === targetCourse);
+                const title = cObj ? cObj.title : getCourseTitle(targetCourse);
+                const trimester = cObj && cObj.trimester ? cObj.trimester : 0;
+
+                parsedDirectEntries.forEach(item => {
+                    item.courseCode = targetCourse;
+                    item.courseName = title;
+                    if (trimester) item.trimester = trimester;
+                });
+                refreshDirectUploadedStatus();
+                showToast(`Applied course ${targetCourse} to all questions.`, 'success');
+            });
+        }
+
+        if (directBtnBatchApplyExam && directBatchExamSelect) {
+            directBtnBatchApplyExam.addEventListener('click', () => {
+                const targetExam = directBatchExamSelect.value;
+                if (!targetExam) return;
+                parsedDirectEntries.forEach(item => {
+                    item.examType = targetExam;
+                    item.materialType = (targetExam === 'Notes') ? 'Notes' : 'Question';
+                    const semLabelStr = item.semester ? (decodeSemester(item.semester).label || item.semester) : '';
+                    item.topic = (item.materialType === 'Question') 
+                        ? `${targetExam} Question ${semLabelStr}`.trim()
+                        : `Lecture Notes ${item.courseCode || ''}`.trim();
+                });
+                refreshDirectUploadedStatus();
+                showToast(`Applied exam type "${targetExam}" to all questions.`, 'success');
+            });
+        }
+
+        // Direct Dropzone listeners
+        if (directDropzone) {
+            ['dragenter', 'dragover'].forEach(eventName => {
+                directDropzone.addEventListener(eventName, (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    directDropzone.classList.add('dragover');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                directDropzone.addEventListener(eventName, (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    directDropzone.classList.remove('dragover');
+                });
+            });
+
+            directDropzone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                if (dt && dt.files && dt.files.length > 0) {
+                    handleDirectFileSelection(dt.files);
+                }
+            });
+        }
+
+        if (directFileInput) {
+            directFileInput.addEventListener('change', () => {
+                if (directFileInput.files && directFileInput.files.length > 0) {
+                    handleDirectFileSelection(directFileInput.files);
+                }
+            });
+        }
+
+        if (directBtnAddAnotherFile && directAddMoreInput) {
+            directBtnAddAnotherFile.addEventListener('click', () => directAddMoreInput.click());
+        }
+        if (directBtnAddMoreTop && directAddMoreInput) {
+            directBtnAddMoreTop.addEventListener('click', () => directAddMoreInput.click());
+        }
+        if (directAddMoreInput) {
+            directAddMoreInput.addEventListener('change', () => {
+                if (directAddMoreInput.files && directAddMoreInput.files.length > 0) {
+                    handleDirectFileSelection(directAddMoreInput.files);
+                }
+            });
+        }
+
+        // Direct Submission Execution (Status: pending)
+        if (directBtnSubmit) {
+            directBtnSubmit.addEventListener('click', async () => {
+                const selectedItems = parsedDirectEntries.filter(i => i.selected && !i.isUploaded);
+                if (selectedItems.length === 0) {
+                    showToast('Please select at least one question to submit.', 'warning');
+                    return;
+                }
+
+                const emailInput = document.getElementById('directUploadAcademicEmail');
+                const academicEmail = (emailInput?.value || '').trim();
+                const academicEmailRegex = /^[a-zA-Z0-9._%+-]+@(?:[a-zA-Z0-9-]+\.)*uiu\.ac\.bd$/i;
+                if (!academicEmail || !academicEmailRegex.test(academicEmail)) {
+                    showToast('Please enter a valid UIU academic email (e.g. yourname@bscse.uiu.ac.bd) for admin review.', 'warning');
+                    if (emailInput) {
+                        emailInput.focus();
+                        emailInput.style.borderColor = 'var(--error)';
+                    }
+                    return;
+                }
+                localStorage.setItem('user_academic_email', academicEmail);
+                if (emailInput) emailInput.style.borderColor = '';
+
+                const invalidCourse = selectedItems.find(i => !i.courseCode);
+                if (invalidCourse) {
+                    showToast(`Please select a course for: ${invalidCourse.originalFilename}`, 'error');
+                    return;
+                }
+
+                if (!confirm(`Are you sure you want to submit ${selectedItems.length} question(s) to the Admin for approval? Submissions will be verified by moderators before publishing.`)) {
+                    return;
+                }
+
+                isUploadingDirect = true;
+                if (directBtnSubmit) directBtnSubmit.style.display = 'none';
+                if (directBtnReset) directBtnReset.disabled = true;
+                directUploadProgressArea.style.display = 'block';
+                directConsoleLog.innerHTML = `<div style="color:#60a5fa;">[START] Starting submission of ${selectedItems.length} questions for Admin review...</div>`;
+
+                let successCount = 0;
+                let failureCount = 0;
+
+                const logStatus = (msg) => {
+                    directConsoleLog.innerHTML += `<div style="color:#f59e0b;">⏳ ${msg}</div>`;
+                    directConsoleLog.scrollTop = directConsoleLog.scrollHeight;
+                };
+
+                const batchId = `direct_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+                try {
+                    await BackgroundUploadManager.start('direct_upload');
+                    BackgroundUploadManager.updateTitle(`[0/${selectedItems.length}] Uploading...`);
+
+                    for (let i = 0; i < selectedItems.length; i++) {
+                        const item = selectedItems[i];
+                        const percent = Math.round(((i) / selectedItems.length) * 100);
+
+                        directProgressPercent.textContent = `${percent}%`;
+                        directProgressFill.style.width = `${percent}%`;
+                        directProgressLabel.innerHTML = `<i class="fas fa-spinner fa-spin"></i> [${i + 1}/${selectedItems.length}] Processing ${item.courseCode} ${item.examType}...`;
+                        BackgroundUploadManager.updateTitle(`[${i + 1}/${selectedItems.length} · ${percent}%] Submitting ${item.courseCode}...`);
+
+                        if (i > 0) {
+                            await BackgroundUploadManager.delay(1500);
+                        }
+
+                        try {
+                            directConsoleLog.innerHTML += `<div>[${i + 1}/${selectedItems.length}] Uploading Cloudinary asset for ${item.courseCode} (${item.originalFilename})...</div>`;
+                            directConsoleLog.scrollTop = directConsoleLog.scrollHeight;
+
+                            const mainAsset = await uploadToCloudinary(
+                                item.materialType === 'Notes' ? 'note' : (item.materialType === 'Solution' ? 'solution' : 'question'),
+                                item.file,
+                                item.courseCode,
+                                item.topic,
+                                null,
+                                logStatus
+                            );
+                            const materialAssets = [mainAsset];
+
+                            let solPdfUrl = null;
+                            if (item.materialType === 'Solution') {
+                                solPdfUrl = mainAsset.pdfUrl;
+                            }
+
+                            if (item.pairedSolution && item.pairedSolution.file) {
+                                await BackgroundUploadManager.delay(1000);
+                                directConsoleLog.innerHTML += `<div style="color:#38bdf8;">→ Uploading paired solution (${item.pairedSolution.originalFilename})...</div>`;
+                                const solAsset = await uploadToCloudinary('solution', item.pairedSolution.file, item.courseCode, item.topic, null, logStatus);
+                                materialAssets.push(solAsset);
+                                solPdfUrl = solAsset.pdfUrl;
+                            }
+
+                            const itemTopic = item.topic || `${item.examType} ${item.courseCode}`;
+                            const itemCourseName = item.courseName || getCourseTitle(item.courseCode);
+                            const itemTokens = [item.courseCode, itemCourseName, itemTopic, item.facultyName || '', item.facultyCode || '']
+                                .filter(Boolean)
+                                .flatMap(str => String(str).toLowerCase().split(/[\s,._\-\/]+/))
+                                .map(t => t.replace(/[^a-z0-9]/g, ''))
+                                .filter(t => t.length > 0);
+                            const directSearchTokens = Array.from(new Set(itemTokens));
+
+                            const newDocData = {
+                                courseCode: item.courseCode.replace(/\s+/g, ' ').toUpperCase(),
+                                courseName: itemCourseName,
+                                semester: item.semester,
+                                trimester: String(item.trimester || 1),
+                                type: item.materialType || 'Question',
+                                materialType: (item.materialType || 'Question').toLowerCase(),
+                                examType: item.examType || 'Midterm',
+                                topic: itemTopic,
+                                facultyId: item.facultyId || null,
+                                facultyName: item.facultyName || '',
+                                facultyCode: item.facultyCode || '',
+                                searchTokens: directSearchTokens,
+                                materialAssets,
+                                pdfUrl: mainAsset.pdfUrl,
+                                solutionPdfUrl: solPdfUrl,
+                                status: 'pending',                 // ADMIN APPROVAL REQUIRED - NOT PUBLISHED!
+                                isDirectUpload: true,              // DIRECT UPLOAD FLAG
+                                batchId: batchId,                  // BATCH ID FOR ADMIN
+                                batchName: `Direct Upload (${new Date().toLocaleDateString()})`,
+                                submitterName: academicEmail.split('@')[0],
+                                submitterEmail: academicEmail.toLowerCase().trim(),
+                                courseSearch: `${item.courseCode} ${itemCourseName} ${itemTopic}`.toLowerCase(),
+                                materialGroup: item.materialType === 'Notes' ? 'notes' : 'questions',
+                                submittedAt: serverTimestamp(),
+                                createdAt: serverTimestamp()
+                            };
+
+                            const newDocRef = await addDoc(collection(db, QUESTION_COLLECTION), newDocData);
+
+                            successCount++;
+                            item.selected = false;
+                            item.isDuplicate = true;
+                            item.isUploaded = true;
+                            directConsoleLog.innerHTML += `<div style="color:#10b981;">✔ Submitted for admin approval: ${item.courseCode} - ${item.examType} (${item.semester}) [ID: ${newDocRef.id}]</div>`;
+                            directConsoleLog.scrollTop = directConsoleLog.scrollHeight;
+
+                        } catch (uploadErr) {
+                            failureCount++;
+                            console.error(`Failed uploading ${item.originalFilename}:`, uploadErr);
+                            directConsoleLog.innerHTML += `<div style="color:#ef4444;">✖ Error on ${item.originalFilename}: ${uploadErr.message}</div>`;
+                            directConsoleLog.scrollTop = directConsoleLog.scrollHeight;
+                        }
+                    }
+                } finally {
+                    isUploadingDirect = false;
+                    BackgroundUploadManager.stop();
+                    if (directBtnReset) directBtnReset.disabled = false;
+                }
+
+                parsedDirectEntries = parsedDirectEntries.filter(item => !item.isUploaded);
+                refreshDirectUploadedStatus();
+
+                directProgressPercent.textContent = '100%';
+                directProgressFill.style.width = '100%';
+                directProgressLabel.innerHTML = `<i class="fas fa-check-circle" style="color:var(--success);"></i> Submission Complete! (${successCount} requested, ${failureCount} failed)`;
+                BackgroundUploadManager.updateTitle(`[Done] ${successCount} submitted`);
+
+                directConsoleLog.innerHTML += `<div style="color:#34d399; font-weight:bold; margin-top:0.4rem;">[DONE] Direct submission complete: ${successCount} sent for Admin review, ${failureCount} errors. Items removed from queue.</div>`;
+                directConsoleLog.scrollTop = directConsoleLog.scrollHeight;
+
+                showToast(`Direct upload complete! ${successCount} question(s) submitted for Admin approval.`, successCount > 0 ? 'success' : 'error');
+                updateDirectSelectedCount();
             });
         }
 
@@ -9880,6 +10700,17 @@
                 <button class="btn btn-outline" id="btn-close-user-zip" style="padding:0.3rem 0.6rem; border:none; color:var(--text-muted); font-size:1.1rem; cursor:pointer;"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body" style="padding:1.25rem 1.5rem; display:flex; flex-direction:column; overflow-y:auto; overflow-x:hidden; max-height:calc(94vh - 70px); max-height:calc(94dvh - 70px); width:100%; box-sizing:border-box;">
+                <!-- Submitter Academic Email (Mandatory) -->
+                <div style="background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-md); padding:0.85rem 1rem; margin-bottom:1rem; width:100%; box-sizing:border-box;">
+                    <label for="userZipAcademicEmail" style="font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:0.5rem; color:var(--text-main); margin-bottom:0.35rem;">
+                        <i class="fas fa-university" style="color:var(--orange);"></i> Your UIU Academic Email <span style="color:var(--error); font-weight:700;">*</span>
+                    </label>
+                    <input type="email" id="userZipAcademicEmail" class="input-control" placeholder="e.g. yourname@bscse.uiu.ac.bd" required style="width:100%; max-width:440px; font-size:0.85rem; padding:0.5rem 0.8rem; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--text-main);">
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.35rem; display:flex; align-items:center; gap:0.4rem;">
+                        <i class="fas fa-shield-alt" style="color:var(--info);"></i> Academic email is mandatory. Bulk ZIP archives are submitted for Admin review and approval before publication.
+                    </div>
+                </div>
+
                 <!-- Step 1: Drag & Drop ZIP File -->
                 <div id="user-zip-drop-section" style="width:100%; box-sizing:border-box;">
                     <div class="zip-drop-area" id="userZipDropzone" onclick="document.getElementById('userZipFileInput').click()">
@@ -10012,7 +10843,7 @@
                                 <i class="fas fa-file-archive"></i> Add Another ZIP File
                             </button>
                             <button type="button" class="btn btn-primary" id="user-btn-start-zip-upload" style="background:linear-gradient(135deg, var(--orange), #ea580c); border:none; display:inline-flex; align-items:center; gap:0.5rem; font-weight:700; padding:0.45rem 1.25rem;">
-                                <i class="fas fa-cloud-upload-alt"></i> Publish Selected (<span id="user-zip-selected-count">0</span>) Questions
+                                <i class="fas fa-paper-plane"></i> Submit for Admin Approval (<span id="user-zip-selected-count">0</span>)
                             </button>
                         </div>
                     </div>
