@@ -1,5 +1,5 @@
 # Robots.txt for UIU Question Bank
-# Live URL: https://question-bank-orpin-psi.vercel.app/
+# Official URL: https://uiu-question-bank.vercel.app/
 # Target: Optimized for Googlebot & search engine indexing
 
 User-agent: Googlebot
@@ -39,5 +39,5 @@ User-agent: *
 Allow: /
 Allow: /#*
 
-Sitemap: https://question-bank-orpin-psi.vercel.app/sitemap.xml
-Host: https://question-bank-orpin-psi.vercel.app
+Sitemap: https://uiu-question-bank.vercel.app/sitemap.xml
+Host: https://uiu-question-bank.vercel.app
