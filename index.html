@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script>
         if (typeof pdfjsLib !== 'undefined') {
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -761,6 +762,8 @@
             position: relative;
             color: var(--text-muted);
             transition: var(--transition);
+            cursor: pointer;
+            user-select: none;
         }
         .step-dot.active {
             border-color: var(--orange);
@@ -1306,24 +1309,58 @@
            QUESTION BANK: PHOTO-MATCHED CARDS & SECTIONS
            ========================================================= */
         .qb-section-wrapper {
-            margin-bottom: 2.5rem;
+            margin-bottom: 1.5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .qb-section-wrapper:hover {
+            border-color: var(--border-hover);
         }
 
         .qb-section-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 1.25rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border);
+            padding: 0.9rem 1.25rem;
+            background: var(--surface);
+            cursor: pointer;
+            user-select: none;
             flex-wrap: wrap;
             gap: 0.75rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .qb-section-header:hover {
+            background-color: var(--surface-2);
         }
 
         .qb-section-title-wrap {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
+            gap: 0.75rem;
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .qb-section-chevron {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 16px;
+            text-align: center;
+        }
+
+        .qb-section-chevron.rotated {
+            transform: rotate(0deg);
+        }
+
+        .qb-section-chevron:not(.rotated) {
+            transform: rotate(-90deg);
         }
 
         .qb-section-dot {
@@ -1333,10 +1370,11 @@
             background: #3b82f6;
             display: inline-block;
             box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+            flex-shrink: 0;
         }
 
         .qb-section-title {
-            font-size: 1.15rem;
+            font-size: 1.05rem;
             font-weight: 700;
             color: var(--text-main);
             margin: 0;
@@ -1345,16 +1383,63 @@
             gap: 0.5rem;
         }
 
+        .qb-section-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.2rem 0.55rem;
+            border-radius: var(--radius-full);
+            background: var(--surface-2);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .qb-section-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .qb-section-dl-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.4rem 0.85rem;
+            background: rgba(243, 112, 33, 0.08);
+            border: 1px solid rgba(243, 112, 33, 0.3);
+            border-radius: var(--radius-sm);
+            color: var(--orange);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .qb-section-dl-btn:hover {
+            background: var(--orange);
+            color: #ffffff;
+            border-color: var(--orange);
+            box-shadow: 0 2px 8px rgba(243, 112, 33, 0.3);
+        }
+
+        .qb-section-dl-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .qb-sort-select {
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
-            padding: 0.45rem 1rem;
+            padding: 0.4rem 0.8rem;
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: var(--radius-sm);
             color: var(--text-main);
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             font-weight: 600;
             cursor: pointer;
             outline: none;
@@ -1365,6 +1450,46 @@
         .qb-sort-select:hover, .qb-sort-select:focus {
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .qb-section-body {
+            padding: 1.25rem;
+            border-top: 1px solid var(--border);
+            background: var(--bg);
+            animation: qbFadeIn 0.2s ease-out;
+        }
+
+        @keyframes qbFadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .qb-accordion-master-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .qb-master-toggle-btn {
+            font-size: 0.8rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-sm);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+        }
+
+        .qb-master-toggle-btn:hover {
+            color: var(--orange);
+            border-color: var(--orange);
         }
 
         .qb-box-grid {
@@ -1424,6 +1549,42 @@
             transform: translateY(-5px);
             border-color: #3b82f6;
             box-shadow: 0 10px 25px rgba(59, 130, 246, 0.25);
+        }
+
+        .qb-question-box.is-solution {
+            border-color: #bbf7d0;
+            border-bottom: 3.5px solid #16a34a;
+            box-shadow: 0 4px 14px rgba(22, 163, 74, 0.08);
+        }
+
+        [data-theme="dark"] .qb-question-box.is-solution {
+            border-color: rgba(34, 197, 94, 0.25);
+            border-bottom: 3.5px solid #16a34a;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .qb-question-box.is-solution:hover {
+            border-color: #16a34a;
+            box-shadow: 0 10px 25px rgba(22, 163, 74, 0.25);
+        }
+
+        .qb-sol-pill {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(22, 163, 74, 0.12);
+            color: #16a34a;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 0.15rem 0.45rem;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        [data-theme="dark"] .qb-sol-pill {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
         }
 
         .qb-trimester-badge {
@@ -2593,6 +2754,220 @@
             font-weight: 700;
             font-size: 0.8rem;
         }
+
+        /* =========================================================
+           BULK ZIP UPLOADER MODAL & STYLES (QUESTION BANK)
+           ========================================================= */
+        .zip-modal-card {
+            background: var(--surface);
+            width: min(1250px, calc(100vw - 2rem));
+            max-width: 100%;
+            max-height: 94vh;
+            max-height: 94dvh;
+            border-radius: var(--radius-lg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-sizing: border-box;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            transform: translateY(20px);
+            transition: var(--transition);
+        }
+
+        .modal-overlay.active .zip-modal-card {
+            transform: translateY(0);
+        }
+
+        .zip-drop-area {
+            border: 2px dashed var(--orange);
+            border-radius: var(--radius-lg);
+            background: rgba(243, 112, 33, 0.04);
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+            word-break: break-word;
+        }
+
+        .zip-drop-area:hover, .zip-drop-area.dragover {
+            background: rgba(243, 112, 33, 0.09);
+            border-color: #ea580c;
+            transform: scale(1.003);
+        }
+
+        .zip-pill-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.65rem;
+            border-radius: 9999px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .zip-summary-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+            padding: 0.75rem 1rem;
+            background: var(--surface-2);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            margin-bottom: 0.75rem;
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .zip-stat-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.825rem;
+            font-weight: 600;
+        }
+
+        .zip-table-container {
+            max-height: 440px;
+            overflow-x: auto;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            margin-bottom: 0.75rem;
+            background: var(--surface);
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .zip-table {
+            width: 100%;
+            min-width: 950px;
+            border-collapse: collapse;
+            font-size: 0.825rem;
+        }
+
+        .zip-table th {
+            position: sticky;
+            top: 0;
+            background: var(--surface-2);
+            z-index: 2;
+            padding: 0.65rem 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.04em;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        .zip-table td {
+            padding: 0.55rem 0.75rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        .zip-table tr:hover {
+            background: var(--surface-2);
+        }
+
+        .zip-table input, .zip-table select {
+            padding: 0.35rem 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--surface-2);
+            color: var(--text-main);
+            font-size: 0.8rem;
+            outline: none;
+            width: 100%;
+        }
+
+        .zip-table input:focus, .zip-table select:focus {
+            border-color: var(--orange);
+        }
+
+        .zip-progress-container {
+            margin-top: 0.75rem;
+            padding: 1rem;
+            background: var(--surface-2);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .zip-progress-track {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 9999px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+
+        .zip-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--orange), #ff9f45, var(--success));
+            border-radius: 9999px;
+            transition: width 0.25s ease;
+        }
+
+        .zip-console-log {
+            max-height: 140px;
+            overflow-y: auto;
+            overflow-x: auto;
+            background: #0b0f19;
+            color: #10b981;
+            font-family: monospace;
+            font-size: 0.75rem;
+            padding: 0.6rem 0.8rem;
+            border-radius: 6px;
+            border: 1px solid #1e293b;
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .zip-modal-card {
+                width: 100vw;
+                max-width: 100vw;
+                height: 100vh;
+                height: 100dvh;
+                max-height: 100dvh;
+                border-radius: 0;
+                margin: 0;
+            }
+            .zip-drop-area {
+                padding: 1.5rem 1rem;
+            }
+            .zip-drop-area h3 {
+                font-size: 1rem;
+            }
+            .zip-drop-area i.fa-file-archive {
+                font-size: 2.2rem;
+            }
+            .zip-summary-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.6rem;
+            }
+            .zip-summary-bar > div {
+                display: flex;
+                flex-wrap: wrap;
+            }
+        }
     </style>
     <script>
         (function() {
@@ -2712,12 +3087,31 @@
                 <div class="courses-controls">
                     <div class="search-input-wrapper">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-input-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                        <input type="text" id="coursesSearch" class="input-control courses-search-input" placeholder="Search course name or code...">
+                        <input type="text" id="coursesSearch" class="input-control courses-search-input" placeholder="Search course, code, or faculty...">
                     </div>
                     <select id="coursesTrimesterFilter" class="input-control courses-filter-select">
                         <option value="all">All Trimesters</option>
                         <!-- Populated via JS -->
                     </select>
+                    <select id="coursesFacultyFilter" class="input-control courses-filter-select">
+                        <option value="all">All Faculty</option>
+                        <!-- Populated via JS -->
+                    </select>
+                </div>
+            </div>
+            <!-- Dedicated Section for Faculty/Search-Matched Question Papers -->
+            <div id="facultyQuestionsSection" style="margin-bottom: 2rem; display: none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem; background:var(--surface-1); padding:0.85rem 1.25rem; border-radius:var(--radius-md); border:1px solid var(--border);">
+                    <h3 id="facultyQuestionsTitle" style="display:flex; align-items:center; gap:0.5rem; font-size:1.05rem; color:var(--text-main); margin:0;">
+                        <i class="fas fa-chalkboard-teacher" style="color:var(--orange);"></i> Question Papers by Faculty
+                    </h3>
+                    <div style="display:flex; align-items:center; gap:0.75rem;">
+                        <span id="facultyQuestionsCount" class="pill primary" style="font-weight:600;">0 papers</span>
+                        <button type="button" class="btn btn-outline" id="clearFacultyFilterBtn" style="padding:0.25rem 0.65rem; font-size:0.75rem;">Clear Filter</button>
+                    </div>
+                </div>
+                <div class="qb-box-grid" id="facultyQuestionsGrid">
+                    <!-- Populated via JS -->
                 </div>
             </div>
             <div class="course-grid" id="allCoursesGrid">
@@ -2773,13 +3167,18 @@
             <div style="text-align: center; margin-bottom: 2rem;">
                 <h2>Contribute Material</h2>
                 <p class="text-muted">Help your peers by sharing past questions, solutions, or notes.</p>
+                <div style="display:flex; justify-content:center; gap:0.75rem; margin-top:0.75rem;">
+                    <button type="button" class="btn btn-outline" id="btn-open-user-zip" style="border-color:var(--orange); color:var(--orange); font-weight:700; display:inline-flex; align-items:center; gap:0.5rem; padding:0.45rem 1.25rem;">
+                        <i class="fas fa-file-archive"></i> Bulk ZIP Upload
+                    </button>
+                </div>
             </div>
             
             <div class="upload-stepper">
                 <div class="step-indicator">
-                    <div class="step-dot active" data-step="1">1</div>
-                    <div class="step-dot" data-step="2">2</div>
-                    <div class="step-dot" data-step="3">3</div>
+                    <div class="step-dot active" data-step="1" onclick="nextStep(1)" title="Go to Step 1: Course Info">1</div>
+                    <div class="step-dot" data-step="2" onclick="nextStep(2)" title="Go to Step 2: Material Details">2</div>
+                    <div class="step-dot" data-step="3" onclick="nextStep(3)" title="Go to Step 3: Files & Submit">3</div>
                 </div>
 
                 <form id="uploadForm">
@@ -2815,8 +3214,9 @@
                         <h3>Material Details</h3>
                         <div class="input-group">
                             <label class="input-label">Material Type</label>
-                            <div style="display:flex; gap:1rem;">
+                            <div style="display:flex; gap:1rem; flex-wrap:wrap;">
                                 <label><input type="radio" name="materialType" value="Question" checked> Question</label>
+                                <label><input type="radio" name="materialType" value="Solution"> Solution</label>
                                 <label><input type="radio" name="materialType" value="Notes"> Notes</label>
                                 <label><input type="radio" name="materialType" value="Lab"> Lab</label>
                             </div>
@@ -2838,6 +3238,18 @@
                             <input type="text" id="upTopic" class="input-control" placeholder="e.g. Chapter 3 Summary">
                         </div>
 
+                        <div class="input-group" id="facultyGroup" style="position:relative;">
+                            <label class="input-label" id="upFacultyLabel">Faculty Member <span id="upFacultyHint" style="color:var(--text-muted);font-weight:400">(Optional)</span></label>
+                            <div style="position:relative; display:flex; align-items:center;">
+                                <input type="text" id="upFacultySearch" class="input-control" placeholder="Search by name or code (e.g., AnHq, Anindya)..." autocomplete="off" style="padding-right: 2.25rem;">
+                                <button type="button" id="upFacultyClearBtn" style="position:absolute; right:0.6rem; background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem; line-height:1; display:none; padding:4px;" title="Clear selected faculty">&times;</button>
+                            </div>
+                            <input type="hidden" id="upFacultyId" value="">
+                            <input type="hidden" id="upFacultyName" value="">
+                            <input type="hidden" id="upFacultyCode" value="">
+                            <div id="upFacultyDropdown" class="autocomplete-dropdown" style="position:absolute; top:100%; left:0; right:0; max-height:220px; overflow-y:auto; z-index:1000; display:none;"></div>
+                        </div>
+
                         <div style="display: flex; justify-content: space-between;">
                             <button type="button" class="btn btn-outline" onclick="nextStep(1)">Back</button>
                             <button type="button" class="btn btn-primary" onclick="nextStep(3)">Next</button>
@@ -2849,20 +3261,20 @@
                         <h3>Upload Files</h3>
                         
                         <div class="input-group">
-                            <label class="input-label">Main File (PDF/Image) <span style="font-size:0.8rem; color:var(--orange); font-weight:500;">(Max 5MB)</span></label>
-                            <div class="file-drop-area" id="mainFileDropzone" onclick="document.getElementById('upMainFile').click()">
-                                <input type="file" id="upMainFile" accept=".pdf,.png,.jpg,.jpeg" required style="display:none;">
+                            <label class="input-label" id="upMainFileLabel">Main File (PDF / Word / PPT / Excel / Image) <span style="font-size:0.8rem; color:var(--orange); font-weight:500;">(Max 5MB)</span></label>
+                            <div class="file-drop-area" id="mainFileDropzone">
+                                <input type="file" id="upMainFile" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg" required style="display:none;">
                                 <div class="dropzone-content" id="mainFileDropContent">
                                     <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--orange); margin-bottom:0.5rem;"></i>
                                     <div style="font-weight:600; margin-bottom:0.25rem;">Drag & drop main file here or <span style="color:var(--orange); text-decoration:underline;">browse</span></div>
-                                    <div style="font-size:0.8rem; color:var(--text-muted);">Supports PDF, PNG, JPG, JPEG (Max 5MB)</div>
+                                    <div style="font-size:0.8rem; color:var(--text-muted);">Supports PDF, PPT, PPTX, DOC, DOCX, XLS, XLSX, PNG, JPG (Max 5MB)</div>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="input-group" id="solutionFileGroup">
                             <label class="input-label">Solution File (Optional) <span style="font-size:0.8rem; color:var(--orange); font-weight:500;">(Max 5MB)</span></label>
-                            <div class="file-drop-area" id="solFileDropzone" onclick="document.getElementById('upSolutionFile').click()">
+                            <div class="file-drop-area" id="solFileDropzone">
                                 <input type="file" id="upSolutionFile" accept=".pdf,.png,.jpg,.jpeg" style="display:none;">
                                 <div class="dropzone-content" id="solFileDropContent">
                                     <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--orange); margin-bottom:0.5rem;"></i>
@@ -2959,7 +3371,7 @@
                 <!-- Zoom & Page Controls -->
                 <div class="qb-zoom-controls">
                     <button type="button" onclick="zoomViewerDoc(-0.15)" title="Zoom Out" class="qb-btn-icon qb-desktop-zoom-button"><i class="fas fa-search-minus"></i></button>
-                    <span id="qbZoomLevelDisplay" class="qb-zoom-level">100%</span>
+                    <span id="qbZoomLevelDisplay" class="qb-zoom-level">200%</span>
                     <button type="button" onclick="zoomViewerDoc(0.15)" title="Zoom In" class="qb-btn-icon qb-desktop-zoom-button"><i class="fas fa-search-plus"></i></button>
                     <button type="button" onclick="fitViewerDocWidth()" title="Fit Width" class="qb-btn-icon"><i class="fas fa-arrows-alt-h"></i></button>
                     <button type="button" onclick="rotateViewerDoc()" title="Rotate 90°" class="qb-btn-icon"><i class="fas fa-redo"></i></button>
@@ -3202,7 +3614,7 @@
         // ==========================================
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
         import {
-            addDoc, collection, doc, getFirestore, onSnapshot, query, serverTimestamp, setDoc, where
+            addDoc, collection, doc, getDocs, getFirestore, onSnapshot, orderBy, query, serverTimestamp, setDoc, where
         } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
         const firebaseConfig = {
@@ -3478,9 +3890,11 @@
         // ROUTER & NAVIGATION
         // ==========================================
         function parseHash() {
-            const hash = location.hash.slice(1) || 'dashboard';
-            const parts = hash.split('/');
-            return { page: parts[0], param: parts[1] || null };
+            const rawHash = location.hash.slice(1) || 'dashboard';
+            const [path, queryStr] = rawHash.split('?');
+            const parts = path.split('/');
+            const queryParams = new URLSearchParams(queryStr || '');
+            return { page: parts[0], param: parts[1] || null, query: queryParams };
         }
 
         function handleRouteChange() {
@@ -3643,6 +4057,26 @@
             `;
         }
 
+        function getPaperFileExtension(paper, isSolution = false) {
+            if (!paper) return 'pdf';
+            const url = isSolution ? (paper.solutionPdfUrl || paper.solutionUrl) : (paper.pdfUrl || paper.fileUrl || paper.notePdfUrl || (paper.materialAssets && paper.materialAssets[0]?.pdfUrl) || '');
+            const orig = paper.originalFilename || '';
+            if (orig && orig.includes('.')) {
+                const ext = orig.split('.').pop().toLowerCase();
+                if (['pdf', 'docx', 'doc', 'pptx', 'ppt', 'xlsx', 'xls', 'png', 'jpg', 'jpeg'].includes(ext)) {
+                    return ext;
+                }
+            }
+            if (url) {
+                const clean = url.split('?')[0].split('#')[0];
+                const ext = clean.split('.').pop().toLowerCase();
+                if (['pdf', 'docx', 'doc', 'pptx', 'ppt', 'xlsx', 'xls', 'png', 'jpg', 'jpeg'].includes(ext)) {
+                    return ext;
+                }
+            }
+            return 'pdf';
+        }
+
         function formatPdfDownloadName(paper, isSolution = false) {
             if (!paper) return 'download.pdf';
             const courseCodeRaw = (paper.courseCode || 'CSE1111').trim();
@@ -3661,8 +4095,9 @@
             if (!examName) examName = 'Exam';
             
             const trimesterCode = paper.semester || (paper.trimester ? `251` : '251');
+            const ext = getPaperFileExtension(paper, isSolution);
             
-            return `${dept}_${cleanCourseCode}_${examName}_${trimesterCode}.pdf`;
+            return `${dept}_${cleanCourseCode}_${examName}_${trimesterCode}.${ext}`;
         }
 
         function createResourceCard(paper) {
@@ -3675,10 +4110,24 @@
             const mainPdf = paper.pdfUrl || paper.fileUrl || paper.notePdfUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType !== 'solution')?.pdfUrl) || (paper.materialAssets && paper.materialAssets[0]?.pdfUrl);
             const solPdf = paper.solutionPdfUrl || paper.solutionUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType === 'solution')?.pdfUrl);
 
+            const ext = getPaperFileExtension(paper, false);
+            let viewMainIcon = 'fa-file-pdf';
+            let viewMainText = 'View PDF';
+            if (['ppt', 'pptx'].includes(ext)) {
+                viewMainIcon = 'fa-file-powerpoint';
+                viewMainText = 'View PPT';
+            } else if (['doc', 'docx'].includes(ext)) {
+                viewMainIcon = 'fa-file-word';
+                viewMainText = 'View Doc';
+            } else if (['xls', 'xlsx'].includes(ext)) {
+                viewMainIcon = 'fa-file-excel';
+                viewMainText = 'View Sheet';
+            }
+
             let downloadLinks = '';
             if (mainPdf) {
                 const mainName = formatPdfDownloadName(paper, false);
-                downloadLinks += `<button class="btn btn-outline" onclick="openPdfViewer('${mainPdf}', '${paper.courseCode} - ${paper.topic || paper.type}', false)" style="padding:0.45rem 0.85rem; font-size:0.85rem;"><i class="fas fa-eye"></i> View PDF</button>
+                downloadLinks += `<button class="btn btn-outline" onclick="openPdfViewer('${mainPdf}', '${paper.courseCode} - ${paper.topic || paper.type}', false)" style="padding:0.45rem 0.85rem; font-size:0.85rem;"><i class="fas ${viewMainIcon}"></i> ${viewMainText}</button>
                                   <button type="button" onclick="forceDownloadFile('${mainPdf}', '${mainName}')" class="btn btn-primary" style="padding:0.45rem 0.85rem; font-size:0.85rem;"><i class="fas fa-download"></i> Download</button>`;
             }
             if (solPdf) {
@@ -3701,6 +4150,7 @@
                             <span class="pill">${type}</span>
                             ${examLabel ? `<span class="pill">${examLabel}</span>` : ''}
                             ${semLabel ? `<span class="pill">${semLabel}</span>` : ''}
+                            ${paper.facultyName ? `<span class="pill" style="background:rgba(255,145,77,0.15); color:var(--orange); border:1px solid rgba(255,145,77,0.3); font-weight:600;"><i class="fas fa-chalkboard-teacher"></i> ${paper.facultyName}</span>` : ''}
                         </div>
                         ${topicStr}
                         <div class="resource-meta">
@@ -3765,10 +4215,124 @@
             recentList.innerHTML = approvedPapers.slice(0, 8).map(p => createResourceCard(p)).join('');
         }
 
+        // ==========================================
+        // FACULTIES STATE & FIRESTORE QUERIES
+        // ==========================================
+        let facultiesList = [
+            { "id": 6496, "name": "Anindya Hoque (AnHq)", "code": "AnHq" },
+            { "id": 1001, "name": "Dr. Salekul Islam (SKI)", "code": "SKI" },
+            { "id": 1002, "name": "Dr. Md. Motaharul Islam (MMI)", "code": "MMI" },
+            { "id": 1003, "name": "Dr. Mohammad Nurul Huda (MNH)", "code": "MNH" },
+            { "id": 1004, "name": "Dr. Swakkhar Shatabda (SS)", "code": "SS" },
+            { "id": 1005, "name": "Dr. Dewan Md. Farid (DMF)", "code": "DMF" },
+            { "id": 1006, "name": "Dr. Hasan Sarwar (HS)", "code": "HS" },
+            { "id": 1007, "name": "Dr. Suman Ahmmed (SA)", "code": "SA" },
+            { "id": 1008, "name": "Dr. Novia Nurain (NN)", "code": "NN" },
+            { "id": 1009, "name": "Dr. Saddam Hossain Mukta (SHM)", "code": "SHM" },
+            { "id": 1010, "name": "Rubaiya Rahtin Khan (RRK)", "code": "RRK" },
+            { "id": 1011, "name": "Ferdous Sarwar (FS)", "code": "FS" },
+            { "id": 1012, "name": "Mirza Mohd. Shahriar Maswood (SMS)", "code": "SMS" },
+            { "id": 1013, "name": "Ahmed Hossain (AH)", "code": "AH" },
+            { "id": 1014, "name": "Tahsin Aziz (TA)", "code": "TA" },
+            { "id": 1015, "name": "Md. Tarek Hasan (TH)", "code": "TH" },
+            { "id": 1016, "name": "Nazmul Alam (NA)", "code": "NA" },
+            { "id": 1017, "name": "Sadia Sharmin (SSh)", "code": "SSh" },
+            { "id": 1018, "name": "Shoeb Mohammad (SM)", "code": "SM" },
+            { "id": 1019, "name": "Tanmoy Sen (TS)", "code": "TS" },
+            { "id": 1020, "name": "Chowdhury Mofizur Rahman (CMR)", "code": "CMR" }
+        ];
+
+        async function loadFaculties() {
+            try {
+                const res = await safeFetchJson('/api/faculties');
+                if (Array.isArray(res) && res.length > 0) {
+                    facultiesList = res;
+                    localStorage.setItem('qb_faculties_cache', JSON.stringify(res));
+                }
+            } catch (e) {
+                console.warn('Could not fetch faculties from backend, using fallback:', e);
+                const cached = localStorage.getItem('qb_faculties_cache');
+                if (cached) {
+                    try { facultiesList = JSON.parse(cached); } catch(_) {}
+                }
+            }
+            populateCoursesFacultyFilter();
+        }
+
+        function populateCoursesFacultyFilter() {
+            const facFilter = document.getElementById('coursesFacultyFilter');
+            if (!facFilter) return;
+            const currentVal = facFilter.value;
+            facFilter.innerHTML = '<option value="all">All Faculty</option>' +
+                facultiesList.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
+            if (currentVal && currentVal !== 'all') facFilter.value = currentVal;
+        }
+
+        // Exact Firestore query by keyword / search token
+        async function queryFirestoreBySearchToken(searchTerm) {
+            const term = (searchTerm || '').toLowerCase().trim();
+            if (!term) return [];
+            try {
+                const q = query(
+                    collection(db, "questionPapers"),
+                    where("status", "==", "approved"),
+                    where("searchTokens", "array-contains", term),
+                    orderBy("createdAt", "desc")
+                );
+                const snap = await getDocs(q);
+                const results = [];
+                snap.forEach(doc => results.push({ id: doc.id, ...doc.data() }));
+                if (results.length > 0) return results;
+            } catch (err) {
+                console.warn('Firestore searchTokens query fallback to local cache:', err);
+            }
+            // Fallback to approvedPapers in memory
+            return (approvedPapers || []).filter(p => {
+                if (p.searchTokens && Array.isArray(p.searchTokens) && p.searchTokens.includes(term)) return true;
+                const fac = (p.facultyName || '').toLowerCase();
+                const code = (p.facultyCode || '').toLowerCase();
+                const course = (p.courseCode || '').toLowerCase();
+                const topic = (p.topic || '').toLowerCase();
+                return fac.includes(term) || code.includes(term) || course.includes(term) || topic.includes(term);
+            });
+        }
+
+        // Exact Firestore query by exact faculty ID
+        async function queryFirestoreByFacultyId(selectedFacultyId) {
+            const facIdNum = Number(selectedFacultyId);
+            if (!facIdNum) return [];
+            try {
+                const q = query(
+                    collection(db, "questionPapers"),
+                    where("status", "==", "approved"),
+                    where("facultyId", "==", facIdNum),
+                    orderBy("createdAt", "desc")
+                );
+                const snap = await getDocs(q);
+                const results = [];
+                snap.forEach(doc => results.push({ id: doc.id, ...doc.data() }));
+                if (results.length > 0) return results;
+            } catch (err) {
+                console.warn('Firestore facultyId query fallback to local cache:', err);
+            }
+            // Fallback to approvedPapers in memory
+            return (approvedPapers || []).filter(p => Number(p.facultyId) === facIdNum);
+        }
+
+        window.selectFacultyFromHero = function(facultyId) {
+            location.hash = `#courses?faculty=${facultyId}`;
+        };
+
         function renderCoursesPage() {
             const grid = document.getElementById('allCoursesGrid');
             const searchInput = document.getElementById('coursesSearch');
             const trimFilter = document.getElementById('coursesTrimesterFilter');
+            const facFilter = document.getElementById('coursesFacultyFilter');
+            const facSection = document.getElementById('facultyQuestionsSection');
+            const facGrid = document.getElementById('facultyQuestionsGrid');
+            const facTitle = document.getElementById('facultyQuestionsTitle');
+            const facCount = document.getElementById('facultyQuestionsCount');
+            const clearFacBtn = document.getElementById('clearFacultyFilterBtn');
             
             if (trimFilter.options.length === 1) {
                 for (let i = 1; i <= 12; i++) trimFilter.innerHTML += `<option value="${i}">Trimester ${i}</option>`;
@@ -3779,12 +4343,71 @@
                 trimFilter.addEventListener('change', updateCoursesGrid);
             }
 
+            if (facFilter && facFilter.options.length <= 1) {
+                populateCoursesFacultyFilter();
+            }
+
+            if (facFilter && !facFilter._hasListener) {
+                facFilter._hasListener = true;
+                facFilter.addEventListener('change', updateCoursesGrid);
+            }
+
+            if (clearFacBtn && !clearFacBtn._hasListener) {
+                clearFacBtn._hasListener = true;
+                clearFacBtn.addEventListener('click', () => {
+                    if (facFilter) facFilter.value = 'all';
+                    if (searchInput) searchInput.value = '';
+                    updateCoursesGrid();
+                });
+            }
+
+            // Sync with hash query params if any (e.g. #courses?faculty=6496 or #courses?sem=261)
+            if (currentRoute && currentRoute.query) {
+                const facParam = currentRoute.query.get('faculty');
+                if (facParam && facFilter) {
+                    facFilter.value = facParam;
+                }
+            }
+
             updateCoursesGrid();
 
-            function updateCoursesGrid() {
-                const term = searchInput.value.toLowerCase();
+            async function updateCoursesGrid() {
+                const term = searchInput.value.toLowerCase().trim();
                 const trim = trimFilter.value;
-                
+                const selectedFacId = facFilter ? facFilter.value : 'all';
+
+                let matchedPapers = [];
+                let isFacultyActive = false;
+
+                if (selectedFacId !== 'all') {
+                    isFacultyActive = true;
+                    const facultyObj = facultiesList.find(f => String(f.id) === String(selectedFacId));
+                    const facName = facultyObj ? facultyObj.name : 'Selected Faculty';
+                    if (facTitle) facTitle.innerHTML = `<i class="fas fa-chalkboard-teacher" style="color:var(--orange);"></i> Question Papers by ${facName}`;
+                    matchedPapers = await queryFirestoreByFacultyId(selectedFacId);
+                } else if (term) {
+                    // Check if term matches faculty or tokens
+                    const isFacTerm = facultiesList.some(f => f.name.toLowerCase().includes(term) || f.code.toLowerCase().includes(term));
+                    if (isFacTerm) {
+                        isFacultyActive = true;
+                        if (facTitle) facTitle.innerHTML = `<i class="fas fa-search" style="color:var(--orange);"></i> Question Papers Matching "${term}"`;
+                        matchedPapers = await queryFirestoreBySearchToken(term);
+                    }
+                }
+
+                if (isFacultyActive && facSection && facGrid) {
+                    facSection.style.display = 'block';
+                    if (matchedPapers.length > 0) {
+                        facGrid.innerHTML = matchedPapers.map(p => createPhotoMatchedQuestionBox(p)).join('');
+                        if (facCount) facCount.innerText = `${matchedPapers.length} ${matchedPapers.length === 1 ? 'paper' : 'papers'}`;
+                    } else {
+                        facGrid.innerHTML = `<div style="grid-column: 1 / -1; padding: 2rem; text-align: center; color: var(--text-muted); background: var(--surface-1); border-radius: var(--radius-md); border: 1px dashed var(--border);">No question papers found for this faculty/search query.</div>`;
+                        if (facCount) facCount.innerText = '0 papers';
+                    }
+                } else if (facSection) {
+                    facSection.style.display = 'none';
+                }
+
                 const filtered = CURRICULUM.filter(c => {
                     const matchSearch = c.code.toLowerCase().includes(term) || c.title.toLowerCase().includes(term) || c.aliases.some(a=>a.toLowerCase().includes(term));
                     const matchTrim = trim === 'all' || c.trimester.toString() === trim;
@@ -3805,29 +4428,233 @@
         // ==========================================
         // PHOTO-MATCHED QUESTION CARD GENERATOR
         // ==========================================
-        function createPhotoMatchedQuestionBox(paper) {
+        function createPhotoMatchedQuestionBox(paper, isSolution = false) {
             const semObj = decodeSemester(paper.semester || paper.trimester);
             const codePill = paper.semester || (paper.trimester ? `${paper.trimester}` : '261');
             const semName = semObj.label;
             const mainPdf = paper.pdfUrl || paper.fileUrl || paper.notePdfUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType !== 'solution')?.pdfUrl) || (paper.materialAssets && paper.materialAssets[0]?.pdfUrl) || '';
             const solPdf = paper.solutionPdfUrl || paper.solutionUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType === 'solution')?.pdfUrl) || '';
-            const mainName = formatPdfDownloadName(paper, false);
+            
+            const targetPdf = isSolution ? (solPdf || mainPdf) : mainPdf;
+            const downloadName = formatPdfDownloadName(paper, isSolution);
             const hasSol = Boolean(solPdf);
 
+            const cardClass = isSolution ? 'qb-question-box is-solution' : 'qb-question-box';
+            const actionTitle = isSolution ? `Click to view Solution for ${paper.courseCode} ${semName}` : `Click to open ${paper.courseCode} ${semName} in Full Browser Viewer`;
+            const dlBtnTitle = isSolution ? 'Download Solution File' : 'Download File';
+
+            const ext = getPaperFileExtension(paper, isSolution);
+            let docTypeBadge = '';
+            if (['ppt', 'pptx'].includes(ext)) {
+                docTypeBadge = `<span class="qb-doc-type-pill" style="position:absolute; top:8px; left:8px; background:rgba(234, 88, 12, 0.15); color:#ea580c; border:1px solid rgba(234, 88, 12, 0.35); font-size:0.68rem; font-weight:700; padding:0.12rem 0.45rem; border-radius:4px; z-index:2;"><i class="fas fa-file-powerpoint"></i> PPT</span>`;
+            } else if (['doc', 'docx'].includes(ext)) {
+                docTypeBadge = `<span class="qb-doc-type-pill" style="position:absolute; top:8px; left:8px; background:rgba(37, 99, 235, 0.15); color:#2563eb; border:1px solid rgba(37, 99, 235, 0.35); font-size:0.68rem; font-weight:700; padding:0.12rem 0.45rem; border-radius:4px; z-index:2;"><i class="fas fa-file-word"></i> DOC</span>`;
+            } else if (['xls', 'xlsx'].includes(ext)) {
+                docTypeBadge = `<span class="qb-doc-type-pill" style="position:absolute; top:8px; left:8px; background:rgba(22, 163, 74, 0.15); color:#16a34a; border:1px solid rgba(22, 163, 74, 0.35); font-size:0.68rem; font-weight:700; padding:0.12rem 0.45rem; border-radius:4px; z-index:2;"><i class="fas fa-file-excel"></i> XLS</span>`;
+            }
+
             return `
-                <div class="qb-question-box" onclick="openFullBrowserViewerById('${paper.id}')" title="Click to open ${paper.courseCode} ${semName} in Full Browser Viewer">
-                    ${hasSol ? `<span class="qb-card-sol-indicator" title="Solution Included"><i class="fas fa-check"></i></span>` : ''}
-                    <button type="button" class="qb-card-dl-btn" onclick="event.stopPropagation(); forceDownloadFile('${mainPdf}', '${mainName}')" title="Download Question PDF">
+                <div class="${cardClass}" onclick="openFullBrowserViewerById('${paper.id}', ${isSolution})" title="${actionTitle}">
+                    ${docTypeBadge}
+                    ${isSolution ? `<span class="qb-sol-pill"><i class="fas fa-check-circle"></i> Solution</span>` : (hasSol ? `<span class="qb-card-sol-indicator" title="Solution Included"><i class="fas fa-check"></i></span>` : '')}
+                    <button type="button" class="qb-card-dl-btn" onclick="event.stopPropagation(); forceDownloadFile('${targetPdf}', '${downloadName}')" title="${dlBtnTitle}">
                         <i class="fas fa-download"></i>
                     </button>
                     <div class="qb-trimester-badge">${codePill}</div>
                     <div class="qb-trimester-name">${semName}</div>
+                    ${paper.facultyName ? `<div class="qb-card-faculty" style="font-size:0.75rem; color:var(--orange); font-weight:600; margin-top:2px; display:flex; align-items:center; justify-content:center; gap:4px; max-width:92%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 4px;" title="Faculty: ${paper.facultyName}"><i class="fas fa-chalkboard-teacher" style="font-size:0.7rem;"></i> ${paper.facultyName}</div>` : ''}
                     ${paper.topic && !paper.topic.toLowerCase().includes('mid') && !paper.topic.toLowerCase().includes('fin') ? `<div class="qb-card-subtopic" title="${paper.topic}">${paper.topic}</div>` : ''}
                 </div>
             `;
         }
 
         const courseSectionSortOrders = {};
+        const courseSectionCollapsed = {};
+
+        function isSectionCollapsed(courseCode, sectionKey) {
+            const key = `${courseCode}_${sectionKey}`;
+            // By default, ALL sections will be collapsed
+            if (courseSectionCollapsed[key] === undefined) {
+                return true;
+            }
+            return Boolean(courseSectionCollapsed[key]);
+        }
+
+        window.toggleCourseSection = function(sectionKey, courseCode) {
+            const key = `${courseCode}_${sectionKey}`;
+            const currentState = isSectionCollapsed(courseCode, sectionKey);
+            const newState = !currentState;
+            courseSectionCollapsed[key] = newState;
+
+            const wrapper = document.getElementById(`qbSection_${sectionKey}`);
+            if (wrapper) {
+                const body = wrapper.querySelector('.qb-section-body');
+                const chevron = wrapper.querySelector('.qb-section-chevron');
+                if (body) {
+                    body.style.display = newState ? 'none' : 'block';
+                }
+                if (chevron) {
+                    chevron.classList.toggle('rotated', !newState);
+                }
+            }
+        };
+
+        window.toggleAllCourseSections = function(courseCode, expandAll) {
+            const wrappers = document.querySelectorAll('.qb-section-wrapper');
+            wrappers.forEach(wrapper => {
+                const secId = wrapper.id.replace('qbSection_', '');
+                courseSectionCollapsed[`${courseCode}_${secId}`] = !expandAll;
+                const body = wrapper.querySelector('.qb-section-body');
+                const chevron = wrapper.querySelector('.qb-section-chevron');
+                if (body) {
+                    body.style.display = expandAll ? 'block' : 'none';
+                }
+                if (chevron) {
+                    chevron.classList.toggle('rotated', expandAll);
+                }
+            });
+        };
+
+        window.downloadAllSectionFiles = async function(sectionKey, courseCode) {
+            const course = CURRICULUM.find(c => c.code.replace(/\s+/g,'').toLowerCase() === courseCode.replace(/\s+/g,'').toLowerCase());
+            if (!course) return;
+
+            let papers = approvedPapers.filter(p => p.courseCode.replace(/\s+/g,'').toLowerCase() === course.code.replace(/\s+/g,'').toLowerCase());
+            const semFilter = document.getElementById('courseSemesterFilter');
+            const examFilter = document.getElementById('courseExamTypeFilter');
+            if (semFilter && semFilter.value !== 'all') papers = papers.filter(p => p.semester === semFilter.value);
+            if (examFilter && examFilter.value !== 'all') papers = papers.filter(p => p.examType === examFilter.value);
+
+            const isSolutionSection = sectionKey === 'solutions';
+            let targetList = [];
+
+            if (sectionKey === 'midterm') {
+                targetList = papers.filter(p => (p.examType === 'Midterm' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('mid'))) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
+            } else if (sectionKey === 'final') {
+                targetList = papers.filter(p => (p.examType === 'Final' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('fin'))) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
+            } else if (sectionKey === 'solutions') {
+                targetList = papers.filter(p => p.type === 'Solution' || Boolean(p.solutionPdfUrl || p.solutionUrl || (p.materialAssets && p.materialAssets.some(a => a.assetType === 'solution'))));
+            } else if (sectionKey === 'notes') {
+                targetList = papers.filter(p => p.type === 'Notes' || p.materialType === 'note');
+            } else if (sectionKey === 'labs') {
+                targetList = papers.filter(p => p.type === 'Lab');
+            } else if (sectionKey === 'other') {
+                const mid = papers.filter(p => (p.examType === 'Midterm' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('mid'))) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
+                const fin = papers.filter(p => (p.examType === 'Final' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('fin'))) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
+                targetList = papers.filter(p => p.type === 'Question' && !mid.includes(p) && !fin.includes(p) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
+            }
+
+            const fileItems = [];
+            targetList.forEach(paper => {
+                let url = '';
+                let fileName = '';
+                if (isSolutionSection) {
+                    url = paper.solutionPdfUrl || paper.solutionUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType === 'solution')?.pdfUrl) || paper.pdfUrl || paper.fileUrl || '';
+                    fileName = formatPdfDownloadName(paper, true);
+                } else {
+                    url = paper.pdfUrl || paper.fileUrl || paper.notePdfUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType !== 'solution')?.pdfUrl) || (paper.materialAssets && paper.materialAssets[0]?.pdfUrl) || '';
+                    fileName = formatPdfDownloadName(paper, false);
+                }
+                if (url && url !== '#' && url !== 'null') {
+                    fileItems.push({ url, fileName, paper });
+                }
+            });
+
+            if (fileItems.length === 0) {
+                if (typeof showToast === 'function') showToast('No downloadable files available in this section.', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById(`qbDlBtn_${sectionKey}`);
+            const originalContent = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Zipping 0/${fileItems.length}...`;
+            }
+
+            if (typeof showToast === 'function') showToast(`Preparing ZIP archive for ${fileItems.length} file(s)...`, 'info');
+
+            try {
+                if (typeof JSZip === 'undefined') {
+                    throw new Error('JSZip library not ready');
+                }
+
+                const zip = new JSZip();
+                const usedNames = new Set();
+
+                for (let i = 0; i < fileItems.length; i++) {
+                    const item = fileItems[i];
+                    if (btn) btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Zipping ${i + 1}/${fileItems.length}...`;
+
+                    let targetUrl = item.url;
+                    if (targetUrl.includes('cloudinary.com') && targetUrl.includes('/upload/')) {
+                        targetUrl = targetUrl.replace('/upload/', '/upload/fl_attachment/');
+                    }
+
+                    try {
+                        const res = await fetch(targetUrl);
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        const blob = await res.blob();
+                        
+                        let finalName = item.fileName;
+                        if (!finalName.endsWith('.pdf')) finalName += '.pdf';
+                        let counter = 1;
+                        let candidate = finalName;
+                        while (usedNames.has(candidate)) {
+                            const base = finalName.replace(/\.pdf$/i, '');
+                            candidate = `${base}_(${counter}).pdf`;
+                            counter++;
+                        }
+                        usedNames.add(candidate);
+
+                        zip.file(candidate, blob);
+                    } catch (fetchErr) {
+                        console.warn(`Could not fetch ${item.fileName} into ZIP:`, fetchErr);
+                    }
+                }
+
+                const zipFilesCount = Object.keys(zip.files).length;
+                if (zipFilesCount === 0) {
+                    throw new Error('Direct fetch failed. Falling back to individual downloads.');
+                }
+
+                if (btn) btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Compressing...`;
+                const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+
+                const cleanCode = course.code.replace(/\s+/g, '').toUpperCase();
+                const sectionTitle = sectionKey.charAt(0).toUpperCase() + sectionKey.slice(1);
+                const zipName = `${cleanCode}_${sectionTitle}_UIU_QB.zip`;
+
+                const blobUrl = URL.createObjectURL(zipBlob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = zipName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
+
+                if (typeof showToast === 'function') {
+                    showToast(`Downloaded ${zipFilesCount} files as ${zipName}!`, 'success');
+                }
+            } catch (err) {
+                console.warn('ZIP creation error, falling back to sequential download:', err);
+                if (typeof showToast === 'function') {
+                    showToast(`Downloading ${fileItems.length} files individually...`, 'info');
+                }
+                for (let i = 0; i < fileItems.length; i++) {
+                    const f = fileItems[i];
+                    setTimeout(() => {
+                        forceDownloadFile(f.url, f.fileName);
+                    }, i * 600);
+                }
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalContent;
+                }
+            }
+        };
 
         window.sortSectionQuestions = function(sectionKey, order, courseCode) {
             courseSectionSortOrders[sectionKey] = order;
@@ -3893,49 +4720,59 @@
                 }
 
                 // Categorize papers matching UI layout
-                const midterms = papers.filter(p => (p.examType === 'Midterm' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('mid'))) && p.type !== 'Notes' && p.type !== 'Lab');
-                const finals = papers.filter(p => (p.examType === 'Final' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('fin'))) && p.type !== 'Notes' && p.type !== 'Lab');
-                const otherQuestions = papers.filter(p => p.type === 'Question' && !midterms.includes(p) && !finals.includes(p) && p.type !== 'Notes' && p.type !== 'Lab');
+                const midterms = papers.filter(p => (p.examType === 'Midterm' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('mid'))) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
+                const finals = papers.filter(p => (p.examType === 'Final' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('fin'))) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
+                const otherQuestions = papers.filter(p => p.type === 'Question' && !midterms.includes(p) && !finals.includes(p) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
+                
+                // Dedicated Solutions section: questions that have solutions attached OR standalone solutions
+                const solutions = papers.filter(p => p.type === 'Solution' || Boolean(p.solutionPdfUrl || p.solutionUrl || (p.materialAssets && p.materialAssets.some(a => a.assetType === 'solution'))));
+                
                 const notes = papers.filter(p => p.type === 'Notes' || p.materialType === 'note');
                 const labs = papers.filter(p => p.type === 'Lab');
 
-                function renderBoxSection(title, key, list) {
+                function renderBoxSection(title, key, list, dotColor = '#3b82f6', isSolutionSection = false) {
                     if (list.length === 0) return '';
                     const sortOrder = courseSectionSortOrders[key] || 'newest';
                     const sortedList = sortPapers(list, sortOrder);
+                    const isCollapsed = isSectionCollapsed(course.code, key);
+
                     return `
                         <div class="qb-section-wrapper" id="qbSection_${key}">
-                            <div class="qb-section-header">
+                            <div class="qb-section-header" onclick="toggleCourseSection('${key}', '${course.code}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){toggleCourseSection('${key}','${course.code}');event.preventDefault();}" title="Click to expand/collapse ${title}">
                                 <div class="qb-section-title-wrap">
-                                    <span class="qb-section-dot"></span>
+                                    <i class="fas fa-chevron-down qb-section-chevron ${isCollapsed ? '' : 'rotated'}"></i>
+                                    <span class="qb-section-dot" style="background: ${dotColor}; box-shadow: 0 0 8px ${dotColor}88;"></span>
                                     <h3 class="qb-section-title">${title}</h3>
+                                    <span class="qb-section-badge">${list.length} ${list.length === 1 ? 'item' : 'items'}</span>
                                 </div>
-                                <select class="qb-sort-select" onchange="sortSectionQuestions('${key}', this.value, '${course.code}')">
-                                    <option value="newest" ${sortOrder === 'newest' ? 'selected' : ''}>⇅ Newest First</option>
-                                    <option value="oldest" ${sortOrder === 'oldest' ? 'selected' : ''}>⇅ Oldest First</option>
-                                </select>
+                                <div class="qb-section-actions">
+                                    <select class="qb-sort-select" onclick="event.stopPropagation()" onchange="sortSectionQuestions('${key}', this.value, '${course.code}')" title="Sort order">
+                                        <option value="newest" ${sortOrder === 'newest' ? 'selected' : ''}>⇅ Newest First</option>
+                                        <option value="oldest" ${sortOrder === 'oldest' ? 'selected' : ''}>⇅ Oldest First</option>
+                                    </select>
+                                    <button type="button" class="qb-section-dl-btn" id="qbDlBtn_${key}" onclick="event.stopPropagation(); downloadAllSectionFiles('${key}', '${course.code}')" title="Download all ${list.length} files in this section as ZIP">
+                                        <i class="fas fa-file-archive"></i> Download All (${list.length})
+                                    </button>
+                                </div>
                             </div>
-                            <div class="qb-box-grid">
-                                ${sortedList.map(p => createPhotoMatchedQuestionBox(p)).join('')}
+                            <div class="qb-section-body" style="display: ${isCollapsed ? 'none' : 'block'};">
+                                <div class="qb-box-grid">
+                                    ${sortedList.map(p => createPhotoMatchedQuestionBox(p, isSolutionSection)).join('')}
+                                </div>
                             </div>
                         </div>
                     `;
                 }
 
-                let html = '';
-                html += renderBoxSection('Mid-Term Questions', 'midterm', midterms);
-                html += renderBoxSection('Final Questions', 'final', finals);
-                if (otherQuestions.length > 0) {
-                    html += renderBoxSection('Other Questions & Quizzes', 'other', otherQuestions);
-                }
-                if (notes.length > 0) {
-                    html += renderBoxSection('Class Notes', 'notes', notes);
-                }
-                if (labs.length > 0) {
-                    html += renderBoxSection('Lab Materials', 'labs', labs);
-                }
+                let sectionsHtml = '';
+                if (midterms.length > 0) sectionsHtml += renderBoxSection('Mid-Term Questions', 'midterm', midterms, '#3b82f6', false);
+                if (finals.length > 0) sectionsHtml += renderBoxSection('Final Questions', 'final', finals, '#6366f1', false);
+                if (solutions.length > 0) sectionsHtml += renderBoxSection('Solutions', 'solutions', solutions, '#10b981', true);
+                if (notes.length > 0) sectionsHtml += renderBoxSection('Class Notes', 'notes', notes, '#f59e0b', false);
+                if (labs.length > 0) sectionsHtml += renderBoxSection('Lab Materials', 'labs', labs, '#8b5cf6', false);
+                if (otherQuestions.length > 0) sectionsHtml += renderBoxSection('Other Questions & Quizzes', 'other', otherQuestions, '#06b6d4', false);
 
-                if (!html) {
+                if (!sectionsHtml) {
                     container.innerHTML = `
                         <div style="padding:3.5rem 1.5rem; text-align:center; border:2px dashed var(--border); border-radius:var(--radius-lg); background:var(--surface); margin-top:2rem;">
                             <i class="fas fa-folder-open" style="font-size:2.5rem; color:var(--text-muted); margin-bottom:1rem;"></i>
@@ -3945,7 +4782,20 @@
                         </div>
                     `;
                 } else {
-                    container.innerHTML = html;
+                    const masterToolbar = `
+                        <div class="qb-accordion-master-toolbar">
+                            <span style="font-size:0.82rem; color:var(--text-muted); margin-right:auto; font-weight:600; display:flex; align-items:center; gap:0.4rem;">
+                                <i class="fas fa-layer-group" style="color:var(--orange);"></i> Course Sections (Default Collapsed)
+                            </span>
+                            <button type="button" class="qb-master-toggle-btn" onclick="toggleAllCourseSections('${course.code}', true)" title="Expand all sections">
+                                <i class="fas fa-angles-down"></i> Expand All
+                            </button>
+                            <button type="button" class="qb-master-toggle-btn" onclick="toggleAllCourseSections('${course.code}', false)" title="Collapse all sections">
+                                <i class="fas fa-angles-up"></i> Collapse All
+                            </button>
+                        </div>
+                    `;
+                    container.innerHTML = masterToolbar + sectionsHtml;
                 }
             }
         }
@@ -3980,7 +4830,7 @@
         function fuzzySearch(rawQuery) {
             const q = rawQuery.toLowerCase().replace(/[\s\-\_]/g, '');
             const qWords = rawQuery.toLowerCase().trim();
-            if (!q) return { courses: [], trimesters: [], semesters: [] };
+            if (!q) return { courses: [], trimesters: [], semesters: [], faculties: [] };
 
             // Match courses
             const courses = CURRICULUM.filter(c =>
@@ -4006,7 +4856,14 @@
                 s.code.includes(q) || s.label.toLowerCase().includes(qWords)
             ).slice(0, 4);
 
-            return { courses, trimesters: trimesters.slice(0, 3), semesters };
+            // Match faculties
+            const faculties = (facultiesList || []).filter(f =>
+                f.name.toLowerCase().includes(qWords) ||
+                f.code.toLowerCase().includes(q) ||
+                f.name.toLowerCase().replace(/[\s\(\)\.]/g, '').includes(q)
+            ).slice(0, 4);
+
+            return { courses, trimesters: trimesters.slice(0, 3), semesters, faculties };
         }
 
         searchInput.addEventListener('input', (e) => {
@@ -4027,6 +4884,18 @@
                         <div style="text-align:left; width:100%;">
                             <div style="font-weight:700; font-size:0.95rem; color:var(--text-main); text-align:left;">${c.code}</div>
                             <div style="font-size:0.825rem; color:var(--text-muted); text-align:left; margin-top:0.15rem;">${c.title} · ${c.trimester === 0 ? 'Elective' : 'Trim ' + c.trimester}</div>
+                        </div>
+                    </div>`;
+                });
+            }
+
+            if (results.faculties && results.faculties.length > 0) {
+                resultsHTML += `<div style="padding:0.5rem 1.25rem; font-size:0.75rem; font-weight:700; color:var(--text-muted); background:var(--surface-2); text-align:left; letter-spacing:0.5px; border-bottom:1px solid var(--border);">👨‍🏫 FACULTY MEMBERS</div>`;
+                results.faculties.forEach(f => {
+                    resultsHTML += `<div class="autocomplete-item" onclick="selectFacultyFromHero('${f.id}'); document.getElementById('heroAutocomplete').classList.remove('active');">
+                        <div style="text-align:left; width:100%;">
+                            <div style="font-weight:700; font-size:0.95rem; color:var(--text-main); text-align:left;">${f.name}</div>
+                            <div style="font-size:0.825rem; color:var(--orange); text-align:left; margin-top:0.15rem;"><i class="fas fa-chalkboard-teacher"></i> Code: ${f.code} · View Papers</div>
                         </div>
                     </div>`;
                 });
@@ -4096,6 +4965,37 @@
         // UPLOAD FORM LOGIC
         // ==========================================
         window.nextStep = function(step) {
+            // Validation before moving forward:
+            // 1. Cannot proceed beyond Step 1 without selecting a course
+            if (step > 1) {
+                const courseVal = document.getElementById('upCourse')?.value;
+                if (!courseVal) {
+                    showToast('Please search and select a course first.', 'warning');
+                    const searchInp = document.getElementById('upCourseSearch');
+                    if (searchInp) {
+                        searchInp.focus();
+                        searchInp.style.borderColor = 'var(--error)';
+                    }
+                    return;
+                }
+            }
+
+            // 2. Cannot proceed to Step 3 without adding a Topic, especially for Notes
+            if (step > 2) {
+                const selectedType = document.querySelector('input[name="materialType"]:checked')?.value;
+                const topicVal = (document.getElementById('upTopic')?.value || '').trim();
+                if (selectedType === 'Notes' && !topicVal) {
+                    showToast('Please enter a Topic / Title for your Notes before proceeding to the next step.', 'error');
+                    const topicInp = document.getElementById('upTopic');
+                    if (topicInp) {
+                        topicInp.focus();
+                        topicInp.style.borderColor = 'var(--error)';
+                        topicInp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    return;
+                }
+            }
+
             document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.step-dot').forEach(d => {
                 const n = parseInt(d.getAttribute('data-step'));
@@ -4202,19 +5102,145 @@
                     }
                 });
 
+                // Faculty Autocomplete Logic
+                const facultySearch = document.getElementById('upFacultySearch');
+                const facultyDropdown = document.getElementById('upFacultyDropdown');
+                const facultyClearBtn = document.getElementById('upFacultyClearBtn');
+                const facultyIdInp = document.getElementById('upFacultyId');
+                const facultyNameInp = document.getElementById('upFacultyName');
+                const facultyCodeInp = document.getElementById('upFacultyCode');
+
+                function renderFacultyResults(filter) {
+                    if (!facultyDropdown) return;
+                    const q = (filter || '').toLowerCase().trim();
+                    const matches = q ? facultiesList.filter(f => {
+                        const nameMatch = f.name.toLowerCase().includes(q);
+                        const codeMatch = f.code.toLowerCase().includes(q);
+                        const cleanNameMatch = f.name.toLowerCase().replace(/[\s\(\)\.]/g, '').includes(q.replace(/[\s\(\)\.]/g, ''));
+                        return nameMatch || codeMatch || cleanNameMatch;
+                    }) : facultiesList;
+
+                    if (matches.length === 0) {
+                        facultyDropdown.innerHTML = '<div style="padding:0.75rem 1rem; color:var(--text-muted); text-align:center; font-size:0.85rem;">No matching faculty found</div>';
+                    } else {
+                        facultyDropdown.innerHTML = matches.map(f => `
+                            <div class="faculty-search-item" data-id="${f.id}" data-name="${f.name}" data-code="${f.code}" style="padding:0.6rem 1rem; cursor:pointer; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; transition:background 0.15s;">
+                                <div>
+                                    <div style="font-weight:600; font-size:0.88rem; color:var(--text-main);">${f.name}</div>
+                                </div>
+                                <span class="pill" style="font-size:0.72rem; padding:0.15rem 0.5rem; background:rgba(255,145,77,0.15); color:var(--orange); border:1px solid rgba(255,145,77,0.3); font-weight:600;">${f.code}</span>
+                            </div>
+                        `).join('');
+                    }
+                    facultyDropdown.style.display = 'block';
+                }
+
+                if (facultySearch && !facultySearch._hasListener) {
+                    facultySearch._hasListener = true;
+                    facultySearch.addEventListener('focus', () => renderFacultyResults(facultySearch.value));
+                    facultySearch.addEventListener('input', () => {
+                        renderFacultyResults(facultySearch.value);
+                        if (!facultySearch.value.trim()) {
+                            if (facultyIdInp) facultyIdInp.value = '';
+                            if (facultyNameInp) facultyNameInp.value = '';
+                            if (facultyCodeInp) facultyCodeInp.value = '';
+                            if (facultyClearBtn) facultyClearBtn.style.display = 'none';
+                        }
+                    });
+
+                    facultyDropdown.addEventListener('click', (e) => {
+                        const item = e.target.closest('.faculty-search-item');
+                        if (!item) return;
+                        const id = item.dataset.id;
+                        const name = item.dataset.name;
+                        const code = item.dataset.code;
+
+                        if (facultyIdInp) facultyIdInp.value = id;
+                        if (facultyNameInp) facultyNameInp.value = name;
+                        if (facultyCodeInp) facultyCodeInp.value = code;
+                        facultySearch.value = name;
+                        facultyDropdown.style.display = 'none';
+                        if (facultyClearBtn) facultyClearBtn.style.display = 'block';
+                    });
+
+                    facultyDropdown.addEventListener('mouseover', (e) => {
+                        const item = e.target.closest('.faculty-search-item');
+                        if (item) item.style.background = 'var(--surface-2)';
+                    });
+                    facultyDropdown.addEventListener('mouseout', (e) => {
+                        const item = e.target.closest('.faculty-search-item');
+                        if (item) item.style.background = '';
+                    });
+
+                    if (facultyClearBtn) {
+                        facultyClearBtn.addEventListener('click', () => {
+                            if (facultyIdInp) facultyIdInp.value = '';
+                            if (facultyNameInp) facultyNameInp.value = '';
+                            if (facultyCodeInp) facultyCodeInp.value = '';
+                            facultySearch.value = '';
+                            facultyClearBtn.style.display = 'none';
+                            facultyDropdown.style.display = 'none';
+                            facultySearch.focus();
+                        });
+                    }
+
+                    document.addEventListener('click', (e) => {
+                        if (!e.target.closest('#facultyGroup')) {
+                            if (facultyDropdown) facultyDropdown.style.display = 'none';
+                        }
+                    });
+                }
+
                 document.querySelectorAll('input[name="materialType"]').forEach(radio => {
                     radio.addEventListener('change', (e) => {
                         const val = e.target.value;
-                        document.getElementById('examTypeGroup').style.display = val === 'Question' ? 'block' : 'none';
-                        document.getElementById('solutionFileGroup').style.display = val === 'Question' ? 'block' : 'none';
-                        // Update topic label: Required for Notes, Optional for Questions/Lab
+                        const examGrp = document.getElementById('examTypeGroup');
+                        const solGrp = document.getElementById('solutionFileGroup');
+                        const mainLabel = document.getElementById('upMainFileLabel');
                         const topicLabel = document.getElementById('upTopicLabel');
-                        if (val === 'Notes') {
-                            topicLabel.innerHTML = 'Topic / Title <span style="color:var(--danger);font-weight:600">(Required for Notes)</span>';
-                            document.getElementById('upTopic').placeholder = 'e.g. Chapter 3 Summary, Lecture Notes Week 5';
-                        } else {
-                            topicLabel.innerHTML = 'Topic / Title <span style="color:var(--text-muted);font-weight:400">(Optional for Questions)</span>';
-                            document.getElementById('upTopic').placeholder = 'e.g. Chapter 3 Summary';
+                        const topicInp = document.getElementById('upTopic');
+                        const facultyHint = document.getElementById('upFacultyHint');
+
+                        if (examGrp) examGrp.style.display = (val === 'Question' || val === 'Solution') ? 'block' : 'none';
+                        if (solGrp) solGrp.style.display = val === 'Question' ? 'block' : 'none';
+                        
+                        if (mainLabel) {
+                            if (val === 'Solution') {
+                                mainLabel.innerHTML = 'Solution File (PDF / Word / PPT / Excel / Image) <span style="font-size:0.8rem; color:var(--orange); font-weight:500;">(Max 5MB)</span>';
+                            } else if (val === 'Notes') {
+                                mainLabel.innerHTML = 'Main Notes File (PDF / Word / PPT / Excel / Image) <span style="font-size:0.8rem; color:var(--orange); font-weight:500;">(Max 5MB)</span>';
+                            } else if (val === 'Lab') {
+                                mainLabel.innerHTML = 'Lab File / Sheet (PDF / Word / PPT / Excel / Image) <span style="font-size:0.8rem; color:var(--orange); font-weight:500;">(Max 5MB)</span>';
+                            } else {
+                                mainLabel.innerHTML = 'Main Question File (PDF / Image) <span style="font-size:0.8rem; color:var(--orange); font-weight:500;">(Max 5MB)</span>';
+                            }
+                        }
+
+                        // Update topic label: Required for Notes, Optional for Questions/Lab/Solution
+                        if (topicLabel && topicInp) {
+                            if (val === 'Notes') {
+                                topicLabel.innerHTML = 'Topic / Title <span style="color:var(--danger);font-weight:700">* (Required for Notes)</span>';
+                                topicInp.placeholder = 'e.g. Chapter 3 Summary, Lecture Notes Week 5';
+                            } else if (val === 'Solution') {
+                                topicLabel.innerHTML = 'Topic / Title <span style="color:var(--text-muted);font-weight:400">(e.g. Midterm Spring 2024 Solution)</span>';
+                                topicInp.placeholder = 'e.g. Midterm Spring 2024 Solution';
+                            } else if (val === 'Lab') {
+                                topicLabel.innerHTML = 'Topic / Title <span style="color:var(--text-muted);font-weight:400">(e.g. Lab Experiment 2 Report)</span>';
+                                topicInp.placeholder = 'e.g. Lab Experiment 2 Report';
+                            } else {
+                                topicLabel.innerHTML = 'Topic / Title <span style="color:var(--text-muted);font-weight:400">(Optional for Questions)</span>';
+                                topicInp.placeholder = 'e.g. Chapter 3 Summary';
+                            }
+                        }
+
+                        if (facultyHint) {
+                            if (val === 'Lab') {
+                                facultyHint.innerHTML = '<span style="color:var(--orange); font-weight:600;">(Recommended for Lab)</span>';
+                            } else if (val === 'Notes') {
+                                facultyHint.innerHTML = '<span style="color:var(--text-muted); font-weight:500;">(Recommended for Notes)</span>';
+                            } else {
+                                facultyHint.innerHTML = '(Optional)';
+                            }
                         }
                     });
                 });
@@ -4244,16 +5270,24 @@
                     return;
                 }
                 const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                const ext = (file.name.split('.').pop() || '').toLowerCase();
+                let iconClass = 'fa-file-pdf';
+                let iconColor = 'var(--orange)';
+                if (['ppt', 'pptx'].includes(ext)) { iconClass = 'fa-file-powerpoint'; iconColor = '#ea580c'; }
+                else if (['doc', 'docx'].includes(ext)) { iconClass = 'fa-file-word'; iconColor = '#2563eb'; }
+                else if (['xls', 'xlsx'].includes(ext)) { iconClass = 'fa-file-excel'; iconColor = '#16a34a'; }
+                else if (['png', 'jpg', 'jpeg'].includes(ext)) { iconClass = 'fa-file-image'; iconColor = '#8b5cf6'; }
+
                 content.innerHTML = `
-                    <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; text-align:left;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; text-align:left; width:100%;">
                         <div style="display:flex; align-items:center; gap:0.75rem; overflow:hidden;">
-                            <i class="fas fa-file-pdf" style="font-size:1.8rem; color:var(--orange);"></i>
+                            <i class="fas ${iconClass}" style="font-size:1.8rem; color:${iconColor}; flex-shrink:0;"></i>
                             <div style="overflow:hidden;">
                                 <div style="font-weight:600; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; color:var(--text-main); font-size:0.9rem;">${file.name}</div>
                                 <div style="font-size:0.75rem; color:var(--text-muted);">${sizeMB} MB • Ready for upload</div>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-outline" style="padding:0.25rem 0.6rem; font-size:0.75rem; color:var(--danger); border-color:var(--danger);" onclick="event.stopPropagation(); resetDropzone('${dropzoneId}','${inputId}','${contentId}');">
+                        <button type="button" class="btn btn-outline" style="padding:0.25rem 0.65rem; font-size:0.75rem; color:var(--danger); border-color:var(--danger); flex-shrink:0; cursor:pointer;" onclick="event.preventDefault(); event.stopPropagation(); window.resetDropzone('${dropzoneId}','${inputId}','${contentId}');">
                             <i class="fas fa-times"></i> Remove
                         </button>
                     </div>
@@ -4290,20 +5324,26 @@
             });
         }
 
-        function resetDropzone(dropzoneId, inputId, contentId) {
+        window.resetDropzone = function(dropzoneId, inputId, contentId) {
             const input = document.getElementById(inputId);
-            if (input) input.value = '';
+            if (input) {
+                input.value = '';
+                try { input.type = ''; input.type = 'file'; } catch(_) {}
+            }
             const content = document.getElementById(contentId);
             const dropzone = document.getElementById(dropzoneId);
-            if (dropzone) dropzone.classList.remove('has-file');
+            if (dropzone) {
+                dropzone.classList.remove('has-file');
+                dropzone.classList.remove('dragover');
+            }
             if (content) {
                 content.innerHTML = `
                     <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--orange); margin-bottom:0.5rem;"></i>
                     <div style="font-weight:600; margin-bottom:0.25rem;">Drag & drop file here or <span style="color:var(--orange); text-decoration:underline;">browse</span></div>
-                    <div style="font-size:0.8rem; color:var(--text-muted);">Supports PDF, PNG, JPG, JPEG (Max 5MB)</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted);">Supports PDF, PPT, PPTX, DOC, DOCX, XLS, XLSX, PNG, JPG (Max 5MB)</div>
                 `;
             }
-        }
+        };
 
         const BACKEND_URL = 'https://question-bank-x5pu.onrender.com';
 
@@ -4364,53 +5404,73 @@
             `;
         }
 
-        async function uploadToCloudinary(assetType, file, courseCode, topic, onProgress) {
-            const signature = await requestUploadSignature(assetType, courseCode, topic);
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('api_key', signature.apiKey);
-            formData.append('signature', signature.signature);
-            Object.entries(signature.uploadParams || {}).forEach(([key, value]) => {
-                formData.append(key, value);
-            });
-            
-            const data = await new Promise((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', signature.uploadUrl, true);
-                if (xhr.upload && typeof onProgress === 'function') {
-                    xhr.upload.onprogress = (e) => {
-                        if (e.lengthComputable) {
-                            const p = Math.round((e.loaded / e.total) * 100);
-                            onProgress(p);
-                        }
-                    };
-                }
-                xhr.onload = () => {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        try { resolve(JSON.parse(xhr.responseText)); } catch (err) { reject(err); }
-                    } else {
-                        try {
-                            const errData = JSON.parse(xhr.responseText);
-                            reject(new Error(errData.error?.message || `Upload failed with HTTP ${xhr.status}`));
-                        } catch {
-                            reject(new Error(`Upload failed with HTTP ${xhr.status}`));
-                        }
-                    }
-                };
-                xhr.onerror = () => reject(new Error('Network error during file upload'));
-                xhr.send(formData);
-            });
+        async function uploadToCloudinary(assetType, file, courseCode, topic, onProgress, onStatus) {
+            const maxAttempts = 4;
+            let attempt = 0;
+            let lastError = null;
 
-            return {
-                assetType,
-                topic,
-                pdfUrl: data.secure_url,
-                cloudinaryPublicId: data.public_id,
-                cloudinaryResourceType: data.resource_type || 'raw',
-                cloudinaryAssetId: data.asset_id || '',
-                bytes: data.bytes || file.size,
-                originalFilename: data.original_filename || file.name
-            };
+            while (attempt < maxAttempts) {
+                attempt++;
+                try {
+                    const signature = await requestUploadSignature(assetType, courseCode, topic);
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('api_key', signature.apiKey);
+                    formData.append('signature', signature.signature);
+                    Object.entries(signature.uploadParams || {}).forEach(([key, value]) => {
+                        formData.append(key, value);
+                    });
+                    
+                    const data = await new Promise((resolve, reject) => {
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('POST', signature.uploadUrl, true);
+                        if (xhr.upload && typeof onProgress === 'function') {
+                            xhr.upload.onprogress = (e) => {
+                                if (e.lengthComputable) {
+                                    const p = Math.round((e.loaded / e.total) * 100);
+                                    onProgress(p);
+                                }
+                            };
+                        }
+                        xhr.onload = () => {
+                            if (xhr.status >= 200 && xhr.status < 300) {
+                                try { resolve(JSON.parse(xhr.responseText)); } catch (err) { reject(err); }
+                            } else {
+                                try {
+                                    const errData = JSON.parse(xhr.responseText);
+                                    reject(new Error(errData.error?.message || `Upload failed with HTTP ${xhr.status}`));
+                                } catch {
+                                    reject(new Error(`Upload failed with HTTP ${xhr.status}`));
+                                }
+                            }
+                        };
+                        xhr.onerror = () => reject(new Error('Network error during file upload'));
+                        xhr.send(formData);
+                    });
+
+                    return {
+                        assetType,
+                        topic,
+                        pdfUrl: data.secure_url,
+                        cloudinaryPublicId: data.public_id,
+                        cloudinaryResourceType: data.resource_type || 'raw',
+                        cloudinaryAssetId: data.asset_id || '',
+                        bytes: data.bytes || file.size,
+                        originalFilename: data.original_filename || file.name
+                    };
+                } catch (err) {
+                    lastError = err;
+                    const isRateLimit = err?.message && (err.message.includes('429') || err.message.toLowerCase().includes('rate limit'));
+                    if (attempt < maxAttempts) {
+                        const waitMs = isRateLimit ? attempt * 4000 : attempt * 1500;
+                        if (typeof onStatus === 'function') {
+                            onStatus(`Rate limited or retry needed (attempt ${attempt}/${maxAttempts}). Waiting ${(waitMs/1000).toFixed(1)}s...`);
+                        }
+                        await new Promise(r => setTimeout(r, waitMs));
+                    }
+                }
+            }
+            throw lastError || new Error('Upload failed after retries');
         }
 
         document.getElementById('uploadForm').addEventListener('submit', async (e) => {
@@ -4430,8 +5490,11 @@
                 const trimester = document.getElementById('upTrimester').value || '0';
                 const semester = document.getElementById('upSemester').value;
                 const type = document.querySelector('input[name="materialType"]:checked').value;
-                const examType = type === 'Question' ? document.getElementById('upExamType').value : (type === 'Lab' ? 'Lab' : 'Notes');
+                const examType = (type === 'Question' || type === 'Solution') ? document.getElementById('upExamType').value : (type === 'Lab' ? 'Lab' : 'Notes');
                 const topic = document.getElementById('upTopic').value.trim();
+                const facultyId = document.getElementById('upFacultyId')?.value ? Number(document.getElementById('upFacultyId').value) : null;
+                const facultyName = (document.getElementById('upFacultyName')?.value || document.getElementById('upFacultySearch')?.value || '').trim();
+                const facultyCode = (document.getElementById('upFacultyCode')?.value || '').trim();
                 const submitterName = document.getElementById('upSubmitterName').value.trim();
                 const submitterEmail = document.getElementById('upSubmitterEmail').value.trim().toLowerCase();
 
@@ -4459,7 +5522,7 @@
                 // Strictly forbid duplicate question papers for same course + exam + semester (Midterm / Final only)
                 if ((type === 'Question' || type === 'Lab') && (examType.toLowerCase() === 'midterm' || examType.toLowerCase() === 'final')) {
                     const cleanCourse = courseCode.replace(/\s+/g, '').toUpperCase();
-                    const isDuplicate = allPapers.some(p => {
+                    const isDuplicate = (approvedPapers || []).some(p => {
                         const pType = (p.type || p.materialType || 'Question').toLowerCase();
                         if (pType !== type.toLowerCase() && pType !== 'question') return false;
                         
@@ -4480,7 +5543,7 @@
 
                 updateUploadProgress(5, 'Preparing upload...');
 
-                const mainAssetType = type === 'Question' ? 'question' : type === 'Lab' ? 'question' : 'note';
+                const mainAssetType = type === 'Notes' ? 'note' : (type === 'Solution' ? 'solution' : 'question');
                 const totalSteps = solFile ? 2 : 1;
 
                 updateUploadProgress(10, 'Uploading main file...');
@@ -4507,7 +5570,10 @@
                     submitterEmail,
                     courseCode: courseCode.replace(/\s+/g, ' ').toUpperCase(),
                     courseName: course.title,
-                    topic: topic || `${examType} ${courseCode}`,
+                    topic: topic || (type === 'Solution' ? `${examType} Solution ${courseCode}` : `${examType} ${courseCode}`),
+                    facultyId: facultyId || null,
+                    facultyName: facultyName || '',
+                    facultyCode: facultyCode || '',
                     trimester: String(trimester),
                     examType,
                     materialAssets
@@ -4521,10 +5587,16 @@
 
                 await addDoc(collection(db, QUESTION_COLLECTION), {
                     ...validationData.submission,
+                    facultyId: validationData.submission?.facultyId || (facultyId || null),
+                    facultyName: validationData.submission?.facultyName || facultyName || '',
+                    facultyCode: validationData.submission?.facultyCode || facultyCode || '',
+                    searchTokens: validationData.submission?.searchTokens || [],
                     semester,
                     type: type,
-                    courseSearch: `${courseCode} ${course.title} ${topic}`.toLowerCase(),
-                    materialGroup: type === 'Notes' ? 'notes' : 'questions',
+                    materialType: type === 'Solution' ? 'solution' : (type === 'Notes' ? 'note' : (type === 'Lab' ? 'Lab' : 'Question')),
+                    solutionPdfUrl: type === 'Solution' ? mainAsset.pdfUrl : (solFile ? materialAssets.find(a => a.assetType === 'solution')?.pdfUrl : null),
+                    courseSearch: `${courseCode} ${course.title} ${topic} ${facultyName} ${facultyCode}`.toLowerCase(),
+                    materialGroup: type === 'Notes' ? 'notes' : (type === 'Solution' ? 'solutions' : 'questions'),
                     submittedAt: serverTimestamp(),
                     createdAt: serverTimestamp()
                 });
@@ -4533,6 +5605,16 @@
                 showToast('Material submitted for admin review.', 'success');
                 setTimeout(() => {
                     document.getElementById('uploadForm').reset();
+                    const upFacSearch = document.getElementById('upFacultySearch');
+                    const upFacClear = document.getElementById('upFacultyClearBtn');
+                    const upFacId = document.getElementById('upFacultyId');
+                    const upFacName = document.getElementById('upFacultyName');
+                    const upFacCode = document.getElementById('upFacultyCode');
+                    if (upFacSearch) upFacSearch.value = '';
+                    if (upFacClear) upFacClear.style.display = 'none';
+                    if (upFacId) upFacId.value = '';
+                    if (upFacName) upFacName.value = '';
+                    if (upFacCode) upFacCode.value = '';
                     resetDropzone('mainFileDropzone', 'upMainFile', 'mainFileDropContent');
                     resetDropzone('solFileDropzone', 'upSolutionFile', 'solFileDropContent');
                     nextStep(1);
@@ -4595,13 +5677,13 @@
             return `${course}_${sem}_${exam}_${topic}`;
         }
 
-        window.openFullBrowserViewerById = function(paperId) {
+        window.openFullBrowserViewerById = function(paperId, initialIsSolution = false) {
             const paper = approvedPapers.find(p => p.id === paperId || getPaperUniqueId(p) === paperId);
             if (!paper) return;
-            openFullBrowserViewer(paper);
+            openFullBrowserViewer(paper, initialIsSolution);
         };
 
-        window.openFullBrowserViewer = function(paper) {
+        window.openFullBrowserViewer = function(paper, initialIsSolution = false) {
             if (!paper) return;
             const tabId = getPaperUniqueId(paper);
             const mainPdf = paper.pdfUrl || paper.fileUrl || paper.notePdfUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType !== 'solution')?.pdfUrl) || (paper.materialAssets && paper.materialAssets[0]?.pdfUrl) || '';
@@ -4612,6 +5694,9 @@
             const existingIdx = openViewerTabs.findIndex(t => t.id === tabId);
             if (existingIdx >= 0) {
                 activeViewerTabIndex = existingIdx;
+                if (initialIsSolution && openViewerTabs[existingIdx].solPdf) {
+                    openViewerTabs[existingIdx].isShowingSolution = true;
+                }
             } else {
                 const tab = {
                     id: tabId,
@@ -4619,10 +5704,10 @@
                     title: title,
                     pdfUrl: mainPdf,
                     solPdf: solPdf,
-                    isShowingSolution: false,
+                    isShowingSolution: Boolean(initialIsSolution && solPdf),
                     currentPage: 1,
                     totalPages: 1,
-                    zoom: 1.0,
+                    zoom: 2.0,
                     rotation: 0,
                     annotations: loadSavedAnnotations(tabId),
                     undoStack: [],
@@ -4858,6 +5943,18 @@
                 return;
             }
 
+            // If the document is a PowerPoint, Word, or Excel document, embed directly in iframe viewer
+            const isOfficeDoc = /\.(pptx?|docx?|xlsx?)($|\?)/i.test(pdfUrl) || (activeTab.paper && /\.(pptx?|docx?|xlsx?)$/i.test(activeTab.paper.originalFilename || ''));
+            if (isOfficeDoc) {
+                wrapper.style.display = 'none';
+                iframeWrapper.style.display = 'flex';
+                iframe.src = `https://docs.google.com/gview?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
+                activeTab.totalPages = 1;
+                document.getElementById('qbTotalPagesNum').innerText = '1';
+                document.getElementById('qbCurrentPageNum').innerText = '1';
+                return;
+            }
+
             // PDF.js high-performance canvas rendering
             if (typeof pdfjsLib !== 'undefined') {
                 try {
@@ -4917,6 +6014,7 @@
                         const annoCanvas = document.createElement('canvas');
                         annoCanvas.className = 'qb-anno-canvas';
                         annoCanvas.dataset.pageNum = pageNum;
+                        annoCanvas.dataset.scale = scale;
                         annoCanvas.width = viewport.width;
                         annoCanvas.height = viewport.height;
                         annoCanvas.style.width = `${displayViewport.width}px`;
@@ -5081,15 +6179,19 @@
                 if (tool === 'select') {
                     c.style.cursor = 'default';
                     c.style.pointerEvents = 'none';
+                    c.style.touchAction = 'auto';
                 } else if (tool === 'eraser') {
-                    c.style.cursor = 'cell';
+                    c.style.cursor = 'crosshair';
                     c.style.pointerEvents = 'auto';
+                    c.style.touchAction = 'none';
                 } else if (tool === 'text') {
                     c.style.cursor = 'text';
                     c.style.pointerEvents = 'auto';
+                    c.style.touchAction = 'none';
                 } else {
                     c.style.cursor = 'crosshair';
                     c.style.pointerEvents = 'auto';
+                    c.style.touchAction = 'none';
                 }
             });
         };
@@ -5237,46 +6339,217 @@
             });
         }
 
+        function distToSegmentSquared(px, py, vx, vy, wx, wy) {
+            const l2 = (wx - vx) * (wx - vx) + (wy - vy) * (wy - vy);
+            if (l2 === 0) return (px - vx) * (px - vx) + (py - vy) * (py - vy);
+            let t = ((px - vx) * (wx - vx) + (py - vy) * (wy - vy)) / l2;
+            t = Math.max(0, Math.min(1, t));
+            const projX = vx + t * (wx - vx);
+            const projY = vy + t * (wy - vy);
+            return (px - projX) * (px - projX) + (py - projY) * (py - projY);
+        }
+
+        function isAnnotationHitByEraser(anno, coords) {
+            const ERASER_RADIUS = 22; // Effective touch radius in unscaled canvas coordinate space
+            const px = coords.x;
+            const py = coords.y;
+
+            if (anno.type === 'freehand' && Array.isArray(anno.points)) {
+                const pts = anno.points;
+                if (pts.length === 0) return false;
+                const strokeW = anno.width || 4;
+                const hitThresholdSq = (ERASER_RADIUS + strokeW / 2) ** 2;
+
+                if (pts.length === 1) {
+                    const d2 = (pts[0].x - px) ** 2 + (pts[0].y - py) ** 2;
+                    return d2 <= hitThresholdSq;
+                }
+
+                for (let i = 1; i < pts.length; i++) {
+                    const d2 = distToSegmentSquared(px, py, pts[i - 1].x, pts[i - 1].y, pts[i].x, pts[i].y);
+                    if (d2 <= hitThresholdSq) return true;
+                }
+                return false;
+            }
+
+            if (anno.type === 'line' || anno.type === 'arrow') {
+                if (!anno.start || !anno.end) return false;
+                const strokeW = anno.width || 4;
+                const hitThresholdSq = (ERASER_RADIUS + strokeW / 2) ** 2;
+                const d2 = distToSegmentSquared(px, py, anno.start.x, anno.start.y, anno.end.x, anno.end.y);
+                return d2 <= hitThresholdSq;
+            }
+
+            if (anno.type === 'rectangle') {
+                if (!anno.start || !anno.end) return false;
+                const strokeW = anno.width || 4;
+                const hitThreshold = ERASER_RADIUS + strokeW / 2;
+                const hitThresholdSq = hitThreshold ** 2;
+
+                const x1 = Math.min(anno.start.x, anno.end.x);
+                const x2 = Math.max(anno.start.x, anno.end.x);
+                const y1 = Math.min(anno.start.y, anno.end.y);
+                const y2 = Math.max(anno.start.y, anno.end.y);
+
+                if (px >= x1 - strokeW && px <= x2 + strokeW && py >= y1 - strokeW && py <= y2 + strokeW) {
+                    if ((x2 - x1) <= 50 && (y2 - y1) <= 50) return true;
+                }
+
+                if (distToSegmentSquared(px, py, x1, y1, x2, y1) <= hitThresholdSq) return true;
+                if (distToSegmentSquared(px, py, x2, y1, x2, y2) <= hitThresholdSq) return true;
+                if (distToSegmentSquared(px, py, x2, y2, x1, y2) <= hitThresholdSq) return true;
+                if (distToSegmentSquared(px, py, x1, y2, x1, y1) <= hitThresholdSq) return true;
+                return false;
+            }
+
+            if (anno.type === 'circle') {
+                if (!anno.start || !anno.end) return false;
+                const strokeW = anno.width || 4;
+                const hitThreshold = ERASER_RADIUS + strokeW / 2;
+
+                const cx = (anno.start.x + anno.end.x) / 2;
+                const cy = (anno.start.y + anno.end.y) / 2;
+                const rx = Math.abs(anno.end.x - anno.start.x) / 2;
+                const ry = Math.abs(anno.end.y - anno.start.y) / 2;
+
+                if (rx < 2 || ry < 2) {
+                    return Math.hypot(px - cx, py - cy) <= hitThreshold;
+                }
+
+                if (rx <= 40 && ry <= 40) {
+                    const normDistSq = ((px - cx) / rx) ** 2 + ((py - cy) / ry) ** 2;
+                    if (normDistSq <= 1.2) return true;
+                }
+
+                const theta = Math.atan2(py - cy, px - cx);
+                const borderX = cx + rx * Math.cos(theta);
+                const borderY = cy + ry * Math.sin(theta);
+                const d2 = (px - borderX) ** 2 + (py - borderY) ** 2;
+                return d2 <= hitThreshold ** 2;
+            }
+
+            if (anno.type === 'text') {
+                const fontSize = anno.fontSize || 18;
+                const textLen = (anno.text || '').length || 4;
+                const approxWidth = textLen * fontSize * 0.65;
+                const approxHeight = fontSize * 1.2;
+
+                const left = anno.x - ERASER_RADIUS;
+                const right = anno.x + approxWidth + ERASER_RADIUS;
+                const top = anno.y - approxHeight - ERASER_RADIUS;
+                const bottom = anno.y + ERASER_RADIUS;
+
+                return px >= left && px <= right && py >= top && py <= bottom;
+            }
+
+            if (anno.type === 'stamp') {
+                const size = (anno.size || 24) + ERASER_RADIUS;
+                return Math.hypot(px - anno.x, py - anno.y) <= size;
+            }
+
+            return false;
+        }
+
+        function redrawAllViewerCanvases() {
+            const activeTab = openViewerTabs[activeViewerTabIndex];
+            if (!activeTab) return;
+            document.querySelectorAll('.qb-anno-canvas').forEach(c => {
+                const pNum = parseInt(c.dataset.pageNum, 10);
+                const s = parseFloat(c.dataset.scale) || ((window.devicePixelRatio || 1) * activeTab.zoom);
+                drawPageAnnotations(c, pNum, s);
+            });
+        }
+
         function setupAnnotationCanvasEvents(canvas, pageNum, scale = 1) {
             const activeTab = openViewerTabs[activeViewerTabIndex];
             if (!activeTab) return;
 
+            let activePointerId = null;
+            let erasedInGesture = [];
+            let lastEraserCoords = null;
+
             function getCanvasCoords(e) {
                 const rect = canvas.getBoundingClientRect();
-                // Use the actual ratio between the canvas internal resolution and its
-                // displayed CSS size. This handles DPR, zoom, CSS max-width clamping,
-                // and any layout scaling that changes the displayed size.
+                if (!rect.width || !rect.height) return { x: 0, y: 0 };
                 const scaleX = canvas.width / rect.width;
                 const scaleY = canvas.height / rect.height;
 
-                let clientX, clientY;
-                if (e.touches && e.touches.length > 0) {
-                    clientX = e.touches[0].clientX;
-                    clientY = e.touches[0].clientY;
-                } else if (e.changedTouches && e.changedTouches.length > 0) {
-                    clientX = e.changedTouches[0].clientX;
-                    clientY = e.changedTouches[0].clientY;
-                } else {
-                    clientX = e.clientX;
-                    clientY = e.clientY;
+                let clientX = e.clientX;
+                let clientY = e.clientY;
+                if (clientX === undefined || clientY === undefined) {
+                    if (e.touches && e.touches.length > 0) {
+                        clientX = e.touches[0].clientX;
+                        clientY = e.touches[0].clientY;
+                    } else if (e.changedTouches && e.changedTouches.length > 0) {
+                        clientX = e.changedTouches[0].clientX;
+                        clientY = e.changedTouches[0].clientY;
+                    } else {
+                        clientX = 0;
+                        clientY = 0;
+                    }
                 }
 
-                // Convert from screen pixels to canvas internal coordinate space,
-                // then divide by the annotation scale so stored coords are scale-independent
                 return {
                     x: ((clientX - rect.left) * scaleX) / scale,
                     y: ((clientY - rect.top) * scaleY) / scale
                 };
             }
 
+            function eraseAtPosition(coords) {
+                const currentTab = openViewerTabs[activeViewerTabIndex];
+                if (!currentTab || !currentTab.annotations || currentTab.annotations.length === 0) return;
+
+                const remaining = [];
+                let hasErased = false;
+
+                for (let i = 0; i < currentTab.annotations.length; i++) {
+                    const a = currentTab.annotations[i];
+                    if (a.pageNum === pageNum && isAnnotationHitByEraser(a, coords)) {
+                        erasedInGesture.push(a);
+                        hasErased = true;
+                    } else {
+                        remaining.push(a);
+                    }
+                }
+
+                if (hasErased) {
+                    currentTab.annotations = remaining;
+                    persistAnnotations(currentTab.id, currentTab.annotations);
+                    drawPageAnnotations(canvas, pageNum, scale);
+                }
+            }
+
             function onPointerDown(e) {
                 if (currentAnnotationTool === 'select') return;
+                if (e.button !== undefined && e.button > 0) return;
                 e.preventDefault();
+
+                if (e.pointerId !== undefined) {
+                    try {
+                        canvas.setPointerCapture(e.pointerId);
+                    } catch (_) {}
+                    activePointerId = e.pointerId;
+                } else {
+                    activePointerId = 1;
+                }
+
                 isDrawing = true;
+                erasedInGesture = [];
+                lastEraserCoords = null;
+
                 const coords = getCanvasCoords(e);
 
                 if (currentAnnotationTool === 'pen' || currentAnnotationTool === 'highlighter') {
                     currentStrokePoints = [coords];
+                    const ctx = canvas.getContext('2d');
+                    ctx.save();
+                    ctx.fillStyle = currentAnnotationColor;
+                    ctx.beginPath();
+                    const radius = ((currentAnnotationTool === 'highlighter' ? 16 : currentAnnotationStrokeWidth) * scale) / 2;
+                    ctx.arc(coords.x * scale, coords.y * scale, Math.max(1, radius), 0, Math.PI * 2);
+                    if (currentAnnotationTool === 'highlighter') ctx.globalAlpha = 0.35;
+                    ctx.fill();
+                    ctx.restore();
                 } else if (['rectangle', 'circle', 'arrow', 'line'].includes(currentAnnotationTool)) {
                     currentShapeStart = coords;
                 } else if (currentAnnotationTool.startsWith('stamp-')) {
@@ -5292,11 +6565,16 @@
                         savedScale: 1
                     };
                     activeTab.annotations.push(stampAnno);
+                    if (!activeTab.undoStack) activeTab.undoStack = [];
                     activeTab.undoStack.push({ action: 'add', anno: stampAnno });
                     activeTab.redoStack = [];
                     persistAnnotations(activeTab.id, activeTab.annotations);
                     drawPageAnnotations(canvas, pageNum, scale);
                     isDrawing = false;
+                    if (e.pointerId !== undefined) {
+                        try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+                    }
+                    activePointerId = null;
                 } else if (currentAnnotationTool === 'text') {
                     const text = prompt('Enter Teacher Comment / Note:', '');
                     if (text && text.trim()) {
@@ -5311,19 +6589,26 @@
                             savedScale: 1
                         };
                         activeTab.annotations.push(textAnno);
+                        if (!activeTab.undoStack) activeTab.undoStack = [];
                         activeTab.undoStack.push({ action: 'add', anno: textAnno });
                         activeTab.redoStack = [];
                         persistAnnotations(activeTab.id, activeTab.annotations);
                         drawPageAnnotations(canvas, pageNum, scale);
                     }
                     isDrawing = false;
+                    if (e.pointerId !== undefined) {
+                        try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+                    }
+                    activePointerId = null;
                 } else if (currentAnnotationTool === 'eraser') {
-                    eraseAtCoords(coords, pageNum);
+                    lastEraserCoords = coords;
+                    eraseAtPosition(coords);
                 }
             }
 
             function onPointerMove(e) {
                 if (!isDrawing) return;
+                if (activePointerId !== null && e.pointerId !== undefined && e.pointerId !== activePointerId) return;
                 e.preventDefault();
                 const coords = getCanvasCoords(e);
 
@@ -5345,7 +6630,7 @@
                         ctx.stroke();
                     }
                     ctx.restore();
-                } else if (['rectangle', 'circle', 'arrow', 'line'].includes(currentAnnotationTool)) {
+                } else if (['rectangle', 'circle', 'arrow', 'line'].includes(currentAnnotationTool) && currentShapeStart) {
                     drawPageAnnotations(canvas, pageNum, scale);
                     const ctx = canvas.getContext('2d');
                     ctx.save();
@@ -5378,30 +6663,58 @@
                     }
                     ctx.restore();
                 } else if (currentAnnotationTool === 'eraser') {
-                    eraseAtCoords(coords, pageNum);
+                    if (lastEraserCoords) {
+                        const dist = Math.hypot(coords.x - lastEraserCoords.x, coords.y - lastEraserCoords.y);
+                        const steps = Math.max(1, Math.min(20, Math.ceil(dist / 8)));
+                        for (let s = 1; s <= steps; s++) {
+                            const t = s / steps;
+                            const pt = {
+                                x: lastEraserCoords.x + (coords.x - lastEraserCoords.x) * t,
+                                y: lastEraserCoords.y + (coords.y - lastEraserCoords.y) * t
+                            };
+                            eraseAtPosition(pt);
+                        }
+                    } else {
+                        eraseAtPosition(coords);
+                    }
+                    lastEraserCoords = coords;
                 }
             }
 
             function onPointerUp(e) {
                 if (!isDrawing) return;
+                if (activePointerId !== null && e.pointerId !== undefined && e.pointerId !== activePointerId) return;
                 isDrawing = false;
+                if (e.pointerId !== undefined) {
+                    try {
+                        canvas.releasePointerCapture(e.pointerId);
+                    } catch (_) {}
+                }
+                activePointerId = null;
+
                 const coords = getCanvasCoords(e);
+                const currentTab = openViewerTabs[activeViewerTabIndex];
+                if (!currentTab) return;
+                if (!currentTab.undoStack) currentTab.undoStack = [];
+                if (!currentTab.redoStack) currentTab.redoStack = [];
 
                 if (currentAnnotationTool === 'pen' || currentAnnotationTool === 'highlighter') {
-                    if (currentStrokePoints.length > 1) {
+                    if (currentStrokePoints.length > 0) {
                         const strokeAnno = {
                             type: 'freehand',
                             tool: currentAnnotationTool,
                             color: currentAnnotationColor,
                             width: currentAnnotationTool === 'highlighter' ? 16 : currentAnnotationStrokeWidth,
-                            points: [...currentStrokePoints],
+                            points: currentStrokePoints.length === 1 
+                                ? [currentStrokePoints[0], { x: currentStrokePoints[0].x + 0.1, y: currentStrokePoints[0].y + 0.1 }] 
+                                : [...currentStrokePoints],
                             pageNum,
                             savedScale: 1
                         };
-                        activeTab.annotations.push(strokeAnno);
-                        activeTab.undoStack.push({ action: 'add', anno: strokeAnno });
-                        activeTab.redoStack = [];
-                        persistAnnotations(activeTab.id, activeTab.annotations);
+                        currentTab.annotations.push(strokeAnno);
+                        currentTab.undoStack.push({ action: 'add', anno: strokeAnno });
+                        currentTab.redoStack = [];
+                        persistAnnotations(currentTab.id, currentTab.annotations);
                     }
                     currentStrokePoints = [];
                 } else if (['rectangle', 'circle', 'arrow', 'line'].includes(currentAnnotationTool) && currentShapeStart) {
@@ -5414,83 +6727,138 @@
                         pageNum,
                         savedScale: 1
                     };
-                    activeTab.annotations.push(shapeAnno);
-                    activeTab.undoStack.push({ action: 'add', anno: shapeAnno });
-                    activeTab.redoStack = [];
-                    persistAnnotations(activeTab.id, activeTab.annotations);
+                    currentTab.annotations.push(shapeAnno);
+                    currentTab.undoStack.push({ action: 'add', anno: shapeAnno });
+                    currentTab.redoStack = [];
+                    persistAnnotations(currentTab.id, currentTab.annotations);
                     currentShapeStart = null;
+                } else if (currentAnnotationTool === 'eraser') {
+                    lastEraserCoords = null;
+                    if (erasedInGesture.length > 0) {
+                        currentTab.undoStack.push({ action: 'erase', annos: [...erasedInGesture] });
+                        currentTab.redoStack = [];
+                        persistAnnotations(currentTab.id, currentTab.annotations);
+                        erasedInGesture = [];
+                    }
                 }
 
                 drawPageAnnotations(canvas, pageNum, scale);
             }
 
-            function eraseAtCoords(coords, pNum) {
-                const threshold = 15;
-                const initLen = activeTab.annotations.length;
-                activeTab.annotations = activeTab.annotations.filter(a => {
-                    if (a.pageNum !== pNum) return true;
-                    if (a.type === 'freehand' && a.points) {
-                        return !a.points.some(pt => Math.hypot(pt.x - coords.x, pt.y - coords.y) < threshold);
-                    } else if (a.start && a.end) {
-                        const minX = Math.min(a.start.x, a.end.x) - threshold;
-                        const maxX = Math.max(a.start.x, a.end.x) + threshold;
-                        const minY = Math.min(a.start.y, a.end.y) - threshold;
-                        const maxY = Math.max(a.start.y, a.end.y) + threshold;
-                        return !(coords.x >= minX && coords.x <= maxX && coords.y >= minY && coords.y <= maxY);
-                    } else if (a.x !== undefined && a.y !== undefined) {
-                        return Math.hypot(a.x - coords.x, a.y - coords.y) > threshold * 1.5;
-                    }
-                    return true;
-                });
+            canvas.addEventListener('pointerdown', onPointerDown, { passive: false });
+            canvas.addEventListener('pointermove', onPointerMove, { passive: false });
+            canvas.addEventListener('pointerup', onPointerUp, { passive: false });
+            canvas.addEventListener('pointercancel', onPointerUp, { passive: false });
 
-                if (activeTab.annotations.length !== initLen) {
-                    persistAnnotations(activeTab.id, activeTab.annotations);
-                    drawPageAnnotations(canvas, pNum, scale);
+            // Prevent mobile browser gesture cancellation / scroll stealing when annotating
+            canvas.addEventListener('touchstart', (e) => {
+                if (currentAnnotationTool !== 'select' && e.touches && e.touches.length === 1) {
+                    e.preventDefault();
                 }
-            }
-
-            canvas.onmousedown = onPointerDown;
-            canvas.onmousemove = onPointerMove;
-            window.addEventListener('mouseup', onPointerUp);
-            canvas.ontouchstart = onPointerDown;
-            canvas.ontouchmove = onPointerMove;
-            window.addEventListener('touchend', onPointerUp);
+            }, { passive: false });
+            canvas.addEventListener('touchmove', (e) => {
+                if (currentAnnotationTool !== 'select' && e.touches && e.touches.length === 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
         }
 
         window.undoAnnotation = function() {
             const activeTab = openViewerTabs[activeViewerTabIndex];
-            if (!activeTab || !activeTab.annotations || activeTab.annotations.length === 0) return;
-            const popped = activeTab.annotations.pop();
-            activeTab.redoStack.push(popped);
+            if (!activeTab) return;
+            if (!activeTab.undoStack) activeTab.undoStack = [];
+            if (!activeTab.redoStack) activeTab.redoStack = [];
+
+            if (activeTab.undoStack.length === 0) {
+                if (activeTab.annotations && activeTab.annotations.length > 0) {
+                    const popped = activeTab.annotations.pop();
+                    activeTab.redoStack.push({ action: 'add', anno: popped });
+                    persistAnnotations(activeTab.id, activeTab.annotations);
+                    redrawAllViewerCanvases();
+                    showToast('Undid annotation', 'info');
+                } else {
+                    showToast('Nothing to undo', 'info');
+                }
+                return;
+            }
+
+            const item = activeTab.undoStack.pop();
+
+            if (item.action === 'add') {
+                const idx = activeTab.annotations.lastIndexOf(item.anno);
+                if (idx >= 0) {
+                    activeTab.annotations.splice(idx, 1);
+                } else {
+                    const fIdx = activeTab.annotations.findIndex(a => 
+                        a.pageNum === item.anno.pageNum && a.type === item.anno.type
+                    );
+                    if (fIdx >= 0) activeTab.annotations.splice(fIdx, 1);
+                }
+                activeTab.redoStack.push(item);
+            } else if (item.action === 'erase') {
+                if (Array.isArray(item.annos)) {
+                    activeTab.annotations.push(...item.annos);
+                }
+                activeTab.redoStack.push(item);
+            } else if (item.action === 'clear') {
+                if (Array.isArray(item.annos)) {
+                    activeTab.annotations = [...item.annos];
+                }
+                activeTab.redoStack.push(item);
+            }
+
             persistAnnotations(activeTab.id, activeTab.annotations);
-            document.querySelectorAll('.qb-anno-canvas').forEach(c => {
-                drawPageAnnotations(c, parseInt(c.dataset.pageNum, 10), (window.devicePixelRatio || 1) * activeTab.zoom);
-            });
+            redrawAllViewerCanvases();
+            showToast('Undid last action', 'info');
         };
 
         window.redoAnnotation = function() {
             const activeTab = openViewerTabs[activeViewerTabIndex];
-            if (!activeTab || !activeTab.redoStack || activeTab.redoStack.length === 0) return;
-            const restored = activeTab.redoStack.pop();
-            activeTab.annotations.push(restored);
+            if (!activeTab) return;
+            if (!activeTab.undoStack) activeTab.undoStack = [];
+            if (!activeTab.redoStack || activeTab.redoStack.length === 0) {
+                showToast('Nothing to redo', 'info');
+                return;
+            }
+
+            const item = activeTab.redoStack.pop();
+
+            if (item.action === 'add') {
+                activeTab.annotations.push(item.anno);
+                activeTab.undoStack.push(item);
+            } else if (item.action === 'erase') {
+                if (Array.isArray(item.annos)) {
+                    const set = new Set(item.annos);
+                    activeTab.annotations = activeTab.annotations.filter(a => !set.has(a));
+                }
+                activeTab.undoStack.push(item);
+            } else if (item.action === 'clear') {
+                activeTab.annotations = [];
+                activeTab.undoStack.push(item);
+            } else if (item.type || item.points) {
+                activeTab.annotations.push(item);
+                activeTab.undoStack.push({ action: 'add', anno: item });
+            }
+
             persistAnnotations(activeTab.id, activeTab.annotations);
-            document.querySelectorAll('.qb-anno-canvas').forEach(c => {
-                drawPageAnnotations(c, parseInt(c.dataset.pageNum, 10), (window.devicePixelRatio || 1) * activeTab.zoom);
-            });
+            redrawAllViewerCanvases();
+            showToast('Redid action', 'info');
         };
 
         window.clearAllAnnotations = function() {
             const activeTab = openViewerTabs[activeViewerTabIndex];
-            if (!activeTab) return;
+            if (!activeTab || !activeTab.annotations || activeTab.annotations.length === 0) {
+                showToast('No annotations to clear', 'info');
+                return;
+            }
             if (!confirm('Clear all teacher annotations for this question paper?')) return;
-            activeTab.annotations = [];
-            activeTab.undoStack = [];
+            if (!activeTab.undoStack) activeTab.undoStack = [];
+            activeTab.undoStack.push({ action: 'clear', annos: [...activeTab.annotations] });
             activeTab.redoStack = [];
+            activeTab.annotations = [];
             persistAnnotations(activeTab.id, []);
-            document.querySelectorAll('.qb-anno-canvas').forEach(c => {
-                drawPageAnnotations(c, parseInt(c.dataset.pageNum, 10), (window.devicePixelRatio || 1) * activeTab.zoom);
-            });
-            showToast('Annotations cleared', 'info');
+            redrawAllViewerCanvases();
+            showToast('Annotations cleared (Undo with Ctrl+Z)', 'info');
         };
 
         window.exportAnnotatedCanvasImage = function() {
@@ -5541,7 +6909,7 @@
         window.zoomViewerDoc = function(delta) {
             const activeTab = openViewerTabs[activeViewerTabIndex];
             if (!activeTab) return;
-            activeTab.zoom = Math.max(0.4, Math.min(3.0, activeTab.zoom + delta));
+            activeTab.zoom = Math.max(0.4, Math.min(4.0, activeTab.zoom + delta));
             renderActiveTabDocument();
         };
 
@@ -5589,7 +6957,7 @@
             if (!activeTab) return;
 
             const zoomFactor = getTouchDistance(event.touches) / viewerPinchState.startDistance;
-            const nextZoom = Math.max(0.4, Math.min(3.0, viewerPinchState.startZoom * zoomFactor));
+            const nextZoom = Math.max(0.4, Math.min(4.0, viewerPinchState.startZoom * zoomFactor));
             if (Math.abs(nextZoom - activeTab.zoom) < 0.01) return;
 
             activeTab.zoom = nextZoom;
@@ -5964,8 +7332,1005 @@
             });
         }
 
+        // =========================================================
+        // BULK ZIP UPLOADER LOGIC (QUESTION BANK)
+        // =========================================================
+        const btnOpenUserZip = document.getElementById('btn-open-user-zip');
+        const userZipUploadModal = document.getElementById('userZipUploadModal');
+        const btnCloseUserZip = document.getElementById('btn-close-user-zip');
+        const btnCancelUserZipUpload = document.getElementById('user-btn-cancel-zip-upload');
+        const userZipDropzone = document.getElementById('userZipDropzone');
+        const userZipFileInput = document.getElementById('userZipFileInput');
+        const userZipDropSection = document.getElementById('user-zip-drop-section');
+        const userZipReviewSection = document.getElementById('user-zip-review-section');
+        const userZipTableTbody = document.getElementById('user-zip-table-tbody');
+        const userZipThCheckbox = document.getElementById('user-zip-th-checkbox');
+        const btnUserZipSelectAll = document.getElementById('user-btn-zip-select-all');
+        const btnUserRemoveSelectedQueue = document.getElementById('user-btn-remove-selected-queue');
+        const btnUserZipReset = document.getElementById('user-btn-zip-reset');
+        const btnUserStartZipUpload = document.getElementById('user-btn-start-zip-upload');
+        const btnUserAddAnotherZip = document.getElementById('user-btn-add-another-zip');
+        const btnUserAddMoreZipTop = document.getElementById('user-btn-add-more-zip-top');
+        const userZipAddMoreInput = document.getElementById('userZipAddMoreInput');
+        const userZipSelectedCount = document.getElementById('user-zip-selected-count');
+        const userBatchCourseSelect = document.getElementById('user-batch-course-select');
+        const btnUserBatchApplyCourse = document.getElementById('user-btn-batch-apply-course');
+        const userBatchExamSelect = document.getElementById('user-batch-exam-select');
+        const btnUserBatchApplyExam = document.getElementById('user-btn-batch-apply-exam');
+        const userZipUploadProgressArea = document.getElementById('user-zip-upload-progress-area');
+        const userZipProgressLabel = document.getElementById('user-zip-progress-label');
+        const userZipProgressPercent = document.getElementById('user-zip-progress-percent');
+        const userZipProgressFill = document.getElementById('user-zip-progress-fill');
+        const userZipConsoleLog = document.getElementById('user-zip-console-log');
+
+        let parsedUserZipEntries = [];
+        let parsedUserZipSolutions = [];
+        let isUploadingUserZip = false;
+        let userZipFilterStatus = 'all';
+
+        const btnUserCheckDuplicates = document.getElementById('user-btn-check-duplicates');
+        const btnUserRemoveDuplicates = document.getElementById('user-btn-remove-duplicates');
+        const userZipFilterSelect = document.getElementById('user-zip-filter-status');
+
+        function getCourseTitle(code) {
+            if (!code) return '';
+            const clean = String(code).replace(/\s+/g, '').toUpperCase();
+            const found = CURRICULUM.find(c => c.code.replace(/\s+/g, '').toUpperCase() === clean);
+            return found ? found.title : code;
+        }
+
+        const normalizeZipFileName = (value) => String(value || '')
+            .replace(/\.[^/.]+$/, '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, '');
+
+        const isQueuedZipFileAlreadyUploaded = (queuedItem) => {
+            const queuedName = normalizeZipFileName(queuedItem.originalFilename || queuedItem.filePath);
+            const queuedCourse = String(queuedItem.courseCode || '').replace(/\s+/g, '').toUpperCase();
+            const queuedExam = String(queuedItem.examType || '').trim().toLowerCase();
+            const queuedSemester = String(queuedItem.semester || '').trim();
+
+            return approvedPapers.some(paper => {
+                const savedNames = [
+                    paper.originalFilename,
+                    paper.fileName,
+                    paper.pdfOriginalFilename,
+                    ...(Array.isArray(paper.materialAssets) ? paper.materialAssets.map(asset => asset.originalFilename || asset.fileName) : [])
+                ];
+                const sameFileName = queuedName && savedNames.some(name => normalizeZipFileName(name) === queuedName);
+                if (sameFileName) return true;
+
+                const savedCourse = String(paper.courseCode || '').replace(/\s+/g, '').toUpperCase();
+                const savedExam = String(paper.examType || '').trim().toLowerCase();
+                const savedSemester = String(paper.semester || '').trim();
+                return Boolean(queuedCourse) &&
+                    (queuedExam === 'midterm' || queuedExam === 'final') &&
+                    savedCourse === queuedCourse &&
+                    savedExam === queuedExam &&
+                    savedSemester === queuedSemester;
+            });
+        };
+
+        function refreshUserZipUploadedStatus({ render = true } = {}) {
+            let duplicateCount = 0;
+            parsedUserZipEntries.forEach(item => {
+                const isDuplicate = isQueuedZipFileAlreadyUploaded(item);
+                item.isDuplicate = isDuplicate;
+                if (isDuplicate) {
+                    duplicateCount++;
+                    item.selected = false;
+                }
+            });
+
+            const duplicateStat = document.getElementById('user-zip-duplicate-stat');
+            const duplicateCountLabel = document.getElementById('user-zip-stat-duplicates');
+            const removeCountLabel = document.getElementById('user-btn-dup-count');
+            if (duplicateStat) duplicateStat.style.display = duplicateCount ? 'inline-flex' : 'none';
+            if (duplicateCountLabel) duplicateCountLabel.textContent = duplicateCount;
+            if (removeCountLabel) removeCountLabel.textContent = duplicateCount;
+            if (btnUserRemoveDuplicates) btnUserRemoveDuplicates.style.display = duplicateCount ? 'inline-flex' : 'none';
+            if (render) renderUserZipParsedTable();
+            return duplicateCount;
+        }
+
+        if (btnUserCheckDuplicates) {
+            btnUserCheckDuplicates.addEventListener('click', () => {
+                const duplicateCount = refreshUserZipUploadedStatus();
+                showToast(duplicateCount
+                    ? `${duplicateCount} queued file${duplicateCount === 1 ? '' : 's'} already exist${duplicateCount === 1 ? 's' : ''} in the Question Bank.`
+                    : 'No queued files are already uploaded.', duplicateCount ? 'warning' : 'success');
+            });
+        }
+
+        if (btnUserRemoveDuplicates) {
+            btnUserRemoveDuplicates.addEventListener('click', () => {
+                const duplicateCount = refreshUserZipUploadedStatus({ render: false });
+                if (!duplicateCount) return;
+                if (!confirm(`Remove ${duplicateCount} already-uploaded file${duplicateCount === 1 ? '' : 's'} from this upload queue?`)) return;
+                parsedUserZipEntries = parsedUserZipEntries.filter(item => !item.isDuplicate);
+                userZipFilterStatus = 'all';
+                if (userZipFilterSelect) userZipFilterSelect.value = 'all';
+                document.getElementById('user-zip-stat-total').textContent = parsedUserZipEntries.length;
+                refreshUserZipUploadedStatus();
+                showToast(`Removed ${duplicateCount} already-uploaded file${duplicateCount === 1 ? '' : 's'} from the queue.`, 'success');
+            });
+        }
+
+        if (btnUserRemoveSelectedQueue) {
+            btnUserRemoveSelectedQueue.addEventListener('click', () => {
+                const selectedItems = parsedUserZipEntries.filter(item => item.selected);
+                if (selectedItems.length === 0) {
+                    showToast('Please select the questions you want to remove from the queue.', 'warning');
+                    return;
+                }
+                const count = selectedItems.length;
+                parsedUserZipEntries = parsedUserZipEntries.filter(item => !item.selected);
+                document.getElementById('user-zip-stat-total').textContent = parsedUserZipEntries.length;
+                document.getElementById('user-zip-stat-solutions').textContent = parsedUserZipEntries.filter(i => i.pairedSolution).length;
+                refreshUserZipUploadedStatus({ render: true });
+                updateUserZipSelectedCount();
+                showToast(`Removed ${count} question${count === 1 ? '' : 's'} from the queue.`, 'info');
+                if (parsedUserZipEntries.length === 0) {
+                    resetUserZipUploader();
+                }
+            });
+        }
+
+        if (userZipFilterSelect) {
+            userZipFilterSelect.addEventListener('change', event => {
+                userZipFilterStatus = event.target.value;
+                renderUserZipParsedTable();
+            });
+        }
+
+        function populateUserBatchCourseDropdown() {
+            if (userBatchCourseSelect && userBatchCourseSelect.options.length <= 1) {
+                userBatchCourseSelect.innerHTML = '<option value="">-- Select Course --</option>';
+                CURRICULUM.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.code;
+                    opt.textContent = `${c.code} - ${c.title}`;
+                    userBatchCourseSelect.appendChild(opt);
+                });
+            }
+        }
+
+        const openUserZipModal = () => {
+            if (userZipUploadModal) {
+                populateUserBatchCourseDropdown();
+                resetUserZipUploader();
+                userZipUploadModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        };
+
+        const closeUserZipModal = () => {
+            if (userZipUploadModal) {
+                userZipUploadModal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        };
+
+        if (btnOpenUserZip) btnOpenUserZip.addEventListener('click', openUserZipModal);
+        if (btnCloseUserZip) btnCloseUserZip.addEventListener('click', closeUserZipModal);
+        if (btnCancelUserZipUpload) btnCancelUserZipUpload.addEventListener('click', closeUserZipModal);
+
+        function resetUserZipUploader() {
+            parsedUserZipEntries = [];
+            parsedUserZipSolutions = [];
+            isUploadingUserZip = false;
+            if (userZipFileInput) userZipFileInput.value = '';
+            if (userZipAddMoreInput) userZipAddMoreInput.value = '';
+            if (userZipDropSection) userZipDropSection.style.display = 'block';
+            if (userZipReviewSection) userZipReviewSection.style.display = 'none';
+            if (userZipUploadProgressArea) userZipUploadProgressArea.style.display = 'none';
+            if (userZipTableTbody) userZipTableTbody.innerHTML = '';
+            if (userZipConsoleLog) userZipConsoleLog.innerHTML = '';
+            updateUserZipActionButtons();
+        }
+
+        if (btnUserZipReset) btnUserZipReset.addEventListener('click', resetUserZipUploader);
+
+        if (userZipDropzone) {
+            ['dragenter', 'dragover'].forEach(eventName => {
+                userZipDropzone.addEventListener(eventName, (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    userZipDropzone.classList.add('dragover');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                userZipDropzone.addEventListener(eventName, (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    userZipDropzone.classList.remove('dragover');
+                });
+            });
+
+            userZipDropzone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                if (dt && dt.files && dt.files.length > 0) {
+                    handleUserZipFileSelection(dt.files);
+                }
+            });
+        }
+
+        if (userZipFileInput) {
+            userZipFileInput.addEventListener('change', () => {
+                if (userZipFileInput.files && userZipFileInput.files.length > 0) {
+                    handleUserZipFileSelection(userZipFileInput.files);
+                    userZipFileInput.value = '';
+                }
+            });
+        }
+
+        if (btnUserAddAnotherZip && userZipAddMoreInput) {
+            btnUserAddAnotherZip.addEventListener('click', () => {
+                userZipAddMoreInput.click();
+            });
+        }
+
+        if (btnUserAddMoreZipTop && userZipAddMoreInput) {
+            btnUserAddMoreZipTop.addEventListener('click', () => {
+                userZipAddMoreInput.click();
+            });
+        }
+
+        if (userZipAddMoreInput) {
+            userZipAddMoreInput.addEventListener('change', () => {
+                if (userZipAddMoreInput.files && userZipAddMoreInput.files.length > 0) {
+                    handleUserZipFileSelection(userZipAddMoreInput.files);
+                    userZipAddMoreInput.value = '';
+                }
+            });
+        }
+
+        if (userZipReviewSection) {
+            ['dragenter', 'dragover'].forEach(eventName => {
+                userZipReviewSection.addEventListener(eventName, (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    userZipReviewSection.style.outline = '2px dashed var(--orange)';
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                userZipReviewSection.addEventListener(eventName, (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    userZipReviewSection.style.outline = 'none';
+                });
+            });
+
+            userZipReviewSection.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                if (dt && dt.files && dt.files.length > 0) {
+                    handleUserZipFileSelection(dt.files);
+                }
+            });
+        }
+
+        function parseUserZipQuestionMetadata(fullPath, fileName) {
+            const cleanPath = (fullPath || '').replace(/\\/g, '/');
+            const baseName = fileName.replace(/\.[^/.]+$/, "");
+            
+            const isSolution = /(?:^|[_\s\-\(\[])(?:solution|sol|ans|answer|solved)(?:[_\s\-\)\]]|$)/i.test(baseName) ||
+                               cleanPath.toLowerCase().includes('/solution/') ||
+                               cleanPath.toLowerCase().includes('/solutions/');
+
+            const cleanBase = baseName.replace(/(?:_|-|\s)?(?:solution|sol|ans|answer|solved)/gi, '').trim();
+
+            let detectedCourse = null;
+            let detectedExam = null;
+            let detectedSemester = null;
+
+            const tokens = cleanBase.split(/[_\-\s]+/).filter(Boolean);
+
+            for (let i = 0; i < tokens.length; i++) {
+                const token = tokens[i];
+                
+                const cMatch = token.match(/^([A-Za-z]{2,4})\s*([0-9]{4}[A-Za-z]?)$/i);
+                if (cMatch && !detectedCourse) {
+                    const formatted = `${cMatch[1].toUpperCase()} ${cMatch[2].toUpperCase()}`;
+                    detectedCourse = CURRICULUM.find(c => c.code.replace(/\s+/g, '') === formatted.replace(/\s+/g, '')) || { code: formatted, title: getCourseTitle(formatted), trimester: 0 };
+                    continue;
+                }
+
+                const sMatch = token.match(/^([0-9]{2})([1-3])$/);
+                if (sMatch && !detectedSemester) {
+                    detectedSemester = sMatch[0];
+                    continue;
+                }
+
+                if (!detectedExam) {
+                    const tLow = token.toLowerCase();
+                    if (tLow.startsWith('mid')) detectedExam = 'Midterm';
+                    else if (tLow.startsWith('fin')) detectedExam = 'Final';
+                    else if (/^q(?:uiz)?[-_]?1$/i.test(token) || /^ct[-_]?1$/i.test(token)) detectedExam = 'Quiz 1';
+                    else if (/^q(?:uiz)?[-_]?2$/i.test(token) || /^ct[-_]?2$/i.test(token)) detectedExam = 'Quiz 2';
+                    else if (/^q(?:uiz)?[-_]?3$/i.test(token)) detectedExam = 'Quiz 3';
+                    else if (/^q(?:uiz)?[-_]?4$/i.test(token)) detectedExam = 'Quiz 4';
+                    else if (/^q(?:uiz)?$/i.test(token) || /^ct$/i.test(token)) detectedExam = 'Quiz';
+                    else if (/^lab/i.test(token)) detectedExam = 'Lab';
+                    else if (/^note/i.test(token)) detectedExam = 'Notes';
+                    else if (/^assign/i.test(token) || /^hw/i.test(token)) detectedExam = 'Assignment';
+                }
+            }
+
+            const fullText = `${cleanPath} ${baseName}`;
+
+            if (!detectedCourse) {
+                const codeMatch = fullText.match(/\b([A-Za-z]{2,4})\s*[-_]?\s*([0-9]{4}[A-Za-z]?)\b/i);
+                if (codeMatch) {
+                    const formatted = `${codeMatch[1].toUpperCase()} ${codeMatch[2].toUpperCase()}`;
+                    detectedCourse = CURRICULUM.find(c => c.code.replace(/\s+/g, '') === formatted.replace(/\s+/g, '')) || { code: formatted, title: getCourseTitle(formatted), trimester: 0 };
+                }
+            }
+
+            if (!detectedCourse) {
+                for (const course of CURRICULUM) {
+                    const cleanCode = course.code.replace(/\s+/g, '');
+                    if (new RegExp(`\\b${cleanCode}\\b`, 'i').test(fullText)) {
+                        detectedCourse = course;
+                        break;
+                    }
+                    for (const alias of (course.aliases || [])) {
+                        if (alias.length >= 2 && new RegExp(`\\b${alias.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i').test(fullText)) {
+                            detectedCourse = course;
+                            break;
+                        }
+                    }
+                    if (detectedCourse) break;
+                }
+            }
+
+            let examType = detectedExam || 'Midterm';
+            let materialType = 'Question';
+
+            if (!detectedExam) {
+                if (/\b(?:midterm|mid[-_ ]?term|mid)\b/i.test(fullText)) {
+                    examType = 'Midterm';
+                } else if (/\b(?:final|finals|final[-_ ]?term|fin)\b/i.test(fullText)) {
+                    examType = 'Final';
+                } else if (/\b(?:quiz[-_ ]?1|q1|ct[-_ ]?1)\b/i.test(fullText)) {
+                    examType = 'Quiz 1';
+                } else if (/\b(?:quiz[-_ ]?2|q2|ct[-_ ]?2)\b/i.test(fullText)) {
+                    examType = 'Quiz 2';
+                } else if (/\b(?:quiz[-_ ]?3|q3|ct[-_ ]?3)\b/i.test(fullText)) {
+                    examType = 'Quiz 3';
+                } else if (/\b(?:quiz[-_ ]?4|q4|ct[-_ ]?4)\b/i.test(fullText)) {
+                    examType = 'Quiz 4';
+                } else if (/\b(?:quiz|class[-_ ]?test|ct)\b/i.test(fullText)) {
+                    examType = 'Quiz';
+                } else if (/\b(?:lab[-_ ]?final|lab[-_ ]?mid|lab[-_ ]?exam|lab[-_ ]?task|lab)\b/i.test(fullText)) {
+                    examType = 'Lab';
+                    materialType = 'Lab';
+                } else if (/\b(?:notes?|lecture[-_ ]?notes?|summary|slides?)\b/i.test(fullText)) {
+                    examType = 'Notes';
+                    materialType = 'Notes';
+                } else if (/\b(?:assignment[-_ ]?\d*|hw[-_ ]?\d*)\b/i.test(fullText)) {
+                    examType = 'Assignment';
+                }
+            } else {
+                if (examType === 'Lab') materialType = 'Lab';
+                if (examType === 'Notes') materialType = 'Notes';
+            }
+
+            let semester = detectedSemester || '';
+            let trimester = detectedCourse ? (detectedCourse.trimester || 1) : 1;
+
+            if (!semester) {
+                const semCodeMatch = fullText.match(/\b([1-3][0-9])([1-3])\b/);
+                if (semCodeMatch) {
+                    semester = semCodeMatch[0];
+                } else {
+                    const textSemMatch = fullText.match(/\b(Spring|Summer|Fall|Sp|Su|Fa)\s*[-_]?\s*(20[1-3][0-9]|[1-3][0-9])\b/i);
+                    if (textSemMatch) {
+                        const seasonStr = textSemMatch[1].toLowerCase();
+                        let yr = textSemMatch[2];
+                        if (yr.length === 4) yr = yr.slice(2);
+                        let sDigit = '1';
+                        if (seasonStr.startsWith('su')) sDigit = '2';
+                        else if (seasonStr.startsWith('fa')) sDigit = '3';
+                        semester = `${yr}${sDigit}`;
+                    }
+                }
+            }
+
+            if (!semester && SEMESTERS.length > 0) {
+                semester = SEMESTERS[0].code;
+            }
+
+            const trimMatch = fullText.match(/\b(?:trimester|tri|t)\s*[-_]?\s*([1-9]|1[0-2])\b/i);
+            if (trimMatch) {
+                trimester = parseInt(trimMatch[1], 10);
+            }
+
+            let topic = '';
+            const semLabelStr = semester ? (decodeSemester(semester).label || semester) : '';
+            if (materialType === 'Question') {
+                topic = `${examType} Question ${semLabelStr}`.trim();
+            } else if (materialType === 'Lab') {
+                topic = `Lab Material ${semLabelStr}`.trim();
+            } else {
+                topic = `Lecture Notes ${detectedCourse ? detectedCourse.code : ''}`.trim();
+            }
+
+            return {
+                isSolution,
+                courseCode: detectedCourse ? detectedCourse.code : '',
+                courseName: detectedCourse ? detectedCourse.title : '',
+                examType,
+                materialType,
+                semester,
+                trimester,
+                topic,
+                originalFilename: fileName,
+                filePath: cleanPath
+            };
+        }
+
+        async function handleUserZipFileSelection(inputFiles) {
+            if (!inputFiles) return;
+            const fileList = Array.isArray(inputFiles)
+                ? inputFiles
+                : (inputFiles instanceof FileList ? Array.from(inputFiles) : [inputFiles]);
+
+            const zipFiles = fileList.filter(f => f && f.name && f.name.toLowerCase().endsWith('.zip'));
+
+            if (zipFiles.length === 0) {
+                showToast('Please select valid .ZIP archive file(s).', 'error');
+                return;
+            }
+
+            if (typeof JSZip === 'undefined') {
+                showToast('JSZip library is loading. Please try again in a moment.', 'warning');
+                return;
+            }
+
+            showToast(`Extracting ${zipFiles.length} ZIP archive${zipFiles.length > 1 ? 's' : ''}...`, 'info');
+
+            try {
+                const validExtensions = ['.pdf', '.png', '.jpg', '.jpeg'];
+                const newRawFileList = [];
+                const newSolutionList = [];
+
+                for (let fIdx = 0; fIdx < zipFiles.length; fIdx++) {
+                    const file = zipFiles[fIdx];
+                    try {
+                        const zip = new JSZip();
+                        const zipInstance = await zip.loadAsync(file);
+
+                        for (const [relativePath, zipEntry] of Object.entries(zipInstance.files)) {
+                            if (zipEntry.dir) continue;
+                            if (relativePath.includes('__MACOSX') || relativePath.includes('.DS_Store') || relativePath.includes('Thumbs.db')) continue;
+
+                            const ext = relativePath.slice(relativePath.lastIndexOf('.')).toLowerCase();
+                            if (!validExtensions.includes(ext)) continue;
+
+                            const fileName = relativePath.split('/').pop();
+                            const parsed = parseUserZipQuestionMetadata(relativePath, fileName);
+                            parsed.zipEntry = zipEntry;
+                            parsed.sourceZipName = file.name;
+
+                            if (parsed.isSolution) {
+                                newSolutionList.push(parsed);
+                            } else {
+                                newRawFileList.push(parsed);
+                            }
+                        }
+                    } catch (zipErr) {
+                        console.error(`Error loading ZIP ${file.name}:`, zipErr);
+                        showToast(`Could not read ${file.name}: ${zipErr.message}`, 'error');
+                    }
+                }
+
+                if (newRawFileList.length === 0 && newSolutionList.length === 0) {
+                    showToast('No PDF or Image question files found inside the selected ZIP file(s).', 'warning');
+                    return;
+                }
+
+                if (newRawFileList.length === 0 && newSolutionList.length > 0) {
+                    newSolutionList.forEach(s => {
+                        const sBase = s.originalFilename.replace(/\.[^/.]+$/, "").toLowerCase().replace(/[^a-z0-9]/g, '');
+                        const matchingQ = parsedUserZipEntries.find(q => {
+                            if (q.pairedSolution) return false;
+                            const qBase = q.originalFilename.replace(/\.[^/.]+$/, "").toLowerCase().replace(/[^a-z0-9]/g, '');
+                            return sBase.includes(qBase) || (s.courseCode && s.courseCode === q.courseCode && s.examType === q.examType && s.semester === q.semester);
+                        });
+                        if (matchingQ) {
+                            matchingQ.pairedSolution = s;
+                        } else {
+                            s.isSolution = false;
+                            newRawFileList.push(s);
+                        }
+                    });
+                }
+
+                parsedUserZipSolutions.push(...newSolutionList);
+
+                newRawFileList.forEach(qItem => {
+                    qItem.pairedSolution = null;
+                    const qBase = qItem.originalFilename.replace(/\.[^/.]+$/, "").toLowerCase().replace(/[^a-z0-9]/g, '');
+
+                    const matchedSol = parsedUserZipSolutions.find(sol => {
+                        const solBase = sol.originalFilename.replace(/\.[^/.]+$/, "").toLowerCase().replace(/[^a-z0-9]/g, '');
+                        return (solBase.includes(qBase) || (sol.courseCode && sol.courseCode === qItem.courseCode && sol.examType === qItem.examType && sol.semester === qItem.semester));
+                    });
+
+                    if (matchedSol) {
+                        qItem.pairedSolution = matchedSol;
+                    }
+                });
+
+                if (parsedUserZipEntries.length > 0 && newSolutionList.length > 0) {
+                    parsedUserZipEntries.forEach(qItem => {
+                        if (qItem.pairedSolution) return;
+                        const qBase = qItem.originalFilename.replace(/\.[^/.]+$/, "").toLowerCase().replace(/[^a-z0-9]/g, '');
+                        const matchedSol = newSolutionList.find(sol => {
+                            const solBase = sol.originalFilename.replace(/\.[^/.]+$/, "").toLowerCase().replace(/[^a-z0-9]/g, '');
+                            return (solBase.includes(qBase) || (sol.courseCode && sol.courseCode === qItem.courseCode && sol.examType === qItem.examType && sol.semester === qItem.semester));
+                        });
+                        if (matchedSol) {
+                            qItem.pairedSolution = matchedSol;
+                        }
+                    });
+                }
+
+                const startIndex = parsedUserZipEntries.length;
+                newRawFileList.forEach((qItem, idx) => {
+                    qItem.id = `user_zip_item_${startIndex + idx}_${Date.now()}`;
+                    qItem.selected = true;
+                    qItem.isUploaded = false;
+
+                    const isDup = isQueuedZipFileAlreadyUploaded(qItem);
+                    qItem.isDuplicate = isDup;
+                    if (isDup) {
+                        qItem.selected = false;
+                    }
+                });
+
+                parsedUserZipEntries.push(...newRawFileList);
+
+                document.getElementById('user-zip-stat-total').textContent = parsedUserZipEntries.length;
+                document.getElementById('user-zip-stat-solutions').textContent = parsedUserZipEntries.filter(i => i.pairedSolution).length;
+                refreshUserZipUploadedStatus({ render: true });
+                updateUserZipSelectedCount();
+
+                userZipDropSection.style.display = 'none';
+                userZipReviewSection.style.display = 'flex';
+                showToast(`Loaded ${newRawFileList.length} questions from ${zipFiles.length} ZIP file(s)! Total in queue: ${parsedUserZipEntries.length}`, 'success');
+
+            } catch (err) {
+                console.error('Error parsing ZIP file(s):', err);
+                showToast('Error reading ZIP file(s): ' + err.message, 'error');
+            }
+        }
+
+        function renderUserZipParsedTable() {
+            if (!userZipTableTbody) return;
+            userZipTableTbody.innerHTML = '';
+
+            if (parsedUserZipEntries.length === 0) {
+                userZipTableTbody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:var(--text-muted); padding:2.5rem;"><i class="fas fa-check-circle" style="color:var(--success); font-size:1.5rem; display:block; margin-bottom:0.5rem;"></i> No questions in queue.</td></tr>';
+                updateUserZipSelectedCount();
+                return;
+            }
+
+            let visibleCount = 0;
+            parsedUserZipEntries.forEach((item, index) => {
+                if (userZipFilterStatus === 'new' && item.isDuplicate) return;
+                if (userZipFilterStatus === 'duplicate' && !item.isDuplicate) return;
+                visibleCount++;
+                const tr = document.createElement('tr');
+                tr.dataset.index = index;
+
+                const courseOpts = CURRICULUM.map(c => `
+                    <option value="${c.code}" ${c.code === item.courseCode ? 'selected' : ''}>${c.code} - ${c.title}</option>
+                `).join('');
+                const hasCourse = Boolean(item.courseCode);
+
+                const semOpts = SEMESTERS.map(s => `
+                    <option value="${s.code}" ${s.code === item.semester ? 'selected' : ''}>${s.label}</option>
+                `).join('');
+
+                const examOpts = ['Midterm', 'Final', 'Quiz 1', 'Quiz 2', 'Quiz 3', 'Quiz 4', 'Quiz', 'Assignment', 'Lab', 'Notes'].map(e => `
+                    <option value="${e}" ${e === item.examType ? 'selected' : ''}>${e}</option>
+                `).join('');
+
+                const typeOpts = ['Question', 'Solution', 'Lab', 'Notes'].map(t => `
+                    <option value="${t}" ${t === item.materialType ? 'selected' : ''}>${t}</option>
+                `).join('');
+
+                let statusBadge = `<span class="badge" style="font-size:0.7rem; background:rgba(16,185,129,0.1); color:var(--success); border:1px solid var(--success); padding:0.2rem 0.5rem; border-radius:4px;"><i class="fas fa-check-circle"></i> Ready</span>`;
+                if (item.isUploaded) {
+                    statusBadge = `<span class="badge" style="font-size:0.7rem; background:rgba(16,185,129,0.15); color:#10b981; border:1px solid #10b981; padding:0.2rem 0.5rem; border-radius:4px;"><i class="fas fa-check-double"></i> Published</span>`;
+                } else if (!hasCourse) {
+                    statusBadge = `<span class="badge" style="font-size:0.7rem; background:rgba(220,53,69,0.1); color:var(--error); border:1px solid var(--error); padding:0.2rem 0.5rem; border-radius:4px;"><i class="fas fa-exclamation-circle"></i> Select Course</span>`;
+                } else if (item.isDuplicate) {
+                    statusBadge = `<span class="badge" style="font-size:0.7rem; background:rgba(245,158,11,0.1); color:var(--orange); border:1px solid var(--orange); padding:0.2rem 0.5rem; border-radius:4px;" title="A verified question for this course/exam/sem already exists"><i class="fas fa-exclamation-triangle"></i> Exists in DB</span>`;
+                }
+
+                const solBadge = item.pairedSolution 
+                    ? `<span style="color:var(--success); font-weight:600; font-size:0.75rem;" title="${item.pairedSolution.originalFilename}"><i class="fas fa-check-circle"></i> Paired</span>` 
+                    : `<span style="color:var(--text-muted); font-size:0.75rem;">None</span>`;
+
+                tr.innerHTML = `
+                    <td style="text-align:center;">
+                        <input type="checkbox" class="user-zip-item-checkbox" data-index="${index}" ${item.selected ? 'checked' : ''} ${item.isUploaded ? 'disabled' : ''}>
+                    </td>
+                    <td style="max-width:200px;">
+                        <div style="font-weight:600; font-size:0.8rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-main);" title="${item.filePath}">
+                            <i class="fas fa-file-pdf" style="color:var(--error); margin-right:0.3rem;"></i> ${item.originalFilename}
+                        </div>
+                        <div style="font-size:0.7rem; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.sourceZipName ? `<span style="color:var(--orange); font-weight:600;">[${item.sourceZipName}]</span> ` : ''}${item.filePath}</div>
+                    </td>
+                    <td>
+                        <select class="user-zip-row-course" data-index="${index}">
+                            <option value="">-- Select Course --</option>
+                            ${courseOpts}
+                        </select>
+                    </td>
+                    <td>
+                        <select class="user-zip-row-exam" data-index="${index}">
+                            ${examOpts}
+                        </select>
+                    </td>
+                    <td>
+                        <select class="user-zip-row-sem" data-index="${index}">
+                            ${semOpts}
+                        </select>
+                    </td>
+                    <td>
+                        <select class="user-zip-row-type" data-index="${index}">
+                            ${typeOpts}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" class="user-zip-row-topic" data-index="${index}" value="${item.topic || ''}" placeholder="Topic / Title">
+                    </td>
+                    <td style="text-align:center;">${solBadge}</td>
+                    <td>${statusBadge}</td>
+                    <td style="text-align:center;">
+                        <button type="button" class="btn btn-outline" style="padding:0.2rem 0.4rem; font-size:0.7rem; color:var(--error); border-color:var(--error);" onclick="removeUserZipRow(${index})" title="Remove item">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                `;
+
+                userZipTableTbody.appendChild(tr);
+            });
+
+            if (visibleCount === 0 && parsedUserZipEntries.length > 0) {
+                userZipTableTbody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:var(--text-muted); padding:2rem;">No questions match filter criteria.</td></tr>';
+            }
+
+            attachUserZipRowListeners();
+            updateUserZipSelectedCount();
+        }
+
+        function attachUserZipRowListeners() {
+            document.querySelectorAll('.user-zip-item-checkbox').forEach(cb => {
+                cb.addEventListener('change', (e) => {
+                    const idx = parseInt(e.target.dataset.index, 10);
+                    if (parsedUserZipEntries[idx]) {
+                        parsedUserZipEntries[idx].selected = e.target.checked;
+                        updateUserZipSelectedCount();
+                    }
+                });
+            });
+
+            document.querySelectorAll('.user-zip-row-course').forEach(sel => {
+                sel.addEventListener('change', (e) => {
+                    const idx = parseInt(e.target.dataset.index, 10);
+                    if (parsedUserZipEntries[idx]) {
+                        parsedUserZipEntries[idx].courseCode = e.target.value;
+                        parsedUserZipEntries[idx].courseName = getCourseTitle(e.target.value);
+                        const cObj = CURRICULUM.find(c => c.code === e.target.value);
+                        if (cObj && cObj.trimester) parsedUserZipEntries[idx].trimester = cObj.trimester;
+                        renderUserZipParsedTable();
+                    }
+                });
+            });
+
+            document.querySelectorAll('.user-zip-row-exam').forEach(sel => {
+                sel.addEventListener('change', (e) => {
+                    const idx = parseInt(e.target.dataset.index, 10);
+                    if (parsedUserZipEntries[idx]) {
+                        parsedUserZipEntries[idx].examType = e.target.value;
+                        const semLabelStr = parsedUserZipEntries[idx].semester ? (decodeSemester(parsedUserZipEntries[idx].semester).label || parsedUserZipEntries[idx].semester) : '';
+                        parsedUserZipEntries[idx].topic = `${e.target.value} Question ${semLabelStr}`.trim();
+                        renderUserZipParsedTable();
+                    }
+                });
+            });
+
+            document.querySelectorAll('.user-zip-row-sem').forEach(sel => {
+                sel.addEventListener('change', (e) => {
+                    const idx = parseInt(e.target.dataset.index, 10);
+                    if (parsedUserZipEntries[idx]) {
+                        parsedUserZipEntries[idx].semester = e.target.value;
+                        const semLabelStr = decodeSemester(e.target.value).label || e.target.value;
+                        parsedUserZipEntries[idx].topic = `${parsedUserZipEntries[idx].examType} Question ${semLabelStr}`.trim();
+                        renderUserZipParsedTable();
+                    }
+                });
+            });
+
+            document.querySelectorAll('.user-zip-row-type').forEach(sel => {
+                sel.addEventListener('change', (e) => {
+                    const idx = parseInt(e.target.dataset.index, 10);
+                    if (parsedUserZipEntries[idx]) {
+                        parsedUserZipEntries[idx].materialType = e.target.value;
+                    }
+                });
+            });
+
+            document.querySelectorAll('.user-zip-row-topic').forEach(inp => {
+                inp.addEventListener('input', (e) => {
+                    const idx = parseInt(e.target.dataset.index, 10);
+                    if (parsedUserZipEntries[idx]) {
+                        parsedUserZipEntries[idx].topic = e.target.value.trim();
+                    }
+                });
+            });
+        }
+
+        window.removeUserZipRow = function(index) {
+            parsedUserZipEntries.splice(index, 1);
+            document.getElementById('user-zip-stat-total').textContent = parsedUserZipEntries.length;
+            document.getElementById('user-zip-stat-solutions').textContent = parsedUserZipEntries.filter(i => i.pairedSolution).length;
+            refreshUserZipUploadedStatus({ render: true });
+            updateUserZipSelectedCount();
+            if (parsedUserZipEntries.length === 0) {
+                resetUserZipUploader();
+            }
+        };
+
+        function updateUserZipSelectedCount() {
+            const unuploadedSelected = parsedUserZipEntries.filter(i => i.selected && !i.isUploaded).length;
+            if (userZipSelectedCount) userZipSelectedCount.textContent = unuploadedSelected;
+            const btnSpan = document.getElementById('user-zip-selected-count');
+            if (btnSpan) btnSpan.textContent = unuploadedSelected;
+            updateUserZipActionButtons();
+        }
+
+        function updateUserZipActionButtons() {
+            const unuploadedSelected = parsedUserZipEntries.filter(i => i.selected && !i.isUploaded).length;
+
+            if (btnUserAddAnotherZip) {
+                btnUserAddAnotherZip.style.display = 'inline-flex';
+            }
+
+            if (!btnUserStartZipUpload) return;
+
+            if (isUploadingUserZip) {
+                btnUserStartZipUpload.style.display = 'none';
+            } else {
+                if (unuploadedSelected > 0) {
+                    btnUserStartZipUpload.style.display = 'inline-flex';
+                    btnUserStartZipUpload.disabled = false;
+                    btnUserStartZipUpload.innerHTML = `<i class="fas fa-cloud-upload-alt"></i> Publish Selected (<span id="user-zip-selected-count">${unuploadedSelected}</span>) Questions`;
+                } else {
+                    btnUserStartZipUpload.style.display = 'none';
+                }
+            }
+        }
+
+        if (userZipThCheckbox) {
+            userZipThCheckbox.addEventListener('change', (e) => {
+                const checked = e.target.checked;
+                parsedUserZipEntries.forEach(item => {
+                    if (!item.isUploaded) item.selected = checked;
+                });
+                renderUserZipParsedTable();
+            });
+        }
+
+        if (btnUserZipSelectAll) {
+            btnUserZipSelectAll.addEventListener('click', () => {
+                const unuploaded = parsedUserZipEntries.filter(i => !i.isUploaded);
+                const allSelected = unuploaded.length > 0 && unuploaded.every(i => i.selected);
+                unuploaded.forEach(item => item.selected = !allSelected);
+                if (userZipThCheckbox) userZipThCheckbox.checked = !allSelected;
+                btnUserZipSelectAll.innerHTML = !allSelected ? '<i class="fas fa-times-square"></i> Deselect All' : '<i class="fas fa-check-square"></i> Select All';
+                renderUserZipParsedTable();
+            });
+        }
+
+        if (btnUserBatchApplyCourse && userBatchCourseSelect) {
+            btnUserBatchApplyCourse.addEventListener('click', () => {
+                const targetCourse = userBatchCourseSelect.value;
+                if (!targetCourse) {
+                    showToast('Please select a course to apply.', 'warning');
+                    return;
+                }
+                const cObj = CURRICULUM.find(c => c.code === targetCourse);
+                const title = cObj ? cObj.title : getCourseTitle(targetCourse);
+                const trimester = cObj && cObj.trimester ? cObj.trimester : 0;
+
+                parsedUserZipEntries.forEach(item => {
+                    item.courseCode = targetCourse;
+                    item.courseName = title;
+                    if (trimester) item.trimester = trimester;
+                });
+                refreshUserZipUploadedStatus({ render: true });
+                showToast(`Applied course ${targetCourse} to all questions.`, 'success');
+            });
+        }
+
+        if (btnUserBatchApplyExam && userBatchExamSelect) {
+            btnUserBatchApplyExam.addEventListener('click', () => {
+                const targetExam = userBatchExamSelect.value;
+                if (!targetExam) return;
+                parsedUserZipEntries.forEach(item => {
+                    item.examType = targetExam;
+                    if (targetExam === 'Lab') {
+                        item.materialType = 'Lab';
+                    } else if (targetExam === 'Notes') {
+                        item.materialType = 'Notes';
+                    } else {
+                        item.materialType = 'Question';
+                    }
+                    const semLabelStr = item.semester ? (decodeSemester(item.semester).label || item.semester) : '';
+                    if (item.materialType === 'Question') {
+                        item.topic = `${targetExam} Question ${semLabelStr}`.trim();
+                    } else if (item.materialType === 'Lab') {
+                        item.topic = `Lab Material ${semLabelStr}`.trim();
+                    } else {
+                        item.topic = `Lecture Notes ${item.courseCode || ''}`.trim();
+                    }
+                });
+                refreshUserZipUploadedStatus({ render: true });
+                showToast(`Applied exam type "${targetExam}" to all questions.`, 'success');
+            });
+        }
+
+        if (btnUserStartZipUpload) {
+            btnUserStartZipUpload.addEventListener('click', async () => {
+                const selectedItems = parsedUserZipEntries.filter(i => i.selected && !i.isUploaded);
+
+                if (selectedItems.length === 0) {
+                    showToast('Please select at least one question to upload.', 'warning');
+                    return;
+                }
+
+                const invalidCourse = selectedItems.find(i => !i.courseCode);
+                if (invalidCourse) {
+                    showToast(`Please select a course for: ${invalidCourse.originalFilename}`, 'error');
+                    return;
+                }
+
+                if (!confirm(`Are you sure you want to upload and publish ${selectedItems.length} questions directly to the Question Bank?`)) {
+                    return;
+                }
+
+                isUploadingUserZip = true;
+                updateUserZipActionButtons();
+                if (btnUserZipReset) btnUserZipReset.disabled = true;
+                userZipUploadProgressArea.style.display = 'block';
+                userZipConsoleLog.innerHTML = `<div style="color:#60a5fa;">[START] Starting batch upload of ${selectedItems.length} questions...</div>`;
+
+                let successCount = 0;
+                let failureCount = 0;
+
+                const logStatus = (msg) => {
+                    userZipConsoleLog.innerHTML += `<div style="color:#f59e0b;">⏳ ${msg}</div>`;
+                    userZipConsoleLog.scrollTop = userZipConsoleLog.scrollHeight;
+                };
+
+                for (let i = 0; i < selectedItems.length; i++) {
+                    const item = selectedItems[i];
+                    const percent = Math.round(((i) / selectedItems.length) * 100);
+                    
+                    userZipProgressPercent.textContent = `${percent}%`;
+                    userZipProgressFill.style.width = `${percent}%`;
+                    userZipProgressLabel.innerHTML = `<i class="fas fa-spinner fa-spin"></i> [${i + 1}/${selectedItems.length}] Uploading ${item.courseCode} ${item.examType}...`;
+
+                    if (i > 0) {
+                        await new Promise(r => setTimeout(r, 1500));
+                    }
+
+                    try {
+                        const mainBlob = await item.zipEntry.async('blob');
+                        const mainFile = new File([mainBlob], item.originalFilename, { type: 'application/pdf' });
+
+                        userZipConsoleLog.innerHTML += `<div>[${i + 1}/${selectedItems.length}] Uploading Cloudinary asset for ${item.courseCode} (${item.originalFilename})...</div>`;
+                        userZipConsoleLog.scrollTop = userZipConsoleLog.scrollHeight;
+
+                        const mainAsset = await uploadToCloudinary(item.materialType === 'Notes' ? 'note' : (item.materialType === 'Solution' ? 'solution' : 'question'), mainFile, item.courseCode, item.topic, null, logStatus);
+                        const materialAssets = [mainAsset];
+
+                        let solPdfUrl = null;
+                        if (item.materialType === 'Solution') {
+                            solPdfUrl = mainAsset.pdfUrl;
+                        }
+
+                        if (item.pairedSolution && item.pairedSolution.zipEntry) {
+                            await new Promise(r => setTimeout(r, 1000));
+                            userZipConsoleLog.innerHTML += `<div style="color:#38bdf8;">→ Uploading paired solution (${item.pairedSolution.originalFilename})...</div>`;
+                            const solBlob = await item.pairedSolution.zipEntry.async('blob');
+                            const solFile = new File([solBlob], item.pairedSolution.originalFilename, { type: 'application/pdf' });
+                            const solAsset = await uploadToCloudinary('solution', solFile, item.courseCode, item.topic, null, logStatus);
+                            materialAssets.push(solAsset);
+                            solPdfUrl = solAsset.pdfUrl;
+                        }
+
+                        const itemTopic = item.topic || `${item.examType} ${item.courseCode}`;
+                        const itemCourseName = item.courseName || getCourseTitle(item.courseCode);
+                        const itemTokens = [item.courseCode, itemCourseName, itemTopic, item.facultyName || '', item.facultyCode || '']
+                            .filter(Boolean)
+                            .flatMap(str => String(str).toLowerCase().split(/[\s,._\-\/]+/))
+                            .map(t => t.replace(/[^a-z0-9]/g, ''))
+                            .filter(t => t.length > 0);
+                        const zipSearchTokens = Array.from(new Set(itemTokens));
+
+                        const newDocData = {
+                            courseCode: item.courseCode.replace(/\s+/g, ' ').toUpperCase(),
+                            courseName: itemCourseName,
+                            semester: item.semester,
+                            trimester: String(item.trimester || 1),
+                            type: item.materialType || 'Question',
+                            materialType: (item.materialType || 'Question').toLowerCase(),
+                            examType: item.examType || 'Midterm',
+                            topic: itemTopic,
+                            facultyId: item.facultyId || null,
+                            facultyName: item.facultyName || '',
+                            facultyCode: item.facultyCode || '',
+                            searchTokens: zipSearchTokens,
+                            materialAssets,
+                            pdfUrl: mainAsset.pdfUrl,
+                            solutionPdfUrl: solPdfUrl,
+                            status: 'approved',
+                            approvedAt: serverTimestamp(),
+                            approvedBy: 'Question Bank (Bulk ZIP)',
+                            submitterName: 'Question Bank (Bulk ZIP)',
+                            submitterEmail: 'bulk-zip@uiu.ac.bd',
+                            courseSearch: `${item.courseCode} ${itemCourseName} ${itemTopic}`.toLowerCase(),
+                            materialGroup: item.materialType === 'Notes' ? 'notes' : (item.materialType === 'Lab' ? 'lab' : 'questions'),
+                            submittedAt: serverTimestamp(),
+                            createdAt: serverTimestamp()
+                        };
+
+                        const newDocRef = await addDoc(collection(db, QUESTION_COLLECTION), newDocData);
+
+                        successCount++;
+                        item.selected = false;
+                        item.isDuplicate = true;
+                        item.isUploaded = true;
+                        userZipConsoleLog.innerHTML += `<div style="color:#10b981;">✔ Successfully published: ${item.courseCode} - ${item.examType} (${item.semester}) [ID: ${newDocRef.id}]</div>`;
+                        userZipConsoleLog.scrollTop = userZipConsoleLog.scrollHeight;
+
+                    } catch (uploadErr) {
+                        failureCount++;
+                        console.error(`Failed uploading ${item.originalFilename}:`, uploadErr);
+                        userZipConsoleLog.innerHTML += `<div style="color:#ef4444;">✖ Error on ${item.originalFilename}: ${uploadErr.message}</div>`;
+                        userZipConsoleLog.scrollTop = userZipConsoleLog.scrollHeight;
+                    }
+                }
+
+                isUploadingUserZip = false;
+                if (btnUserZipReset) btnUserZipReset.disabled = false;
+
+                parsedUserZipEntries = parsedUserZipEntries.filter(item => !item.isUploaded);
+                document.getElementById('user-zip-stat-total').textContent = parsedUserZipEntries.length;
+                document.getElementById('user-zip-stat-solutions').textContent = parsedUserZipEntries.filter(i => i.pairedSolution).length;
+
+                refreshUserZipUploadedStatus({ render: true });
+                updateUserZipSelectedCount();
+
+                userZipProgressPercent.textContent = '100%';
+                userZipProgressFill.style.width = '100%';
+                userZipProgressLabel.innerHTML = `<i class="fas fa-check-circle" style="color:var(--success);"></i> Batch Upload Complete! (${successCount} published, ${failureCount} failed)`;
+                
+                userZipConsoleLog.innerHTML += `<div style="color:#34d399; font-weight:bold; margin-top:0.4rem;">[DONE] Batch upload finished: ${successCount} successful, ${failureCount} errors. Published files removed from queue.</div>`;
+                userZipConsoleLog.scrollTop = userZipConsoleLog.scrollHeight;
+
+                showToast(`Batch Upload Complete: ${successCount} questions published directly!`, successCount > 0 ? 'success' : 'error');
+                updateUserZipActionButtons();
+            });
+        }
+
         // Init
         initTheme();
+        loadFaculties();
         listenForApprovedPapers();
         pingLivePresence();
         setInterval(pingLivePresence, 10000);
@@ -6026,6 +8391,157 @@
                     <button type="submit" id="btnSubmitSolution" class="btn btn-primary" style="padding:0.45rem 1.25rem;">Submit Solution</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Bulk ZIP Upload Modal (Question Bank) -->
+    <div class="modal-overlay" id="userZipUploadModal">
+        <div class="zip-modal-card">
+            <div class="modal-header" style="background: linear-gradient(135deg, rgba(243, 112, 33, 0.1), transparent); padding: 1.1rem 1.5rem; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border);">
+                <h3 class="modal-title" style="display:flex; align-items:center; gap:0.5rem; color:var(--orange); font-size:1.15rem; font-weight:700;">
+                    <i class="fas fa-file-archive"></i> Bulk ZIP Question Uploader (Automatic Detection)
+                </h3>
+                <button class="btn btn-outline" id="btn-close-user-zip" style="padding:0.3rem 0.6rem; border:none; color:var(--text-muted); font-size:1.1rem; cursor:pointer;"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" style="padding:1.25rem 1.5rem; display:flex; flex-direction:column; overflow-y:auto; overflow-x:hidden; max-height:calc(94vh - 70px); max-height:calc(94dvh - 70px); width:100%; box-sizing:border-box;">
+                <!-- Step 1: Drag & Drop ZIP File -->
+                <div id="user-zip-drop-section" style="width:100%; box-sizing:border-box;">
+                    <div class="zip-drop-area" id="userZipDropzone" onclick="document.getElementById('userZipFileInput').click()">
+                        <input type="file" id="userZipFileInput" accept=".zip" multiple style="display:none;">
+                        <i class="fas fa-file-archive" style="font-size:3rem; color:var(--orange); margin-bottom:0.75rem;"></i>
+                        <h3 style="margin-bottom:0.4rem; font-size:1.15rem; color:var(--text-main);">Drag & drop question archive (.ZIP) file(s) here</h3>
+                        <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">Or click to browse ZIP files from your computer (Multiple files supported)</p>
+                        <div style="display:flex; justify-content:center; gap:0.5rem; flex-wrap:wrap;">
+                            <span class="zip-pill-tag"><i class="fas fa-magic" style="color:var(--orange);"></i> Auto-Detects Course Code</span>
+                            <span class="zip-pill-tag"><i class="fas fa-pen-alt" style="color:var(--orange);"></i> Auto-Detects Exam Name (Midterm/Final/Quiz)</span>
+                            <span class="zip-pill-tag"><i class="fas fa-calendar" style="color:var(--orange);"></i> Auto-Detects Semester</span>
+                            <span class="zip-pill-tag"><i class="fas fa-link" style="color:var(--orange);"></i> Auto-Pairs Solutions</span>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:1.25rem; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius-md); padding:1rem;">
+                        <h4 style="font-size:0.85rem; font-weight:700; color:var(--text-main); margin-bottom:0.5rem; display:flex; align-items:center; gap:0.4rem;">
+                            <i class="fas fa-info-circle" style="color:var(--info);"></i> How Automatic Filename Detection Works:
+                        </h4>
+                        <ul style="font-size:0.8rem; color:var(--text-muted); line-height:1.6; padding-left:1.25rem;">
+                            <li><strong>Standard formats:</strong> <code>CSE 1115_Midterm_241.pdf</code>, <code>MATH 2201 - Final Exam - Spring 2024.pdf</code></li>
+                            <li><strong>Short names / Aliases:</strong> <code>OOP_Mid_251.pdf</code>, <code>DLD_Final_233.pdf</code>, <code>DSA_Quiz1_242.pdf</code></li>
+                            <li><strong>Folder structures:</strong> <code>CSE 1111/Midterm/Question.pdf</code>, <code>DBMS/241/Final.pdf</code></li>
+                            <li><strong>Solution pairing:</strong> Files ending with <code>_solution.pdf</code> or <code>_sol.pdf</code> are automatically linked to their questions!</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Step 2: Extracted Questions Review & Batch Edit Table -->
+                <div id="user-zip-review-section" style="display:none; flex-direction:column; flex:1; width:100%; max-width:100%; box-sizing:border-box; overflow-x:hidden;">
+                    <div class="zip-summary-bar">
+                        <div style="display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap;">
+                            <span class="zip-stat-pill" style="color:var(--orange);"><i class="fas fa-file-pdf"></i> <span id="user-zip-stat-total">0</span> Questions in Queue</span>
+                            <span class="zip-stat-pill" style="color:var(--success);"><i class="fas fa-link"></i> <span id="user-zip-stat-solutions">0</span> Solutions Paired</span>
+                            <span class="zip-stat-pill" style="color:var(--error);" id="user-zip-duplicate-stat"><i class="fas fa-exclamation-circle"></i> <span id="user-zip-stat-duplicates">0</span> Already Uploaded</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                            <input type="file" id="userZipAddMoreInput" accept=".zip" multiple style="display:none;">
+                            <button type="button" class="btn btn-outline" style="padding:0.3rem 0.75rem; font-size:0.8rem; border-color:var(--orange); color:var(--orange); font-weight:600;" id="user-btn-add-more-zip-top" title="Add another ZIP archive to this queue">
+                                <i class="fas fa-plus"></i> Add Another ZIP
+                            </button>
+                            <button type="button" class="btn" id="user-btn-remove-duplicates" style="display:none; padding:0.3rem 0.75rem; font-size:0.8rem; background:var(--error); color:white; border:none; border-radius:6px;" title="Remove all files that already exist in the Question Bank from the upload queue">
+                                <i class="fas fa-trash-alt"></i> Remove Already Uploaded (<span id="user-btn-dup-count">0</span>)
+                            </button>
+                            <button type="button" class="btn btn-outline" style="padding:0.3rem 0.75rem; font-size:0.8rem; color:var(--info); border-color:var(--info);" id="user-btn-check-duplicates" title="Scan database to check if any questions in queue are already uploaded">
+                                <i class="fas fa-sync-alt"></i> Check Uploaded Status
+                            </button>
+                            <button type="button" class="btn btn-outline" style="padding:0.3rem 0.75rem; font-size:0.8rem;" id="user-btn-zip-select-all"><i class="fas fa-check-square"></i> Select All</button>
+                            <button type="button" class="btn btn-outline" style="padding:0.3rem 0.75rem; font-size:0.8rem; color:var(--error); border-color:var(--error);" id="user-btn-remove-selected-queue" title="Remove selected files from queue">
+                                <i class="fas fa-trash-alt"></i> Remove Selected
+                            </button>
+                            <button type="button" class="btn btn-outline" style="padding:0.3rem 0.75rem; font-size:0.8rem;" id="user-btn-zip-reset"><i class="fas fa-redo"></i> Reset Queue</button>
+                        </div>
+                    </div>
+
+                    <!-- Batch Set Overrides Toolbar & Filters -->
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:0.75rem; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-md); padding:0.6rem 0.85rem; margin-bottom:0.75rem; flex-wrap:wrap; width:100%; max-width:100%; box-sizing:border-box;">
+                        <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
+                            <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;"><i class="fas fa-sliders-h"></i> Batch Override:</span>
+                            <!-- Course Code Batch Override -->
+                            <select id="user-batch-course-select" class="filter-select" style="padding:0.3rem 0.6rem; font-size:0.8rem; max-width:210px; border:1px solid var(--border); border-radius:6px; background:var(--surface);">
+                                <option value="">-- Select Course --</option>
+                            </select>
+                            <button type="button" class="btn btn-outline" style="padding:0.3rem 0.6rem; font-size:0.75rem;" id="user-btn-batch-apply-course">Apply Course Code to All</button>
+
+                            <!-- Exam Type Batch Override -->
+                            <select id="user-batch-exam-select" class="filter-select" style="padding:0.3rem 0.6rem; font-size:0.8rem; border:1px solid var(--border); border-radius:6px; background:var(--surface);">
+                                <option value="Midterm">Midterm</option>
+                                <option value="Final">Final</option>
+                                <option value="Quiz 1">Quiz 1</option>
+                                <option value="Quiz 2">Quiz 2</option>
+                                <option value="Quiz 3">Quiz 3</option>
+                                <option value="Quiz 4">Quiz 4</option>
+                                <option value="Quiz">Quiz</option>
+                                <option value="Assignment">Assignment</option>
+                                <option value="Lab">Lab</option>
+                                <option value="Notes">Notes</option>
+                            </select>
+                            <button type="button" class="btn btn-outline" style="padding:0.3rem 0.6rem; font-size:0.75rem;" id="user-btn-batch-apply-exam">Apply Exam Type to All</button>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <span style="font-size:0.75rem; font-weight:600; color:var(--text-muted);"><i class="fas fa-filter"></i> Filter Queue:</span>
+                            <select id="user-zip-filter-status" class="filter-select" style="padding:0.3rem 0.6rem; font-size:0.8rem; border:1px solid var(--border); border-radius:6px; background:var(--surface);">
+                                <option value="all">Show All</option>
+                                <option value="new">Show Only New (Not Uploaded)</option>
+                                <option value="duplicate">Show Already Uploaded</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="zip-table-container">
+                        <table class="zip-table" id="user-zip-parsed-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:40px; text-align:center;"><input type="checkbox" id="user-zip-th-checkbox" checked></th>
+                                    <th>File / Path</th>
+                                    <th style="min-width:180px;">Course Code</th>
+                                    <th style="min-width:130px;">Exam Name</th>
+                                    <th style="min-width:130px;">Semester</th>
+                                    <th style="min-width:110px;">Type</th>
+                                    <th style="min-width:160px;">Topic / Title</th>
+                                    <th>Solution</th>
+                                    <th>Status</th>
+                                    <th style="width:50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="user-zip-table-tbody">
+                                <!-- JS Populated -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Progress Bar & Status Area -->
+                    <div id="user-zip-upload-progress-area" style="display:none;" class="zip-progress-container">
+                        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; font-weight:600;">
+                            <span id="user-zip-progress-label"><i class="fas fa-spinner fa-spin"></i> Uploading questions to Cloudinary & Question Bank...</span>
+                            <span id="user-zip-progress-percent">0%</span>
+                        </div>
+                        <div class="zip-progress-track">
+                            <div class="zip-progress-fill" id="user-zip-progress-fill"></div>
+                        </div>
+                        <div class="zip-console-log" id="user-zip-console-log"></div>
+                    </div>
+
+                    <!-- Bottom Action Buttons -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:1rem; border-top:1px solid var(--border); flex-wrap:wrap; gap:0.5rem; width:100%; box-sizing:border-box;">
+                        <button type="button" class="btn btn-outline" id="user-btn-cancel-zip-upload">Cancel</button>
+                        <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
+                            <button type="button" class="btn btn-outline" id="user-btn-add-another-zip" style="padding:0.45rem 1rem; font-size:0.85rem; border-color:var(--orange); color:var(--orange); font-weight:700; display:inline-flex; align-items:center; gap:0.4rem;">
+                                <i class="fas fa-file-archive"></i> Add Another ZIP File
+                            </button>
+                            <button type="button" class="btn btn-primary" id="user-btn-start-zip-upload" style="background:linear-gradient(135deg, var(--orange), #ea580c); border:none; display:inline-flex; align-items:center; gap:0.5rem; font-weight:700; padding:0.45rem 1.25rem;">
+                                <i class="fas fa-cloud-upload-alt"></i> Publish Selected (<span id="user-zip-selected-count">0</span>) Questions
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
