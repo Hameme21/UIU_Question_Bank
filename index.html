@@ -1419,74 +1419,8 @@
         }
 
         /* ==========================================
-           ABOUT ME FLOATING ACTION BUTTON & POPUP
+           ABOUT DEVELOPER MODAL OVERLAY & CARD
            ========================================== */
-        .about-me-fab-btn {
-            position: fixed;
-            bottom: 1.75rem;
-            right: 1.75rem;
-            z-index: 9995;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.65rem;
-            background: linear-gradient(135deg, var(--orange) 0%, #ea580c 100%);
-            color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 0.55rem 1.15rem 0.55rem 0.55rem;
-            border-radius: 9999px;
-            box-shadow: 0 8px 24px rgba(243, 112, 33, 0.38), 0 2px 8px rgba(0, 0, 0, 0.12);
-            cursor: pointer;
-            transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.88rem;
-            font-weight: 700;
-            text-decoration: none;
-            user-select: none;
-        }
-
-        .about-me-fab-btn:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 14px 32px rgba(243, 112, 33, 0.5), 0 4px 12px rgba(0, 0, 0, 0.15);
-            color: #ffffff;
-        }
-
-        .about-me-fab-btn:active {
-            transform: translateY(-1px) scale(0.98);
-        }
-
-        .about-me-fab-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #ffffff;
-            color: var(--orange);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 0.8rem;
-            letter-spacing: -0.5px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-        }
-
-        .about-me-fab-text {
-            letter-spacing: 0.2px;
-        }
-
-        @media (max-width: 768px) {
-            .about-me-fab-btn {
-                bottom: 1.25rem;
-                right: 0.85rem;
-                padding: 0.45rem 0.85rem 0.45rem 0.45rem;
-                font-size: 0.8rem;
-                gap: 0.45rem;
-            }
-            .about-me-fab-avatar {
-                width: 28px;
-                height: 28px;
-                font-size: 0.72rem;
-            }
-        }
 
         /* About Me Modal Overlay & Card */
         .about-me-overlay {
@@ -1568,7 +1502,7 @@
             width: 72px;
             height: 72px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--orange) 0%, #ea580c 100%);
+            background: linear-gradient(135deg, #005696 0%, #0284c7 100%);
             color: #ffffff;
             display: flex;
             align-items: center;
@@ -1576,7 +1510,7 @@
             font-size: 1.75rem;
             font-weight: 800;
             letter-spacing: -1px;
-            box-shadow: 0 8px 20px rgba(243, 112, 33, 0.35);
+            box-shadow: 0 8px 20px rgba(0, 86, 150, 0.35);
             border: 3px solid var(--surface);
         }
 
@@ -1740,148 +1674,221 @@
         }
 
         /* ==========================================
-           UIU TOOLKITS FLOATING BUTTON & LINK
+           FLOATING SPEED DIAL MENU (3-DASH FAB)
            ========================================== */
-        .toolkits-fab-btn {
+        .fab-speed-dial-container {
             position: fixed;
             bottom: 1.75rem;
-            right: 22.85rem;
+            right: 1.75rem;
             z-index: 9995;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.55rem;
-            background: linear-gradient(135deg, #005696 0%, #0284c7 100%);
-            color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 0.55rem 1.05rem 0.55rem 0.65rem;
-            border-radius: 9999px;
-            box-shadow: 0 8px 24px rgba(0, 86, 150, 0.35), 0 2px 8px rgba(0, 0, 0, 0.12);
-            cursor: pointer;
-            transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.85rem;
-            font-weight: 700;
-            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.75rem;
             user-select: none;
         }
 
-        .toolkits-fab-btn:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 14px 32px rgba(0, 86, 150, 0.48), 0 4px 12px rgba(0, 0, 0, 0.15);
-            color: #ffffff;
-        }
-
-        .toolkits-fab-btn:active {
-            transform: translateY(-1px) scale(0.98);
-        }
-
-        .toolkits-fab-icon {
-            width: 30px;
-            height: 30px;
+        /* Main 3-Dash Floating Button */
+        .fab-speed-dial-main {
+            width: 52px;
+            height: 52px;
             border-radius: 50%;
-            background: #ffffff;
-            color: #005696;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #ffffff;
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.35), 0 3px 10px rgba(0, 0, 0, 0.15);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.85rem;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-            transition: transform 0.3s ease;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .toolkits-fab-btn:hover .toolkits-fab-icon {
-            transform: rotate(-12deg) scale(1.08);
+        .fab-speed-dial-main:hover {
+            transform: scale(1.08) rotate(4deg);
+            box-shadow: 0 14px 32px rgba(15, 23, 42, 0.45), 0 0 0 3px rgba(243, 112, 33, 0.25);
+            border-color: rgba(243, 112, 33, 0.5);
         }
 
-        .toolkits-fab-arrow {
-            font-size: 0.72rem;
-            opacity: 0.85;
-            transition: transform 0.2s ease, opacity 0.2s ease;
+        .fab-speed-dial-main:active {
+            transform: scale(0.95);
         }
 
-        .toolkits-fab-btn:hover .toolkits-fab-arrow {
+        /* 3-Dash Hamburger Icon Animation */
+        .fab-dash-icon {
+            width: 22px;
+            height: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .fab-dash {
+            width: 100%;
+            height: 2.5px;
+            background: #ffffff;
+            border-radius: 4px;
+            transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+            transform-origin: center;
+        }
+
+        /* When hovered or active: animate 3 dashes into an 'X' */
+        .fab-speed-dial-container:hover .fab-dash:nth-child(1),
+        .fab-speed-dial-container.active .fab-dash:nth-child(1) {
+            transform: translateY(6.75px) rotate(45deg);
+        }
+
+        .fab-speed-dial-container:hover .fab-dash:nth-child(2),
+        .fab-speed-dial-container.active .fab-dash:nth-child(2) {
+            opacity: 0;
+            transform: scaleX(0);
+        }
+
+        .fab-speed-dial-container:hover .fab-dash:nth-child(3),
+        .fab-speed-dial-container.active .fab-dash:nth-child(3) {
+            transform: translateY(-6.75px) rotate(-45deg);
+        }
+
+        /* Menu Container holding the 3 floating action items */
+        .fab-speed-dial-menu {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.65rem;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(16px) scale(0.92);
+            transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Reveal menu on hover or active container */
+        .fab-speed-dial-container:hover .fab-speed-dial-menu,
+        .fab-speed-dial-container.active .fab-speed-dial-menu {
+            pointer-events: auto;
             opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Floating Child Items */
+        .fab-speed-dial-item {
+            display: inline-flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-end;
+            height: 44px;
+            min-width: 44px;
+            border-radius: 9999px;
+            padding: 0;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            text-decoration: none;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16), 0 2px 6px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            color: #ffffff;
+            white-space: nowrap;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .fab-speed-dial-item:hover {
+            transform: translateY(-2px) scale(1.04);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25), 0 4px 10px rgba(0, 0, 0, 0.12);
+        }
+
+        .fab-speed-dial-item:active {
+            transform: translateY(0) scale(0.97);
+        }
+
+        /* Circular Icon Badge inside the Item */
+        .fab-item-icon {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #ffffff;
+        }
+
+        /* Text Label that expands on hover (Desktop) */
+        .fab-item-text {
+            max-width: 0;
+            opacity: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            font-size: 0.84rem;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            padding-left: 0;
+            padding-right: 0;
+            transition: max-width 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, padding 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            color: #ffffff;
+        }
+
+        /* EXPAND WITH ANIMATION on hover of any floating icon (Desktop) */
+        @media (min-width: 769px) {
+            .fab-speed-dial-item:hover .fab-item-text {
+                max-width: 170px;
+                opacity: 1;
+                padding-left: 1rem;
+                padding-right: 0.15rem;
+            }
+        }
+
+        .fab-item-arrow {
+            font-size: 0.68rem;
+            opacity: 0.85;
+            transition: transform 0.2s ease;
+        }
+
+        .fab-speed-dial-item:hover .fab-item-arrow {
             transform: translate(2px, -2px);
         }
 
-        @media (max-width: 1024px) and (min-width: 769px) {
-            .toolkits-fab-btn {
-                bottom: 4.85rem;
-                right: 1.75rem;
-            }
+        /* ------------------------------------------
+           SWAPPED COLORS:
+           UIU Toolkits: UIU Orange
+           About Me: UIU Blue
+           Acknowledgement: Rose-Red
+           ------------------------------------------ */
+        .fab-speed-dial-item.toolkits {
+            background: linear-gradient(135deg, var(--orange) 0%, #ea580c 100%);
+            box-shadow: 0 6px 18px rgba(243, 112, 33, 0.35), 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+        .fab-speed-dial-item.toolkits:hover {
+            box-shadow: 0 10px 26px rgba(243, 112, 33, 0.5), 0 3px 8px rgba(0, 0, 0, 0.15);
         }
 
-        @media (max-width: 768px) {
-            .toolkits-fab-btn {
-                bottom: 7.05rem;
-                right: 0.85rem;
-                padding: 0.45rem 0.85rem 0.45rem 0.55rem;
-                font-size: 0.78rem;
-                gap: 0.45rem;
-            }
-            .toolkits-fab-icon {
-                width: 26px;
-                height: 26px;
-                font-size: 0.75rem;
-            }
-            .toolkits-fab-arrow {
-                font-size: 0.65rem;
-            }
-        }
-
-        .about-me-link-row.toolkits:hover .about-me-link-icon {
-            background: #005696;
-            color: #ffffff;
-        }
-
-        /* ==========================================
-           ACKNOWLEDGEMENT FLOATING BUTTON & POPUP
-           ========================================== */
-        .ack-fab-btn {
-            position: fixed;
-            bottom: 1.75rem;
-            right: 11.25rem;
-            z-index: 9995;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.55rem;
+        .fab-speed-dial-item.ack {
             background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
-            color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 0.55rem 1.05rem 0.55rem 0.65rem;
-            border-radius: 9999px;
-            box-shadow: 0 8px 24px rgba(225, 29, 72, 0.35), 0 2px 8px rgba(0, 0, 0, 0.12);
-            cursor: pointer;
-            transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.85rem;
-            font-weight: 700;
-            text-decoration: none;
-            user-select: none;
+            box-shadow: 0 6px 18px rgba(225, 29, 72, 0.35), 0 2px 6px rgba(0, 0, 0, 0.1);
         }
-
-        .ack-fab-btn:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 14px 32px rgba(225, 29, 72, 0.48), 0 4px 12px rgba(0, 0, 0, 0.15);
-            color: #ffffff;
+        .fab-speed-dial-item.ack:hover {
+            box-shadow: 0 10px 26px rgba(225, 29, 72, 0.5), 0 3px 8px rgba(0, 0, 0, 0.15);
         }
-
-        .ack-fab-btn:active {
-            transform: translateY(-1px) scale(0.98);
-        }
-
-        .ack-fab-icon {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: #ffffff;
-            color: #e11d48;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.85rem;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        .fab-speed-dial-item.ack .fab-item-icon i {
             animation: heartPulse 2.4s infinite ease-in-out;
+        }
+
+        .fab-speed-dial-item.about {
+            background: linear-gradient(135deg, #005696 0%, #0284c7 100%);
+            box-shadow: 0 6px 18px rgba(0, 86, 150, 0.35), 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+        .fab-speed-dial-item.about:hover {
+            box-shadow: 0 10px 26px rgba(0, 86, 150, 0.5), 0 3px 8px rgba(0, 0, 0, 0.15);
         }
 
         @keyframes heartPulse {
@@ -1892,19 +1899,52 @@
             70% { transform: scale(1); }
         }
 
+        /* ------------------------------------------
+           MOBILE BEHAVIOR:
+           "in mobile just show the icons"
+           ------------------------------------------ */
         @media (max-width: 768px) {
-            .ack-fab-btn {
-                bottom: 4.15rem;
+            .fab-speed-dial-container {
+                bottom: 1.25rem;
                 right: 0.85rem;
-                padding: 0.45rem 0.85rem 0.45rem 0.55rem;
-                font-size: 0.78rem;
-                gap: 0.45rem;
+                gap: 0.55rem;
             }
-            .ack-fab-icon {
-                width: 26px;
-                height: 26px;
-                font-size: 0.75rem;
+
+            .fab-speed-dial-main {
+                width: 46px;
+                height: 46px;
             }
+
+            .fab-dash-icon {
+                width: 18px;
+                height: 14px;
+            }
+
+            .fab-speed-dial-item {
+                width: 42px !important;
+                height: 42px !important;
+                min-width: 42px !important;
+                padding: 0 !important;
+            }
+
+            .fab-item-icon {
+                width: 42px !important;
+                height: 42px !important;
+                font-size: 0.85rem;
+            }
+
+            /* IN MOBILE: strictly hide text label, JUST SHOW THE ICONS */
+            .fab-item-text {
+                display: none !important;
+                max-width: 0 !important;
+                padding: 0 !important;
+                opacity: 0 !important;
+            }
+        }
+
+        .about-me-link-row.toolkits:hover .about-me-link-icon {
+            background: var(--orange);
+            color: #ffffff;
         }
 
         /* Footer Acknowledgement Button */
@@ -4700,24 +4740,45 @@
         </div>
     </footer>
 
-    <!-- Floating "UIU Toolkits" Action Button / External Link -->
-    <a href="https://uiu-toolkits.vercel.app/" target="_blank" rel="noopener noreferrer" id="toolkitsFabBtn" class="toolkits-fab-btn" aria-label="Visit UIU Toolkits - Routine, Clash Solver & CGPA Calculator" title="UIU Toolkits - Routine, Clash Solver & CGPA Calculator">
-        <span class="toolkits-fab-icon"><i class="fas fa-toolbox"></i></span>
-        <span class="toolkits-fab-text">UIU Toolkits</span>
-        <i class="fas fa-arrow-up-right-from-square toolkits-fab-arrow"></i>
-    </a>
+    <!-- Floating Action Speed Dial Menu (3-Dash Button) -->
+    <div class="fab-speed-dial-container" id="fabSpeedDialContainer">
+        <!-- Floating Child Items (Revealed on hover / active) -->
+        <div class="fab-speed-dial-menu" id="fabSpeedDialMenu" role="menu" aria-label="Quick Actions">
+            <!-- 1. UIU Toolkits (Swapped to UIU Orange) -->
+            <a href="https://uiu-toolkits.vercel.app/" target="_blank" rel="noopener noreferrer" 
+               class="fab-speed-dial-item toolkits" id="toolkitsFabBtn" 
+               role="menuitem" aria-label="UIU Toolkits" title="UIU Toolkits - Routine, Clash Solver & CGPA Calculator">
+                <span class="fab-item-text">UIU Toolkits <i class="fas fa-arrow-up-right-from-square fab-item-arrow"></i></span>
+                <span class="fab-item-icon"><i class="fas fa-toolbox"></i></span>
+            </a>
 
-    <!-- Floating "Acknowledgement" Action Button -->
-    <button type="button" id="acknowledgementFabBtn" class="ack-fab-btn" onclick="openAcknowledgementModal()" aria-label="Special Acknowledgement" title="Special Acknowledgement">
-        <span class="ack-fab-icon"><i class="fas fa-heart"></i></span>
-        <span>Acknowledgement</span>
-    </button>
+            <!-- 2. Acknowledgement (Rose-Red) -->
+            <button type="button" class="fab-speed-dial-item ack" id="acknowledgementFabBtn" 
+                    onclick="openAcknowledgementModal()" role="menuitem" 
+                    aria-label="Acknowledgement" title="Acknowledgement">
+                <span class="fab-item-text">Acknowledgement</span>
+                <span class="fab-item-icon"><i class="fas fa-heart"></i></span>
+            </button>
 
-    <!-- Floating "About Me" Action Button -->
-    <button type="button" id="aboutMeFabBtn" class="about-me-fab-btn" onclick="openAboutMeModal()" aria-label="About Developer - Asir Hamim" title="About Developer">
-        <span class="about-me-fab-avatar">AH</span>
-        <span class="about-me-fab-text">About Me</span>
-    </button>
+            <!-- 3. About Me (Swapped to UIU Blue) -->
+            <button type="button" class="fab-speed-dial-item about" id="aboutMeFabBtn" 
+                    onclick="openAboutMeModal()" role="menuitem" 
+                    aria-label="About Me" title="About Developer - Asir Hamim">
+                <span class="fab-item-text">About Me</span>
+                <span class="fab-item-icon">AH</span>
+            </button>
+        </div>
+
+        <!-- Main 3-Dash Trigger Button -->
+        <button type="button" id="fabSpeedDialToggle" class="fab-speed-dial-main" 
+                aria-haspopup="true" aria-expanded="false" aria-label="Quick Menu (3 Dashes)" title="Quick Menu">
+            <span class="fab-dash-icon" aria-hidden="true">
+                <span class="fab-dash"></span>
+                <span class="fab-dash"></span>
+                <span class="fab-dash"></span>
+            </span>
+        </button>
+    </div>
 
     <!-- "About Me" Popup Modal / Small Layout -->
     <div id="aboutMeModalOverlay" class="about-me-overlay" onclick="handleAboutMeOverlayClick(event)">
@@ -6510,6 +6571,12 @@
                 if (ackOverlay && ackOverlay.classList.contains('active')) {
                     window.closeAcknowledgementModal();
                 }
+                const speedDialContainer = document.getElementById('fabSpeedDialContainer');
+                if (speedDialContainer && speedDialContainer.classList.contains('active')) {
+                    speedDialContainer.classList.remove('active');
+                    const speedDialToggle = document.getElementById('fabSpeedDialToggle');
+                    if (speedDialToggle) speedDialToggle.setAttribute('aria-expanded', 'false');
+                }
             }
         });
 
@@ -6589,6 +6656,28 @@
                 window.closeAcknowledgementModal();
             }
         };
+
+        // ==========================================
+        // FLOATING SPEED DIAL (3-DASH BUTTON) LOGIC
+        // ==========================================
+        (function initSpeedDial() {
+            const container = document.getElementById('fabSpeedDialContainer');
+            const toggleBtn = document.getElementById('fabSpeedDialToggle');
+            if (!container || !toggleBtn) return;
+
+            toggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = container.classList.toggle('active');
+                toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (container.classList.contains('active') && !container.contains(e.target)) {
+                    container.classList.remove('active');
+                    toggleBtn.setAttribute('aria-expanded', 'false');
+                }
+            });
+        })();
 
         // ==========================================
         // NOTE CATEGORY SELECTION LOGIC
