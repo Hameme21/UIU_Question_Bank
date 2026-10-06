@@ -1418,6 +1418,346 @@
             transform: scale(0.92);
         }
 
+        /* ==========================================
+           ABOUT ME FLOATING ACTION BUTTON & POPUP
+           ========================================== */
+        .about-me-fab-btn {
+            position: fixed;
+            bottom: 1.75rem;
+            right: 1.75rem;
+            z-index: 9995;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.65rem;
+            background: linear-gradient(135deg, var(--orange) 0%, #ea580c 100%);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 0.55rem 1.15rem 0.55rem 0.55rem;
+            border-radius: 9999px;
+            box-shadow: 0 8px 24px rgba(243, 112, 33, 0.38), 0 2px 8px rgba(0, 0, 0, 0.12);
+            cursor: pointer;
+            transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            text-decoration: none;
+            user-select: none;
+        }
+
+        .about-me-fab-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 14px 32px rgba(243, 112, 33, 0.5), 0 4px 12px rgba(0, 0, 0, 0.15);
+            color: #ffffff;
+        }
+
+        .about-me-fab-btn:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .about-me-fab-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #ffffff;
+            color: var(--orange);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.8rem;
+            letter-spacing: -0.5px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .about-me-fab-text {
+            letter-spacing: 0.2px;
+        }
+
+        @media (max-width: 768px) {
+            .about-me-fab-btn {
+                bottom: 1.25rem;
+                right: 0.85rem;
+                padding: 0.45rem 0.85rem 0.45rem 0.45rem;
+                font-size: 0.8rem;
+                gap: 0.45rem;
+            }
+            .about-me-fab-avatar {
+                width: 28px;
+                height: 28px;
+                font-size: 0.72rem;
+            }
+        }
+
+        /* About Me Modal Overlay & Card */
+        .about-me-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 14, 26, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10005;
+            padding: 1.25rem;
+            box-sizing: border-box;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .about-me-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .about-me-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 1.25rem;
+            box-shadow: 0 24px 50px rgba(0, 0, 0, 0.25), 0 6px 16px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 390px;
+            padding: 1.75rem 1.5rem 1.25rem;
+            position: relative;
+            box-sizing: border-box;
+            transform: scale(0.92) translateY(12px);
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .about-me-overlay.active .about-me-card {
+            transform: scale(1) translateY(0);
+        }
+
+        .about-me-close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            line-height: 1;
+        }
+
+        .about-me-close-btn:hover {
+            background: var(--border);
+            color: var(--text-main);
+            transform: rotate(90deg);
+        }
+
+        .about-me-header {
+            text-align: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .about-me-avatar-wrap {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 0.75rem;
+        }
+
+        .about-me-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--orange) 0%, #ea580c 100%);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            box-shadow: 0 8px 20px rgba(243, 112, 33, 0.35);
+            border: 3px solid var(--surface);
+        }
+
+        .about-me-badge {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #10b981;
+            color: #ffffff;
+            font-size: 0.65rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--surface);
+        }
+
+        .about-me-name {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin: 0 0 0.35rem;
+            letter-spacing: -0.3px;
+        }
+
+        .about-me-dept {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.65rem;
+        }
+
+        .about-me-tag {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.2rem 0.65rem;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .about-me-tag.primary {
+            background: rgba(243, 112, 33, 0.12);
+            color: var(--orange);
+            border: 1px solid rgba(243, 112, 33, 0.3);
+        }
+
+        .about-me-tag.secondary {
+            background: var(--surface-2);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+
+        .about-me-bio {
+            font-size: 0.825rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin: 0;
+            padding: 0 0.5rem;
+        }
+
+        .about-me-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin-bottom: 1rem;
+        }
+
+        .about-me-link-row {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.75rem 0.95rem;
+            border-radius: 0.75rem;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            text-decoration: none;
+            color: var(--text-main);
+            transition: all 0.22s ease;
+        }
+
+        .about-me-link-row:hover {
+            transform: translateX(4px);
+            border-color: var(--orange);
+            background: var(--surface);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+        }
+
+        .about-me-link-row.github:hover .about-me-link-icon {
+            background: #24292e;
+            color: #ffffff;
+        }
+
+        .about-me-link-row.linkedin:hover .about-me-link-icon {
+            background: #0077b5;
+            color: #ffffff;
+        }
+
+        .about-me-link-row.facebook:hover .about-me-link-icon {
+            background: #1877f2;
+            color: #ffffff;
+        }
+
+        .about-me-link-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .about-me-link-text {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .about-me-link-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .about-me-link-sub {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .about-me-link-arrow {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            transition: transform 0.2s ease;
+        }
+
+        .about-me-link-row:hover .about-me-link-arrow {
+            color: var(--orange);
+            transform: translate(2px, -2px);
+        }
+
+        .about-me-footer {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Note Category Option styling */
+        .note-type-option {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+            padding: 0.85rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            background: var(--surface-2);
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .note-type-option.active {
+            border-color: var(--orange);
+            background: var(--orange-light);
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .main-content {
@@ -3766,6 +4106,8 @@
                                 <option value="Assignment">Assignment</option>
                                 <option value="Lab">Lab</option>
                                 <option value="Notes">Notes</option>
+                                <option value="Faculty's Notes">Faculty's Notes</option>
+                                <option value="University's Notes">University's Notes</option>
                             </select>
                             <button type="button" class="btn btn-outline" style="padding:0.3rem 0.6rem; font-size:0.75rem;" id="direct-btn-batch-apply-exam">Apply Exam to All</button>
                         </div>
@@ -3869,6 +4211,37 @@
                                 <label><input type="radio" name="materialType" value="Notes"> Notes</label>
                             </div>
                         </div>
+
+                        <!-- Notes Category Options (Faculty's Notes vs University's Notes) -->
+                        <div class="input-group" id="noteTypeGroup" style="display:none; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:1rem; margin-top:0.75rem; margin-bottom:1rem;">
+                            <label class="input-label" style="margin-bottom:0.6rem; color:var(--text-main); font-weight:700; display:flex; align-items:center; gap:0.4rem;">
+                                <i class="fas fa-book-open" style="color:var(--orange);"></i> Select Notes Category <span style="color:var(--danger); font-weight:700;">*</span>
+                            </label>
+                            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:0.75rem;">
+                                <label class="note-type-option active" id="optFacultyNotes" onclick="selectNoteCategory('faculty')">
+                                    <input type="radio" name="noteCategory" value="faculty" checked style="margin-top:3px;">
+                                    <div>
+                                        <div style="font-weight:700; color:var(--text-main); font-size:0.925rem; display:flex; align-items:center; gap:0.4rem;">
+                                            <i class="fas fa-chalkboard-teacher" style="color:var(--orange);"></i> Faculty's Notes
+                                        </div>
+                                        <div style="font-size:0.78rem; color:var(--text-muted); margin-top:0.25rem; line-height:1.4;">
+                                            Created & prepared directly by the faculty member for this course.
+                                        </div>
+                                    </div>
+                                </label>
+                                <label class="note-type-option" id="optUniversityNotes" onclick="selectNoteCategory('university')">
+                                    <input type="radio" name="noteCategory" value="university" style="margin-top:3px;">
+                                    <div>
+                                        <div style="font-weight:700; color:var(--text-main); font-size:0.925rem; display:flex; align-items:center; gap:0.4rem;">
+                                            <i class="fas fa-university" style="color:#2563eb;"></i> University's Notes
+                                        </div>
+                                        <div style="font-size:0.78rem; color:var(--text-muted); margin-top:0.25rem; line-height:1.4;">
+                                            Centrally provided by university which a particular faculty is using for teaching.
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
                         
                         <div class="input-group" id="examTypeGroup">
                             <label class="input-label">Exam Type</label>
@@ -3970,6 +4343,70 @@
         <div style="font-weight: 600; color: var(--text); margin-bottom: 0.15rem;">©copyright© 2026 Hameme21</div>
         <div style="font-size: 0.75rem; opacity: 0.8;">version 2.1.0</div>
     </footer>
+
+    <!-- Floating "About Me" Action Button -->
+    <button type="button" id="aboutMeFabBtn" class="about-me-fab-btn" onclick="openAboutMeModal()" aria-label="About Developer - Asir Hamim" title="About Developer">
+        <span class="about-me-fab-avatar">AH</span>
+        <span class="about-me-fab-text">About Me</span>
+    </button>
+
+    <!-- "About Me" Popup Modal / Small Layout -->
+    <div id="aboutMeModalOverlay" class="about-me-overlay" onclick="handleAboutMeOverlayClick(event)">
+        <div class="about-me-card" id="aboutMeCard" role="dialog" aria-modal="true" aria-labelledby="aboutMeName">
+            <!-- Close Button -->
+            <button type="button" class="about-me-close-btn" onclick="closeAboutMeModal()" aria-label="Close About Me">&times;</button>
+            
+            <!-- Profile Header -->
+            <div class="about-me-header">
+                <div class="about-me-avatar-wrap">
+                    <div class="about-me-avatar">AH</div>
+                    <div class="about-me-badge" title="UIU CSE Student"><i class="fas fa-check"></i></div>
+                </div>
+                <h3 class="about-me-name" id="aboutMeName">Asir Hamim</h3>
+                <div class="about-me-dept">
+                    <span class="about-me-tag primary"><i class="fas fa-graduation-cap"></i> CSE 251</span>
+                    <span class="about-me-tag secondary"><i class="fas fa-university"></i> UIU</span>
+                </div>
+                <p class="about-me-bio">
+                    Developer of <strong>UIU Question Bank</strong>. Department of Computer Science & Engineering, United International University.
+                </p>
+            </div>
+
+            <!-- Social Links -->
+            <div class="about-me-links">
+                <a href="https://github.com/Hameme21" target="_blank" rel="noopener noreferrer" class="about-me-link-row github">
+                    <div class="about-me-link-icon"><i class="fab fa-github"></i></div>
+                    <div class="about-me-link-text">
+                        <span class="about-me-link-label">GitHub</span>
+                        <span class="about-me-link-sub">github.com/Hameme21</span>
+                    </div>
+                    <i class="fas fa-arrow-up-right-from-square about-me-link-arrow"></i>
+                </a>
+
+                <a href="https://www.linkedin.com/in/asir-hamim-385980384/" target="_blank" rel="noopener noreferrer" class="about-me-link-row linkedin">
+                    <div class="about-me-link-icon"><i class="fab fa-linkedin-in"></i></div>
+                    <div class="about-me-link-text">
+                        <span class="about-me-link-label">LinkedIn</span>
+                        <span class="about-me-link-sub">in/asir-hamim-385980384</span>
+                    </div>
+                    <i class="fas fa-arrow-up-right-from-square about-me-link-arrow"></i>
+                </a>
+
+                <a href="https://www.facebook.com/asir.hameme21/" target="_blank" rel="noopener noreferrer" class="about-me-link-row facebook">
+                    <div class="about-me-link-icon"><i class="fab fa-facebook-f"></i></div>
+                    <div class="about-me-link-text">
+                        <span class="about-me-link-label">Facebook</span>
+                        <span class="about-me-link-sub">facebook.com/asir.hameme21</span>
+                    </div>
+                    <i class="fas fa-arrow-up-right-from-square about-me-link-arrow"></i>
+                </a>
+            </div>
+
+            <div class="about-me-footer">
+                <span>Built with ❤️ for the UIU CSE Student Community</span>
+            </div>
+        </div>
+    </div>
 
     <!-- Full Browser Question Viewer & Multi-Tab Teacher Studio Overlay -->
     <div id="fullBrowserViewer" class="qb-fullscreen-viewer" style="display: none;">
@@ -4938,14 +5375,23 @@
                 downloadLinks += `<button type="button" onclick="openSolutionUploadModal('${paper.id}', '${paper.courseCode}', '${paper.examType || 'Midterm'}', '${paper.semester}')" class="btn btn-outline" style="padding:0.45rem 0.85rem; font-size:0.85rem; color:var(--orange); border-color:var(--orange);" title="Upload a solution for this question paper">${solBtnText}</button>`;
             }
 
-            const topicStr = paper.topic ? `<div style="font-weight:500;">${paper.topic}</div>` : '';
-            
+            let noteBadge = '';
+            if (type === 'Notes' || paper.materialType === 'note') {
+                const isUni = paper.noteCategory === 'university' || paper.noteType === 'university' || (paper.examType || '').includes('University') || (paper.topic || '').toLowerCase().includes('university');
+                if (isUni) {
+                    noteBadge = `<span class="pill" style="background:rgba(16,185,129,0.14); color:#059669; border:1px solid rgba(16,185,129,0.3); font-weight:600;"><i class="fas fa-university"></i> University's Notes</span>`;
+                } else {
+                    noteBadge = `<span class="pill" style="background:rgba(59,130,246,0.14); color:#2563eb; border:1px solid rgba(59,130,246,0.3); font-weight:600;"><i class="fas fa-chalkboard-teacher"></i> Faculty's Notes</span>`;
+                }
+            }
+
             return `
                 <div class="resource-card">
                     <div class="resource-info">
                         <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
                             <span class="pill primary">${paper.courseCode}</span>
                             <span class="pill">${type}</span>
+                            ${noteBadge}
                             ${examLabel ? `<span class="pill">${examLabel}</span>` : ''}
                             ${semLabel ? `<span class="pill">${semLabel}</span>` : ''}
                             ${paper.facultyName ? `<span class="pill" style="background:rgba(255,145,77,0.15); color:var(--orange); border:1px solid rgba(255,145,77,0.3); font-weight:600;"><i class="fas fa-chalkboard-teacher"></i> ${paper.facultyName}</span>` : ''}
@@ -5225,7 +5671,9 @@
                 icon: '<i class="fas fa-book-open"></i>',
                 searchPlaceholder: 'Search notes by course code, topic, author...',
                 filters: [
-                    { id: 'all', label: 'All Notes' }
+                    { id: 'all', label: 'All Notes' },
+                    { id: 'faculty', label: "Faculty's Notes" },
+                    { id: 'university', label: "University's Notes" }
                 ]
             }
         };
@@ -5550,7 +5998,7 @@
         }
 
         function renderNotesList(contentArea, summaryEl, actionContainer) {
-            let list = approvedPapers.filter(p => p.type === 'Notes');
+            let list = approvedPapers.filter(p => p.type === 'Notes' || p.materialType === 'note');
             const q = currentStatsModalSearch;
 
             if (q) {
@@ -5562,6 +6010,18 @@
                     const faculty = (p.facultyName || '').toLowerCase();
                     const submitter = (p.submitterName || '').toLowerCase();
                     return code.includes(cleanQ) || topic.includes(q) || sem.includes(q) || faculty.includes(q) || submitter.includes(q);
+                });
+            }
+
+            if (currentStatsModalFilter === 'faculty') {
+                list = list.filter(p => {
+                    const isUni = p.noteCategory === 'university' || p.noteType === 'university' || (p.examType || '').includes('University') || (p.topic || '').toLowerCase().includes('university');
+                    return !isUni;
+                });
+            } else if (currentStatsModalFilter === 'university') {
+                list = list.filter(p => {
+                    const isUni = p.noteCategory === 'university' || p.noteType === 'university' || (p.examType || '').includes('University') || (p.topic || '').toLowerCase().includes('university');
+                    return isUni;
                 });
             }
 
@@ -5589,12 +6049,16 @@
             contentArea.innerHTML = `<div class="resource-list">${list.map(p => createResourceCard(p)).join('')}</div>`;
         }
 
-        // Global Keyboard and Backdrop Close Listeners for Stats Modal
+        // Global Keyboard and Backdrop Close Listeners for Stats Modal & About Me
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 const modal = document.getElementById('statsListModal');
                 if (modal && (modal.style.display === 'flex' || modal.classList.contains('active'))) {
                     window.closeStatsListModal();
+                }
+                const aboutOverlay = document.getElementById('aboutMeModalOverlay');
+                if (aboutOverlay && aboutOverlay.classList.contains('active')) {
+                    window.closeAboutMeModal();
                 }
             }
         });
@@ -5607,6 +6071,65 @@
                 }
             });
         }
+
+        // ==========================================
+        // ABOUT DEVELOPER (ABOUT ME) MODAL HANDLERS
+        // ==========================================
+        window.openAboutMeModal = function() {
+            const overlay = document.getElementById('aboutMeModalOverlay');
+            if (overlay) {
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        };
+
+        window.closeAboutMeModal = function() {
+            const overlay = document.getElementById('aboutMeModalOverlay');
+            if (overlay) {
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        };
+
+        window.toggleAboutMeModal = function() {
+            const overlay = document.getElementById('aboutMeModalOverlay');
+            if (overlay && overlay.classList.contains('active')) {
+                window.closeAboutMeModal();
+            } else {
+                window.openAboutMeModal();
+            }
+        };
+
+        window.handleAboutMeOverlayClick = function(e) {
+            if (e.target && e.target.id === 'aboutMeModalOverlay') {
+                window.closeAboutMeModal();
+            }
+        };
+
+        // ==========================================
+        // NOTE CATEGORY SELECTION LOGIC
+        // ==========================================
+        window.selectNoteCategory = function(cat) {
+            const optFaculty = document.getElementById('optFacultyNotes');
+            const optUniversity = document.getElementById('optUniversityNotes');
+            const radioFaculty = optFaculty ? optFaculty.querySelector('input[type="radio"]') : null;
+            const radioUniversity = optUniversity ? optUniversity.querySelector('input[type="radio"]') : null;
+
+            if (cat === 'university') {
+                if (optFaculty) optFaculty.classList.remove('active');
+                if (optUniversity) optUniversity.classList.add('active');
+                if (radioUniversity) radioUniversity.checked = true;
+                if (radioFaculty) radioFaculty.checked = false;
+            } else {
+                if (optUniversity) optUniversity.classList.remove('active');
+                if (optFaculty) optFaculty.classList.add('active');
+                if (radioFaculty) radioFaculty.checked = true;
+                if (radioUniversity) radioUniversity.checked = false;
+            }
+            if (typeof updateFacultyRequirementUI === 'function') {
+                updateFacultyRequirementUI();
+            }
+        };
 
         // ==========================================
         // FACULTIES STATE & FIRESTORE QUERIES
@@ -5846,9 +6369,20 @@
                 docTypeBadge = `<span class="qb-doc-type-pill" style="position:absolute; top:8px; left:8px; background:rgba(22, 163, 74, 0.15); color:#16a34a; border:1px solid rgba(22, 163, 74, 0.35); font-size:0.68rem; font-weight:700; padding:0.12rem 0.45rem; border-radius:4px; z-index:2;"><i class="fas fa-file-excel"></i> XLS</span>`;
             }
 
+            let noteTypeBadge = '';
+            if (paper.type === 'Notes' || paper.materialType === 'note') {
+                const isUni = paper.noteCategory === 'university' || paper.noteType === 'university' || (paper.examType || '').includes('University') || (paper.topic || '').toLowerCase().includes('university');
+                if (isUni) {
+                    noteTypeBadge = `<span class="qb-doc-type-pill" style="position:absolute; top:8px; right:36px; background:rgba(16,185,129,0.18); color:#059669; border:1px solid rgba(16,185,129,0.4); font-size:0.65rem; font-weight:700; padding:0.12rem 0.45rem; border-radius:4px; z-index:2;"><i class="fas fa-university"></i> Uni Notes</span>`;
+                } else {
+                    noteTypeBadge = `<span class="qb-doc-type-pill" style="position:absolute; top:8px; right:36px; background:rgba(59,130,246,0.18); color:#2563eb; border:1px solid rgba(59,130,246,0.4); font-size:0.65rem; font-weight:700; padding:0.12rem 0.45rem; border-radius:4px; z-index:2;"><i class="fas fa-chalkboard-teacher"></i> Faculty Notes</span>`;
+                }
+            }
+
             return `
                 <div class="${cardClass}" onclick="openFullBrowserViewerById('${paper.id}', ${isSolution})" title="${actionTitle}">
                     ${docTypeBadge}
+                    ${noteTypeBadge}
                     ${isSolution ? `<span class="qb-sol-pill"><i class="fas fa-check-circle"></i> Solution</span>` : (hasSol ? `<span class="qb-card-sol-indicator" title="Solution Included"><i class="fas fa-check"></i></span>` : '')}
                     <button type="button" class="qb-card-dl-btn" onclick="event.stopPropagation(); forceDownloadFile('${targetPdf}', '${downloadName}')" title="${dlBtnTitle}">
                         <i class="fas fa-download"></i>
@@ -6428,11 +6962,18 @@
             } else {
                 const selectedType = document.querySelector('input[name="materialType"]:checked')?.value;
                 if (selectedType === 'Notes') {
-                    if (facHint) facHint.innerHTML = '<span style="color:var(--text-muted); font-weight:500;">(Recommended for Notes)</span>';
+                    const selectedCat = document.querySelector('input[name="noteCategory"]:checked')?.value || 'faculty';
+                    if (selectedCat === 'university') {
+                        if (facHint) facHint.innerHTML = '<span style="color:var(--text-muted); font-weight:500;">(Faculty teaching with these university notes)</span>';
+                        if (facSearch) facSearch.placeholder = 'Search faculty teaching with these university notes...';
+                    } else {
+                        if (facHint) facHint.innerHTML = '<span style="color:var(--text-muted); font-weight:500;">(Creator of Notes - Faculty member)</span>';
+                        if (facSearch) facSearch.placeholder = 'Search faculty who created these notes (e.g. AnHq, Anindya)...';
+                    }
                 } else {
                     if (facHint) facHint.innerHTML = '<span style="color:var(--text-muted); font-weight:400;">(Optional)</span>';
+                    if (facSearch) facSearch.placeholder = 'Search by name or code (e.g., AnHq, Anindya)...';
                 }
-                if (facSearch) facSearch.placeholder = 'Search by name or code (e.g., AnHq, Anindya)...';
             }
         }
 
@@ -6627,12 +7168,14 @@
                     radio.addEventListener('change', (e) => {
                         const val = e.target.value;
                         const examGrp = document.getElementById('examTypeGroup');
+                        const noteTypeGrp = document.getElementById('noteTypeGroup');
                         const solGrp = document.getElementById('solutionFileGroup');
                         const mainLabel = document.getElementById('upMainFileLabel');
                         const topicLabel = document.getElementById('upTopicLabel');
                         const topicInp = document.getElementById('upTopic');
 
                         if (examGrp) examGrp.style.display = (val === 'Question' || val === 'Solution') ? 'block' : 'none';
+                        if (noteTypeGrp) noteTypeGrp.style.display = val === 'Notes' ? 'block' : 'none';
                         if (solGrp) solGrp.style.display = val === 'Question' ? 'block' : 'none';
                         
                         if (mainLabel) {
@@ -7078,7 +7621,9 @@
                 const trimester = document.getElementById('upTrimester').value || '0';
                 const semester = document.getElementById('upSemester').value;
                 const type = document.querySelector('input[name="materialType"]:checked').value;
-                const examType = (type === 'Question' || type === 'Solution') ? document.getElementById('upExamType').value : 'Notes';
+                const noteCategory = (type === 'Notes') ? (document.querySelector('input[name="noteCategory"]:checked')?.value || 'faculty') : null;
+                const noteTypeName = (type === 'Notes') ? (noteCategory === 'university' ? "University's Notes" : "Faculty's Notes") : null;
+                const examType = (type === 'Question' || type === 'Solution') ? document.getElementById('upExamType').value : (noteTypeName || 'Notes');
                 const topic = document.getElementById('upTopic').value.trim();
                 const facultyId = document.getElementById('upFacultyId')?.value ? Number(document.getElementById('upFacultyId').value) : null;
                 const facultyName = (document.getElementById('upFacultyName')?.value || document.getElementById('upFacultySearch')?.value || '').trim();
@@ -7177,6 +7722,9 @@
                     credits: course.credits,
                     trimester: String(trimester),
                     examType,
+                    noteCategory,
+                    noteType: noteCategory,
+                    noteTypeName,
                     materialAssets
                 };
 
@@ -7195,6 +7743,10 @@
                     semester,
                     type: type,
                     materialType: type === 'Solution' ? 'solution' : (type === 'Notes' ? 'note' : 'question'),
+                    examType,
+                    noteCategory,
+                    noteType: noteCategory,
+                    noteTypeName,
                     solutionPdfUrl: type === 'Solution' ? mainAsset.pdfUrl : (solFile ? materialAssets.find(a => a.assetType === 'solution')?.pdfUrl : null),
                     courseSearch: `${courseCode} ${course.title} ${topic} ${facultyName} ${facultyCode}`.toLowerCase(),
                     materialGroup: type === 'Notes' ? 'notes' : (type === 'Solution' ? 'solutions' : 'questions'),
@@ -7207,6 +7759,9 @@
                 showToast('Material submitted for admin review.', 'success');
                 setTimeout(() => {
                     document.getElementById('uploadForm').reset();
+                    selectNoteCategory('faculty');
+                    const upNoteTypeGrp = document.getElementById('noteTypeGroup');
+                    if (upNoteTypeGrp) upNoteTypeGrp.style.display = 'none';
                     const upFacSearch = document.getElementById('upFacultySearch');
                     const upFacClear = document.getElementById('upFacultyClearBtn');
                     const upFacId = document.getElementById('upFacultyId');
@@ -9317,15 +9872,38 @@
                 } else if (/\b(?:lab[-_ ]?final|lab[-_ ]?mid|lab[-_ ]?exam|lab[-_ ]?task|lab)\b/i.test(fullText)) {
                     examType = 'Lab';
                     materialType = 'Question';
+                } else if (/\b(?:uni(?:versity)?[-_ ]?notes?|central[-_ ]?notes?|uiu[-_ ]?notes?)\b/i.test(fullText)) {
+                    examType = "University's Notes";
+                    materialType = 'Notes';
+                } else if (/\b(?:faculty[-_ ]?notes?|teacher[-_ ]?notes?)\b/i.test(fullText)) {
+                    examType = "Faculty's Notes";
+                    materialType = 'Notes';
                 } else if (/\b(?:notes?|lecture[-_ ]?notes?|summary|slides?)\b/i.test(fullText)) {
-                    examType = 'Notes';
+                    examType = "Faculty's Notes";
                     materialType = 'Notes';
                 } else if (/\b(?:assignment[-_ ]?\d*|hw[-_ ]?\d*)\b/i.test(fullText)) {
                     examType = 'Assignment';
                 }
             } else {
                 if (examType === 'Lab') materialType = 'Question';
-                if (examType === 'Notes') materialType = 'Notes';
+                if (examType === 'Notes') {
+                    materialType = 'Notes';
+                    examType = /\b(?:uni|university|central)\b/i.test(fullText) ? "University's Notes" : "Faculty's Notes";
+                }
+            }
+
+            let noteCategory = null;
+            let noteTypeName = null;
+            if (materialType === 'Notes') {
+                if (examType === "University's Notes" || /\b(?:uni|university|central)\b/i.test(fullText)) {
+                    noteCategory = 'university';
+                    noteTypeName = "University's Notes";
+                    examType = "University's Notes";
+                } else {
+                    noteCategory = 'faculty';
+                    noteTypeName = "Faculty's Notes";
+                    if (examType === 'Notes') examType = "Faculty's Notes";
+                }
             }
 
             let semester = detectedSemester || '';
@@ -9365,7 +9943,7 @@
             } else if (materialType === 'Solution') {
                 topic = `${examType} Solution ${semLabelStr}`.trim();
             } else {
-                topic = `Lecture Notes ${detectedCourse ? detectedCourse.code : ''}`.trim();
+                topic = `${noteTypeName || examType} ${detectedCourse ? detectedCourse.code : ''}`.trim();
             }
 
             return {
@@ -9374,6 +9952,8 @@
                 courseName: detectedCourse ? detectedCourse.title : '',
                 examType,
                 materialType,
+                noteCategory,
+                noteTypeName,
                 semester,
                 trimester,
                 topic,
@@ -9546,7 +10126,7 @@
                     <option value="${s.code}" ${s.code === item.semester ? 'selected' : ''}>${s.label}</option>
                 `).join('');
 
-                const examOpts = ['Midterm', 'Final', 'Quiz 1', 'Quiz 2', 'Quiz 3', 'Quiz 4', 'Quiz', 'Assignment', 'Lab', 'Notes'].map(e => `
+                const examOpts = ['Midterm', 'Final', 'Quiz 1', 'Quiz 2', 'Quiz 3', 'Quiz 4', 'Quiz', 'Assignment', 'Lab', "Faculty's Notes", "University's Notes"].map(e => `
                     <option value="${e}" ${e === item.examType ? 'selected' : ''}>${e}</option>
                 `).join('');
 
@@ -9650,8 +10230,20 @@
                     const idx = parseInt(e.target.dataset.index, 10);
                     if (parsedUserZipEntries[idx]) {
                         parsedUserZipEntries[idx].examType = e.target.value;
-                        const semLabelStr = parsedUserZipEntries[idx].semester ? (decodeSemester(parsedUserZipEntries[idx].semester).label || parsedUserZipEntries[idx].semester) : '';
-                        parsedUserZipEntries[idx].topic = `${e.target.value} Question ${semLabelStr}`.trim();
+                        if (e.target.value === "University's Notes") {
+                            parsedUserZipEntries[idx].materialType = 'Notes';
+                            parsedUserZipEntries[idx].noteCategory = 'university';
+                            parsedUserZipEntries[idx].noteTypeName = "University's Notes";
+                            parsedUserZipEntries[idx].topic = `University's Notes ${parsedUserZipEntries[idx].courseCode || ''}`.trim();
+                        } else if (e.target.value === "Faculty's Notes" || e.target.value === 'Notes') {
+                            parsedUserZipEntries[idx].materialType = 'Notes';
+                            parsedUserZipEntries[idx].noteCategory = 'faculty';
+                            parsedUserZipEntries[idx].noteTypeName = "Faculty's Notes";
+                            parsedUserZipEntries[idx].topic = `Faculty's Notes ${parsedUserZipEntries[idx].courseCode || ''}`.trim();
+                        } else {
+                            const semLabelStr = parsedUserZipEntries[idx].semester ? (decodeSemester(parsedUserZipEntries[idx].semester).label || parsedUserZipEntries[idx].semester) : '';
+                            parsedUserZipEntries[idx].topic = `${e.target.value} Question ${semLabelStr}`.trim();
+                        }
                         renderUserZipParsedTable();
                     }
                 });
@@ -9777,20 +10369,26 @@
                 if (!targetExam) return;
                 parsedUserZipEntries.forEach(item => {
                     item.examType = targetExam;
-                    if (targetExam === 'Notes') {
+                    if (targetExam === "University's Notes") {
                         item.materialType = 'Notes';
+                        item.noteCategory = 'university';
+                        item.noteTypeName = "University's Notes";
+                        item.topic = `University's Notes ${item.courseCode || ''}`.trim();
+                    } else if (targetExam === "Faculty's Notes" || targetExam === 'Notes') {
+                        item.materialType = 'Notes';
+                        item.noteCategory = 'faculty';
+                        item.noteTypeName = "Faculty's Notes";
+                        item.topic = `Faculty's Notes ${item.courseCode || ''}`.trim();
                     } else {
                         item.materialType = 'Question';
-                    }
-                    const semLabelStr = item.semester ? (decodeSemester(item.semester).label || item.semester) : '';
-                    if (item.materialType === 'Question') {
+                        item.noteCategory = null;
+                        item.noteTypeName = null;
+                        const semLabelStr = item.semester ? (decodeSemester(item.semester).label || item.semester) : '';
                         item.topic = `${targetExam} Question ${semLabelStr}`.trim();
-                    } else {
-                        item.topic = `Lecture Notes ${item.courseCode || ''}`.trim();
                     }
                 });
                 refreshUserZipUploadedStatus({ render: true });
-                showToast(`Applied exam type "${targetExam}" to all questions.`, 'success');
+                showToast(`Applied exam/material type "${targetExam}" to all questions.`, 'success');
             });
         }
 
@@ -9895,6 +10493,9 @@
                                 .filter(t => t.length > 0);
                             const zipSearchTokens = Array.from(new Set(itemTokens));
 
+                            const noteCat = item.noteCategory || (item.materialType === 'Notes' ? (item.examType === "University's Notes" ? 'university' : 'faculty') : null);
+                            const noteName = item.noteTypeName || (noteCat === 'university' ? "University's Notes" : (noteCat === 'faculty' ? "Faculty's Notes" : null));
+
                             const newDocData = {
                                 courseCode: item.courseCode.replace(/\s+/g, ' ').toUpperCase(),
                                 courseName: itemCourseName,
@@ -9903,6 +10504,9 @@
                                 type: item.materialType || 'Question',
                                 materialType: (item.materialType || 'Question').toLowerCase(),
                                 examType: item.examType || 'Midterm',
+                                noteCategory: noteCat,
+                                noteType: noteCat,
+                                noteTypeName: noteName,
                                 topic: itemTopic,
                                 facultyId: item.facultyId || null,
                                 facultyName: item.facultyName || '',
@@ -10165,7 +10769,7 @@
                     <option value="${s.code}" ${s.code === item.semester ? 'selected' : ''}>${s.label}</option>
                 `).join('');
 
-                const examOpts = ['Midterm', 'Final', 'Quiz 1', 'Quiz 2', 'Quiz 3', 'Quiz 4', 'Quiz', 'Assignment', 'Lab', 'Notes'].map(e => `
+                const examOpts = ['Midterm', 'Final', 'Quiz 1', 'Quiz 2', 'Quiz 3', 'Quiz 4', 'Quiz', 'Assignment', 'Lab', "Faculty's Notes", "University's Notes"].map(e => `
                     <option value="${e}" ${e === item.examType ? 'selected' : ''}>${e}</option>
                 `).join('');
 
@@ -10263,8 +10867,20 @@
                     const idx = parseInt(e.target.dataset.index, 10);
                     if (parsedDirectEntries[idx]) {
                         parsedDirectEntries[idx].examType = e.target.value;
-                        const semLabelStr = parsedDirectEntries[idx].semester ? (decodeSemester(parsedDirectEntries[idx].semester).label || parsedDirectEntries[idx].semester) : '';
-                        parsedDirectEntries[idx].topic = `${e.target.value} Question ${semLabelStr}`.trim();
+                        if (e.target.value === "University's Notes") {
+                            parsedDirectEntries[idx].materialType = 'Notes';
+                            parsedDirectEntries[idx].noteCategory = 'university';
+                            parsedDirectEntries[idx].noteTypeName = "University's Notes";
+                            parsedDirectEntries[idx].topic = `University's Notes ${parsedDirectEntries[idx].courseCode || ''}`.trim();
+                        } else if (e.target.value === "Faculty's Notes" || e.target.value === 'Notes') {
+                            parsedDirectEntries[idx].materialType = 'Notes';
+                            parsedDirectEntries[idx].noteCategory = 'faculty';
+                            parsedDirectEntries[idx].noteTypeName = "Faculty's Notes";
+                            parsedDirectEntries[idx].topic = `Faculty's Notes ${parsedDirectEntries[idx].courseCode || ''}`.trim();
+                        } else {
+                            const semLabelStr = parsedDirectEntries[idx].semester ? (decodeSemester(parsedDirectEntries[idx].semester).label || parsedDirectEntries[idx].semester) : '';
+                            parsedDirectEntries[idx].topic = `${e.target.value} Question ${semLabelStr}`.trim();
+                        }
                         renderDirectParsedTable();
                     }
                 });
@@ -10390,14 +11006,26 @@
                 if (!targetExam) return;
                 parsedDirectEntries.forEach(item => {
                     item.examType = targetExam;
-                    item.materialType = (targetExam === 'Notes') ? 'Notes' : 'Question';
-                    const semLabelStr = item.semester ? (decodeSemester(item.semester).label || item.semester) : '';
-                    item.topic = (item.materialType === 'Question') 
-                        ? `${targetExam} Question ${semLabelStr}`.trim()
-                        : `Lecture Notes ${item.courseCode || ''}`.trim();
+                    if (targetExam === "University's Notes") {
+                        item.materialType = 'Notes';
+                        item.noteCategory = 'university';
+                        item.noteTypeName = "University's Notes";
+                        item.topic = `University's Notes ${item.courseCode || ''}`.trim();
+                    } else if (targetExam === "Faculty's Notes" || targetExam === 'Notes') {
+                        item.materialType = 'Notes';
+                        item.noteCategory = 'faculty';
+                        item.noteTypeName = "Faculty's Notes";
+                        item.topic = `Faculty's Notes ${item.courseCode || ''}`.trim();
+                    } else {
+                        item.materialType = 'Question';
+                        item.noteCategory = null;
+                        item.noteTypeName = null;
+                        const semLabelStr = item.semester ? (decodeSemester(item.semester).label || item.semester) : '';
+                        item.topic = `${targetExam} Question ${semLabelStr}`.trim();
+                    }
                 });
                 refreshDirectUploadedStatus();
-                showToast(`Applied exam type "${targetExam}" to all questions.`, 'success');
+                showToast(`Applied exam/material type "${targetExam}" to all questions.`, 'success');
             });
         }
 
@@ -10549,6 +11177,9 @@
                                 .filter(t => t.length > 0);
                             const directSearchTokens = Array.from(new Set(itemTokens));
 
+                            const noteCat = item.noteCategory || (item.materialType === 'Notes' ? (item.examType === "University's Notes" ? 'university' : 'faculty') : null);
+                            const noteName = item.noteTypeName || (noteCat === 'university' ? "University's Notes" : (noteCat === 'faculty' ? "Faculty's Notes" : null));
+
                             const newDocData = {
                                 courseCode: item.courseCode.replace(/\s+/g, ' ').toUpperCase(),
                                 courseName: itemCourseName,
@@ -10557,6 +11188,9 @@
                                 type: item.materialType || 'Question',
                                 materialType: (item.materialType || 'Question').toLowerCase(),
                                 examType: item.examType || 'Midterm',
+                                noteCategory: noteCat,
+                                noteType: noteCat,
+                                noteTypeName: noteName,
                                 topic: itemTopic,
                                 facultyId: item.facultyId || null,
                                 facultyName: item.facultyName || '',
@@ -10779,6 +11413,8 @@
                                 <option value="Assignment">Assignment</option>
                                 <option value="Lab">Lab</option>
                                 <option value="Notes">Notes</option>
+                                <option value="Faculty's Notes">Faculty's Notes</option>
+                                <option value="University's Notes">University's Notes</option>
                             </select>
                             <button type="button" class="btn btn-outline" style="padding:0.3rem 0.6rem; font-size:0.75rem;" id="user-btn-batch-apply-exam">Apply Exam Type to All</button>
                         </div>
