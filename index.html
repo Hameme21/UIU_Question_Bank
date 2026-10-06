@@ -1739,6 +1739,259 @@
             border-top: 1px solid var(--border);
         }
 
+        /* ==========================================
+           ACKNOWLEDGEMENT FLOATING BUTTON & POPUP
+           ========================================== */
+        .ack-fab-btn {
+            position: fixed;
+            bottom: 1.75rem;
+            right: 11.25rem;
+            z-index: 9995;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 0.55rem 1.05rem 0.55rem 0.65rem;
+            border-radius: 9999px;
+            box-shadow: 0 8px 24px rgba(225, 29, 72, 0.35), 0 2px 8px rgba(0, 0, 0, 0.12);
+            cursor: pointer;
+            transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-decoration: none;
+            user-select: none;
+        }
+
+        .ack-fab-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 14px 32px rgba(225, 29, 72, 0.48), 0 4px 12px rgba(0, 0, 0, 0.15);
+            color: #ffffff;
+        }
+
+        .ack-fab-btn:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .ack-fab-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #ffffff;
+            color: #e11d48;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            animation: heartPulse 2.4s infinite ease-in-out;
+        }
+
+        @keyframes heartPulse {
+            0%, 100% { transform: scale(1); }
+            14% { transform: scale(1.18); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.12); }
+            70% { transform: scale(1); }
+        }
+
+        @media (max-width: 768px) {
+            .ack-fab-btn {
+                bottom: 4.15rem;
+                right: 0.85rem;
+                padding: 0.45rem 0.85rem 0.45rem 0.55rem;
+                font-size: 0.78rem;
+                gap: 0.45rem;
+            }
+            .ack-fab-icon {
+                width: 26px;
+                height: 26px;
+                font-size: 0.75rem;
+            }
+        }
+
+        /* Footer Acknowledgement Button */
+        .footer-ack-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.9rem;
+            margin-top: 0.45rem;
+            font-size: 0.76rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-main);
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .footer-ack-btn:hover {
+            border-color: #f43f5e;
+            color: #f43f5e;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(244, 63, 94, 0.2);
+        }
+
+        /* Acknowledgement Modal Overlay & Card */
+        .ack-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 14, 26, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10006;
+            padding: 1.25rem;
+            box-sizing: border-box;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .ack-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .ack-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 1.25rem;
+            box-shadow: 0 24px 50px rgba(0, 0, 0, 0.25), 0 6px 16px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 440px;
+            padding: 1.75rem 1.5rem 1.35rem;
+            position: relative;
+            box-sizing: border-box;
+            transform: scale(0.92) translateY(12px);
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .ack-overlay.active .ack-card {
+            transform: scale(1) translateY(0);
+        }
+
+        .ack-close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .ack-close-btn:hover {
+            background: #e11d48;
+            color: #ffffff;
+            border-color: #e11d48;
+            transform: rotate(90deg);
+        }
+
+        .ack-header {
+            text-align: center;
+            margin-bottom: 1.15rem;
+        }
+
+        .ack-heart-wrap {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 0.65rem;
+        }
+
+        .ack-heart-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin: 0 auto;
+            box-shadow: 0 8px 20px rgba(225, 29, 72, 0.35);
+        }
+
+        .ack-star-badge {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #f59e0b;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            border: 2px solid var(--surface);
+        }
+
+        .ack-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin: 0 0 0.4rem;
+            letter-spacing: -0.3px;
+        }
+
+        .ack-dept {
+            display: flex;
+            gap: 0.4rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
+        }
+
+        .ack-message-box {
+            background: linear-gradient(135deg, rgba(244, 63, 94, 0.08) 0%, rgba(243, 112, 33, 0.08) 100%);
+            border: 1px solid rgba(244, 63, 94, 0.25);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.15rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .ack-quote-text {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-main);
+            line-height: 1.55;
+            margin: 0;
+        }
+
+        .ack-highlight-link {
+            color: #e11d48;
+            font-weight: 700;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            transition: color 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .ack-highlight-link:hover {
+            color: #be123c;
+        }
+
         /* Note Category Option styling */
         .note-type-option {
             display: flex;
@@ -4341,8 +4594,19 @@
     <!-- App Footer (Global Across All Pages) -->
     <footer class="app-footer" style="margin-top: 1.5rem; padding: 0.75rem 1rem 4rem; text-align: center; color: var(--text-muted); font-size: 0.8rem; width: 100%; position: relative; z-index: 10;">
         <div style="font-weight: 600; color: var(--text); margin-bottom: 0.15rem;">©copyright© 2026 Hameme21</div>
-        <div style="font-size: 0.75rem; opacity: 0.8;">version 2.1.0</div>
+        <div style="font-size: 0.75rem; opacity: 0.8; margin-bottom: 0.45rem;">version 2.1.0</div>
+        <div>
+            <button type="button" class="footer-ack-btn" id="footerAckBtn" onclick="openAcknowledgementModal()" aria-label="Special Acknowledgement">
+                <i class="fas fa-heart" style="color: #f43f5e;"></i> Acknowledgement
+            </button>
+        </div>
     </footer>
+
+    <!-- Floating "Acknowledgement" Action Button -->
+    <button type="button" id="acknowledgementFabBtn" class="ack-fab-btn" onclick="openAcknowledgementModal()" aria-label="Special Acknowledgement" title="Special Acknowledgement">
+        <span class="ack-fab-icon"><i class="fas fa-heart"></i></span>
+        <span>Acknowledgement</span>
+    </button>
 
     <!-- Floating "About Me" Action Button -->
     <button type="button" id="aboutMeFabBtn" class="about-me-fab-btn" onclick="openAboutMeModal()" aria-label="About Developer - Asir Hamim" title="About Developer">
@@ -4403,7 +4667,75 @@
             </div>
 
             <div class="about-me-footer">
-                <span>Built with ❤️ for the UIU CSE Student Community</span>
+                <div style="margin-bottom: 0.4rem;">Built with ❤️ for the UIU CSE Student Community</div>
+                <button type="button" onclick="closeAboutMeModal(); openAcknowledgementModal();" style="font-size: 0.78rem; color: #f43f5e; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; background: none; border: none; padding: 0.2rem 0.5rem; border-radius: 6px; transition: var(--transition);">
+                    <i class="fas fa-heart"></i> Special Acknowledgements &rarr;
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- "Acknowledgement" Popup Modal -->
+    <div id="acknowledgementModalOverlay" class="ack-overlay" onclick="handleAcknowledgementOverlayClick(event)">
+        <div class="ack-card" id="acknowledgementCard" role="dialog" aria-modal="true" aria-labelledby="ackModalTitle">
+            <!-- Close Button -->
+            <button type="button" class="ack-close-btn" onclick="closeAcknowledgementModal()" aria-label="Close Acknowledgement">&times;</button>
+            
+            <!-- Header -->
+            <div class="ack-header">
+                <div class="ack-heart-wrap">
+                    <div class="ack-heart-icon"><i class="fas fa-heart"></i></div>
+                    <div class="ack-star-badge" title="Special Credit"><i class="fas fa-star"></i></div>
+                </div>
+                <h3 class="ack-title" id="ackModalTitle">Special Acknowledgement</h3>
+                <div class="ack-dept">
+                    <span class="about-me-tag primary"><i class="fas fa-hands-helping"></i> Core Attribution</span>
+                    <span class="about-me-tag secondary"><i class="fas fa-award"></i> Question Bank</span>
+                </div>
+            </div>
+
+            <!-- Core User-Requested Message Box -->
+            <div class="ack-message-box">
+                <p class="ack-quote-text">
+                    "Most of the questions collected from 
+                    <a href="https://www.facebook.com/NurulAlamAdor/" target="_blank" rel="noopener noreferrer" class="ack-highlight-link">
+                        Nurul Alam Ador <i class="fab fa-facebook"></i>
+                    </a> 
+                    and 
+                    <a href="https://uiuqb.vercel.app/courses" target="_blank" rel="noopener noreferrer" class="ack-highlight-link">
+                        Question Bank <i class="fas fa-arrow-up-right-from-square"></i>
+                    </a>."
+                </p>
+            </div>
+
+            <!-- Resource Links -->
+            <div class="about-me-links" style="margin-top: 1rem;">
+                <a href="https://www.facebook.com/NurulAlamAdor/" target="_blank" rel="noopener noreferrer" class="about-me-link-row facebook">
+                    <div class="about-me-link-icon" style="background: rgba(24, 119, 242, 0.12); color: #1877f2;"><i class="fab fa-facebook-f"></i></div>
+                    <div class="about-me-link-text">
+                        <span class="about-me-link-label">Nurul Alam Ador</span>
+                        <span class="about-me-link-sub">facebook.com/NurulAlamAdor</span>
+                    </div>
+                    <i class="fas fa-arrow-up-right-from-square about-me-link-arrow"></i>
+                </a>
+
+                <a href="https://uiuqb.vercel.app/courses" target="_blank" rel="noopener noreferrer" class="about-me-link-row qb-archive" style="border-color: rgba(243, 112, 33, 0.2);">
+                    <div class="about-me-link-icon" style="background: rgba(243, 112, 33, 0.12); color: var(--orange);"><i class="fas fa-book-open"></i></div>
+                    <div class="about-me-link-text">
+                        <span class="about-me-link-label">Question Bank Archive</span>
+                        <span class="about-me-link-sub">uiuqb.vercel.app/courses</span>
+                    </div>
+                    <i class="fas fa-arrow-up-right-from-square about-me-link-arrow"></i>
+                </a>
+            </div>
+
+            <div class="about-me-footer" style="margin-top: 1.25rem;">
+                <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.75rem;">
+                    We gratefully acknowledge these resources for helping build our comprehensive past exam database.
+                </p>
+                <button type="button" class="btn btn-primary" onclick="closeAcknowledgementModal()" style="width: 100%; justify-content: center; padding: 0.55rem 1rem; font-size: 0.85rem; border-radius: var(--radius-sm);">
+                    <i class="fas fa-check"></i> Close
+                </button>
             </div>
         </div>
     </div>
@@ -6060,6 +6392,10 @@
                 if (aboutOverlay && aboutOverlay.classList.contains('active')) {
                     window.closeAboutMeModal();
                 }
+                const ackOverlay = document.getElementById('acknowledgementModalOverlay');
+                if (ackOverlay && ackOverlay.classList.contains('active')) {
+                    window.closeAcknowledgementModal();
+                }
             }
         });
 
@@ -6103,6 +6439,40 @@
         window.handleAboutMeOverlayClick = function(e) {
             if (e.target && e.target.id === 'aboutMeModalOverlay') {
                 window.closeAboutMeModal();
+            }
+        };
+
+        // ==========================================
+        // SPECIAL ACKNOWLEDGEMENT MODAL HANDLERS
+        // ==========================================
+        window.openAcknowledgementModal = function() {
+            const overlay = document.getElementById('acknowledgementModalOverlay');
+            if (overlay) {
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        };
+
+        window.closeAcknowledgementModal = function() {
+            const overlay = document.getElementById('acknowledgementModalOverlay');
+            if (overlay) {
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        };
+
+        window.toggleAcknowledgementModal = function() {
+            const overlay = document.getElementById('acknowledgementModalOverlay');
+            if (overlay && overlay.classList.contains('active')) {
+                window.closeAcknowledgementModal();
+            } else {
+                window.openAcknowledgementModal();
+            }
+        };
+
+        window.handleAcknowledgementOverlayClick = function(e) {
+            if (e.target && e.target.id === 'acknowledgementModalOverlay') {
+                window.closeAcknowledgementModal();
             }
         };
 
