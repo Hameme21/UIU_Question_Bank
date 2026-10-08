@@ -208,6 +208,7 @@
       ]
     }
     </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script>
@@ -3544,6 +3545,46 @@
             display: block;
             max-width: 100%;
             height: auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* PDF.js Text Layer for Text Selectability, Copying, and Marking */
+        .qb-pdf-text-layer.textLayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            opacity: 1;
+            line-height: 1;
+            transform-origin: 0 0;
+            z-index: 2;
+            pointer-events: auto;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+
+        .qb-pdf-text-layer.textLayer span,
+        .qb-pdf-text-layer.textLayer br {
+            color: transparent;
+            position: absolute;
+            white-space: pre;
+            cursor: text;
+            transform-origin: 0% 0%;
+        }
+
+        .qb-pdf-text-layer.textLayer ::selection {
+            background: rgba(37, 99, 235, 0.35);
+            color: transparent;
+        }
+
+        .qb-pdf-text-layer.textLayer ::-moz-selection {
+            background: rgba(37, 99, 235, 0.35);
+            color: transparent;
         }
 
         .qb-anno-canvas {
@@ -3554,6 +3595,65 @@
             height: 100%;
             touch-action: none;
             cursor: default;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        /* Adobe PDF Style Selection Action Toolbar */
+        .qb-selection-toolbar {
+            position: fixed;
+            z-index: 100080;
+            display: none;
+            align-items: center;
+            gap: 4px;
+            background: rgba(17, 24, 39, 0.94);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 30px;
+            padding: 5px 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 13px;
+            pointer-events: auto;
+            animation: qbFadeInUp 0.15s ease-out;
+        }
+
+        .qb-sel-btn {
+            background: transparent;
+            border: none;
+            color: #f1f5f9;
+            padding: 5px 9px;
+            border-radius: 18px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.15s ease;
+        }
+
+        .qb-sel-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        .qb-sel-btn:active {
+            transform: translateY(0);
+        }
+
+        .qb-sel-divider {
+            width: 1px;
+            height: 16px;
+            background: rgba(255, 255, 255, 0.2);
+            margin: 0 2px;
+        }
+
+        @keyframes qbFadeInUp {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .qb-iframe-fallback {
@@ -4399,12 +4499,114 @@
                     <button type="button" class="btn btn-primary" id="btn-mode-direct-upload" style="font-weight:700; display:inline-flex; align-items:center; gap:0.5rem; padding:0.45rem 1.25rem;">
                         <i class="fas fa-bolt"></i> Direct Auto-Detect Upload
                     </button>
+                    <button type="button" class="btn btn-outline" id="btn-mode-notes-upload" style="border-color:#10b981; color:#059669; font-weight:700; display:inline-flex; align-items:center; gap:0.5rem; padding:0.45rem 1.25rem;">
+                        <i class="fab fa-google-drive"></i> Submit Notes (Drive Link)
+                    </button>
                     <button type="button" class="btn btn-outline" id="btn-mode-manual-upload" style="font-weight:600; display:inline-flex; align-items:center; gap:0.5rem; padding:0.45rem 1.25rem;">
                         <i class="fas fa-edit"></i> Manual Single Form
                     </button>
                     <button type="button" class="btn btn-outline" id="btn-open-user-zip" style="border-color:var(--orange); color:var(--orange); font-weight:700; display:inline-flex; align-items:center; gap:0.5rem; padding:0.45rem 1.25rem;">
                         <i class="fas fa-file-archive"></i> Bulk ZIP Upload
                     </button>
+                </div>
+            </div>
+
+            <!-- Notes Submission Section (Google Drive / Supported External Storage) -->
+            <div id="notes-upload-section" style="display:none; max-width:760px; margin:0 auto; width:100%; box-sizing:border-box;">
+                <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.5rem 1.75rem; box-shadow:var(--shadow-md); margin-bottom:1.5rem;">
+                    <div style="display:flex; align-items:center; gap:0.65rem; margin-bottom:0.35rem;">
+                        <i class="fab fa-google-drive" style="font-size:1.6rem; color:#10b981;"></i>
+                        <h3 style="margin:0; font-size:1.25rem; color:var(--text-main); font-weight:700;">Submit Lecture Notes</h3>
+                    </div>
+                    <p style="color:var(--text-muted); font-size:0.875rem; margin-top:0; margin-bottom:1.25rem;">
+                        Share lecture notes, slides, or chapter summaries. Keep your original file on Google Drive or external cloud storage.
+                    </p>
+
+                    <!-- Zero-Upload Storage Guarantee Alert -->
+                    <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.3); border-radius:var(--radius-md); padding:0.85rem 1rem; margin-bottom:1.5rem; display:flex; align-items:flex-start; gap:0.75rem;">
+                        <i class="fas fa-shield-alt" style="color:#10b981; font-size:1.25rem; margin-top:2px;"></i>
+                        <div style="font-size:0.825rem; color:var(--text-main); line-height:1.5;">
+                            <strong>Zero-Upload Cloud Architecture:</strong> Your original file remains safely stored on your Google Drive or cloud provider. UIU Question Bank only stores your link and metadata for instant access — <strong>Cloudinary is never involved</strong>.
+                        </div>
+                    </div>
+
+                    <form id="notesUploadForm">
+                        <!-- Course -->
+                        <div class="input-group" style="position:relative; margin-bottom:1rem;">
+                            <label class="input-label" for="notesCourseSearch">Course <span style="color:var(--danger);font-weight:700">*</span></label>
+                            <input type="text" id="notesCourseSearch" class="input-control" placeholder="Search course by code or name (e.g. CSE 251, Database)..." autocomplete="off" required>
+                            <input type="hidden" id="notesCourseCode" value="">
+                            <input type="hidden" id="notesCourseTitle" value="">
+                            <div id="notesCourseDropdown" class="autocomplete-dropdown" style="position:absolute; top:100%; left:0; right:0; max-height:240px; overflow-y:auto; z-index:100; background:var(--surface-2); border:1px solid var(--border); border-radius:0.5rem; display:none; box-shadow:0 8px 24px rgba(0,0,0,0.25);"></div>
+                        </div>
+                        <div id="notesSelectedCourseCard" style="display:none; padding:0.75rem 1rem; background:var(--surface-2); border-radius:0.5rem; border:1px solid var(--border); margin-bottom:1rem;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span id="notesSelectedCourseCodeDisplay" style="font-weight:700; color:var(--orange);"></span>
+                                <button type="button" id="notesClearCourseBtn" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.1rem;" title="Clear selection">&times;</button>
+                            </div>
+                            <div id="notesSelectedCourseTitleDisplay" style="font-size:0.875rem; color:var(--text-main);"></div>
+                        </div>
+
+                        <!-- Title -->
+                        <div class="input-group" style="margin-bottom:1rem;">
+                            <label class="input-label" for="notesTitleInput">Title <span style="color:var(--danger);font-weight:700">*</span></label>
+                            <input type="text" id="notesTitleInput" class="input-control" placeholder="e.g. Graph Algorithms Notes, Chapter 3 Summary" required>
+                        </div>
+
+                        <!-- Semester -->
+                        <div class="input-group" style="margin-bottom:1rem;">
+                            <label class="input-label" for="notesSemesterSelect">Semester <span style="color:var(--danger);font-weight:700">*</span></label>
+                            <select id="notesSemesterSelect" class="input-control" required></select>
+                        </div>
+
+                        <!-- Note Type -->
+                        <div class="input-group" style="margin-bottom:1rem;">
+                            <label class="input-label" for="notesNoteTypeSelect">Note Type <span style="color:var(--danger);font-weight:700">*</span></label>
+                            <select id="notesNoteTypeSelect" class="input-control" required>
+                                <option value="Lecture Notes">Lecture Notes</option>
+                                <option value="Faculty's Notes">Faculty's Notes</option>
+                                <option value="University's Notes">University's Notes</option>
+                                <option value="Handwritten Notes">Handwritten Notes</option>
+                                <option value="Chapter Summary">Chapter Summary</option>
+                                <option value="Lab Guide / Notes">Lab Guide / Notes</option>
+                            </select>
+                        </div>
+
+                        <!-- Drive Link -->
+                        <div class="input-group" style="margin-bottom:1.25rem;">
+                            <label class="input-label" for="notesDriveLinkInput">
+                                Drive Link <span style="color:var(--danger);font-weight:700">*</span>
+                                <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">(Google Drive or supported cloud storage link)</span>
+                            </label>
+                            <div style="position:relative;">
+                                <input type="url" id="notesDriveLinkInput" class="input-control" placeholder="https://drive.google.com/file/d/.../view or share link" required style="padding-left:2.5rem;">
+                                <i id="notesDriveLinkIcon" class="fab fa-google-drive" style="position:absolute; left:0.85rem; top:50%; transform:translateY(-50%); color:#10b981; font-size:1.15rem;"></i>
+                            </div>
+                            <div id="notesProviderFeedback" style="font-size:0.8rem; margin-top:0.4rem; color:var(--text-muted); display:flex; align-items:center; gap:0.4rem;">
+                                <i class="fas fa-info-circle" style="color:var(--info);"></i> Make sure sharing is set to <strong>"Anyone with the link can view"</strong>.
+                            </div>
+                        </div>
+
+                        <!-- Submitter Details -->
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:0.75rem; margin-bottom:1.25rem;">
+                            <div class="input-group">
+                                <label class="input-label" for="notesSubmitterName">Your Name <span style="color:var(--danger);font-weight:700">*</span></label>
+                                <input type="text" id="notesSubmitterName" class="input-control" placeholder="Your name" required>
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label" for="notesSubmitterEmail">UIU Email <span style="color:var(--danger);font-weight:700">*</span></label>
+                                <input type="email" id="notesSubmitterEmail" class="input-control" placeholder="student@uiu.ac.bd" required pattern=".*@.*uiu\.ac\.bd$">
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.5rem; padding-top:1rem; border-top:1px solid var(--border);">
+                            <button type="button" class="btn btn-outline" id="notesBtnCancel">Cancel</button>
+                            <button type="submit" class="btn btn-primary" id="notesBtnSubmit" style="background:linear-gradient(135deg, #10b981, #059669); border:none; padding:0.55rem 1.5rem; font-weight:700; display:inline-flex; align-items:center; gap:0.5rem;">
+                                <i class="fas fa-paper-plane"></i> Submit Note for Admin Review
+                            </button>
+                        </div>
+                        <div id="notesStatusMessage" style="margin-top:1rem; text-align:center;"></div>
+                    </form>
                 </div>
             </div>
 
@@ -4669,7 +4871,22 @@
                     <div class="form-step" id="step3">
                         <h3>Upload Files</h3>
                         
-                        <div class="input-group">
+                        <!-- Drive Link (Used when materialType is Notes) -->
+                        <div class="input-group" id="upDriveLinkGroup" style="display:none; margin-bottom:1.25rem;">
+                            <label class="input-label" for="upDriveLink">
+                                Drive Link <span style="color:var(--danger);font-weight:700">*</span>
+                                <span style="font-size:0.8rem; color:#10b981; font-weight:600;">(Google Drive / Cloud Storage)</span>
+                            </label>
+                            <div style="position:relative;">
+                                <input type="url" id="upDriveLink" class="input-control" placeholder="https://drive.google.com/file/d/.../view or share link" style="padding-left:2.5rem;">
+                                <i class="fab fa-google-drive" style="position:absolute; left:0.85rem; top:50%; transform:translateY(-50%); color:#10b981; font-size:1.15rem;"></i>
+                            </div>
+                            <div style="font-size:0.78rem; color:var(--text-muted); margin-top:0.35rem;">
+                                <strong>Zero-Upload:</strong> The original note file remains safely on Drive. Cloudinary is never involved.
+                            </div>
+                        </div>
+
+                        <div class="input-group" id="mainFileGroup">
                             <label class="input-label" id="upMainFileLabel">Main File (PDF / Word / PPT / Excel / Image) <span style="font-size:0.8rem; color:var(--orange); font-weight:500;">(Max 5MB)</span></label>
                             <div class="file-drop-area" id="mainFileDropzone">
                                 <input type="file" id="upMainFile" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg" required style="display:none;">
@@ -5024,6 +5241,9 @@
                     <button type="button" class="qb-anno-btn" data-tool="highlighter" onclick="setAnnotationTool('highlighter')" title="Highlighter Marker">
                         <i class="fas fa-highlighter"></i>
                     </button>
+                    <button type="button" class="qb-anno-btn" data-tool="underline" onclick="setAnnotationTool('underline')" title="Underline Tool">
+                        <i class="fas fa-underline"></i>
+                    </button>
                     <button type="button" class="qb-anno-btn" data-tool="eraser" onclick="setAnnotationTool('eraser')" title="Eraser">
                         <i class="fas fa-eraser"></i>
                     </button>
@@ -5126,8 +5346,17 @@
                     <div class="qb-doc-canvas-wrapper" id="qbMainCanvasWrapper">
                         <!-- PDF pages and drawing overlay canvas elements are rendered here -->
                     </div>
-                    <div id="qbMainIframeWrapper" class="qb-iframe-fallback" style="display:none;">
-                        <iframe id="qbMainIframe" src="" frameborder="0"></iframe>
+                    <div id="qbMainIframeWrapper" class="qb-iframe-fallback" style="display:none; flex-direction:column; width:100%; height:100%;">
+                        <div id="qbIframeTopBanner" style="display:none; background:var(--surface-2); padding:0.5rem 1rem; border-bottom:1px solid var(--border); justify-content:space-between; align-items:center; font-size:0.85rem; width:100%; box-sizing:border-box;">
+                            <div style="display:flex; align-items:center; gap:0.5rem;" id="qbIframeBannerText">
+                                <i class="fab fa-google-drive" style="color:#10b981; font-size:1.1rem;"></i>
+                                <span>Hosted on <strong>Google Drive</strong></span>
+                            </div>
+                            <a id="qbIframeBannerLink" href="#" target="_blank" class="btn btn-outline" style="padding:0.25rem 0.65rem; font-size:0.75rem; border-color:#10b981; color:#10b981; font-weight:600;">
+                                <i class="fas fa-external-link-alt"></i> Open Original in Drive
+                            </a>
+                        </div>
+                        <iframe id="qbMainIframe" src="" frameborder="0" style="flex:1; width:100%; height:100%; border:none;" allow="autoplay"></iframe>
                     </div>
                 </div>
             </div>
@@ -5144,6 +5373,23 @@
                         <iframe id="qbSecondaryIframe" src="" frameborder="0"></iframe>
                     </div>
                 </div>
+            </div>
+
+            <!-- Adobe PDF Quick Selection Action Toolbar -->
+            <div id="qbTextSelectionToolbar" class="qb-selection-toolbar">
+                <button type="button" class="qb-sel-btn" id="qbSelCopyBtn" onclick="copySelectedText()" title="Copy text (Ctrl+C)">
+                    <i class="fas fa-copy"></i> <span>Copy</span>
+                </button>
+                <div class="qb-sel-divider"></div>
+                <button type="button" class="qb-sel-btn" id="qbSelHighlightBtn" onclick="highlightSelectedText()" title="Highlight / Mark text">
+                    <i class="fas fa-highlighter" style="color:#eab308;"></i> <span>Highlight</span>
+                </button>
+                <button type="button" class="qb-sel-btn" id="qbSelUnderlineBtn" onclick="underlineSelectedText()" title="Underline text">
+                    <i class="fas fa-underline" style="color:#ef4444;"></i> <span>Underline</span>
+                </button>
+                <button type="button" class="qb-sel-btn" id="qbSelStrikeBtn" onclick="strikeSelectedText()" title="Strikethrough text">
+                    <i class="fas fa-strikethrough" style="color:#94a3b8;"></i> <span>Strike</span>
+                </button>
             </div>
         </div>
     </div>
@@ -5827,16 +6073,137 @@
             return base;
         }
 
+        function detectExternalStorage(url) {
+            if (!url || typeof url !== 'string') {
+                return { provider: 'unknown', providerName: 'External File', icon: 'fas fa-external-link-alt', embedUrl: '', originalUrl: '', canEmbed: false };
+            }
+            const u = url.trim();
+
+            // 1. Google Drive / Docs / Slides / Sheets
+            const gdMatch = u.match(/(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)|docs\.google\.com\/(?:document|presentation|spreadsheets)\/d\/)([a-zA-Z0-9_-]+)/);
+            if (gdMatch) {
+                const fileId = gdMatch[1];
+                let embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+                let providerName = 'Google Drive';
+                if (u.includes('docs.google.com/document/d/')) {
+                    embedUrl = `https://docs.google.com/document/d/${fileId}/preview`;
+                    providerName = 'Google Docs';
+                } else if (u.includes('docs.google.com/presentation/d/')) {
+                    embedUrl = `https://docs.google.com/presentation/d/${fileId}/embed`;
+                    providerName = 'Google Slides';
+                } else if (u.includes('docs.google.com/spreadsheets/d/')) {
+                    embedUrl = `https://docs.google.com/spreadsheets/d/${fileId}/preview`;
+                    providerName = 'Google Sheets';
+                }
+                return {
+                    provider: 'google-drive',
+                    providerName: providerName,
+                    icon: 'fab fa-google-drive',
+                    fileId: fileId,
+                    embedUrl: embedUrl,
+                    originalUrl: u,
+                    canEmbed: true
+                };
+            }
+
+            // Google Drive folder
+            const gdFolder = u.match(/drive\.google\.com\/drive\/(?:u\/\d+\/)?folders\/([a-zA-Z0-9_-]+)/);
+            if (gdFolder) {
+                return {
+                    provider: 'google-drive',
+                    providerName: 'Google Drive Folder',
+                    icon: 'fab fa-google-drive',
+                    fileId: gdFolder[1],
+                    embedUrl: `https://drive.google.com/embeddedfolderview?id=${gdFolder[1]}#grid`,
+                    originalUrl: u,
+                    canEmbed: true
+                };
+            }
+
+            // 2. OneDrive / SharePoint
+            if (u.includes('1drv.ms') || u.includes('onedrive.live.com') || u.includes('sharepoint.com')) {
+                let embedUrl = u;
+                if (u.includes('1drv.ms')) embedUrl = u.replace('/u/', '/e/');
+                return {
+                    provider: 'onedrive',
+                    providerName: 'OneDrive',
+                    icon: 'fab fa-microsoft',
+                    embedUrl: embedUrl,
+                    originalUrl: u,
+                    canEmbed: true
+                };
+            }
+
+            // 3. Dropbox
+            if (u.includes('dropbox.com')) {
+                const embedUrl = u.replace(/[?&]dl=0/, '?raw=1').concat(u.includes('?') ? '' : '?raw=1');
+                return {
+                    provider: 'dropbox',
+                    providerName: 'Dropbox',
+                    icon: 'fab fa-dropbox',
+                    embedUrl: embedUrl,
+                    originalUrl: u,
+                    canEmbed: true
+                };
+            }
+
+            // 4. Box
+            if (u.includes('box.com')) {
+                const embedUrl = u.replace('/s/', '/embed/s/');
+                return {
+                    provider: 'box',
+                    providerName: 'Box',
+                    icon: 'fas fa-box',
+                    embedUrl: embedUrl,
+                    originalUrl: u,
+                    canEmbed: true
+                };
+            }
+
+            // 5. Office docs via Google Docs Viewer
+            if (/\.(pptx?|docx?|xlsx?)($|\?)/i.test(u)) {
+                return {
+                    provider: 'office',
+                    providerName: 'Office Document',
+                    icon: 'fas fa-file-word',
+                    embedUrl: `https://docs.google.com/gview?url=${encodeURIComponent(u)}&embedded=true`,
+                    originalUrl: u,
+                    canEmbed: true
+                };
+            }
+
+            // 6. Direct PDF / Cloudinary
+            if (/\.pdf($|\?)/i.test(u) || u.includes('cloudinary.com')) {
+                return {
+                    provider: 'pdf',
+                    providerName: 'PDF Document',
+                    icon: 'fas fa-file-pdf',
+                    embedUrl: u,
+                    originalUrl: u,
+                    canEmbed: true
+                };
+            }
+
+            return {
+                provider: 'web',
+                providerName: 'External Storage',
+                icon: 'fas fa-external-link-alt',
+                embedUrl: u,
+                originalUrl: u,
+                canEmbed: false
+            };
+        }
+
         function formatPdfDownloadName(paper, isSolution = false) {
             if (!paper) return 'download.pdf';
-            const courseCodeRaw = (paper.courseCode || 'CSE1111').trim();
+            const courseCodeRaw = (paper.course || paper.courseCode || 'CSE1111').trim();
             const deptMatch = courseCodeRaw.match(/^([a-zA-Z]+)/);
             const dept = deptMatch ? deptMatch[1].toUpperCase() : 'CSE';
             const cleanCourseCode = courseCodeRaw.replace(/\s+/g, '').toUpperCase();
             
-            let examName = isSolution ? 'Solution' : (paper.examType || paper.type || paper.topic || 'Exam');
-            if (!isSolution && (paper.type === 'Notes' || paper.materialType === 'note') && paper.topic) {
-                const topicPart = String(paper.topic).replace(/[^a-zA-Z0-9_-]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '').slice(0, 45);
+            let examName = isSolution ? 'Solution' : (paper.examType || paper.type || paper.title || paper.topic || 'Exam');
+            if (!isSolution && (paper.type === 'Notes' || paper.materialType === 'note') && (paper.title || paper.topic)) {
+                const topicPart = String(paper.title || paper.topic).replace(/[^a-zA-Z0-9_-]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '').slice(0, 45);
                 const ext = getPaperFileExtension(paper, false);
                 return `${cleanCourseCode}_Notes_${topicPart || 'Lecture'}.${ext}`;
             }
@@ -5857,12 +6224,12 @@
 
         function createResourceCard(paper) {
             const isFav = isFavoriteResource(paper.id);
-            const semLabel = paper.semester ? decodeSemester(paper.semester).label : '';
-            const type = paper.type || 'Question';
+            const semLabel = paper.semester ? (typeof decodeSemester === 'function' ? decodeSemester(paper.semester).label : paper.semester) : '';
+            const type = paper.type || (paper.materialType === 'note' ? 'Notes' : 'Question');
             let examLabel = paper.examType || '';
             if (type !== 'Question') examLabel = '';
 
-            const mainPdf = paper.pdfUrl || paper.fileUrl || paper.notePdfUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType !== 'solution')?.pdfUrl) || (paper.materialAssets && paper.materialAssets[0]?.pdfUrl);
+            const mainPdf = paper.fileUrl || paper.pdfUrl || paper.notePdfUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType !== 'solution')?.pdfUrl) || (paper.materialAssets && paper.materialAssets[0]?.pdfUrl) || '';
             const solPdf = paper.solutionPdfUrl || paper.solutionUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType === 'solution')?.pdfUrl);
 
             const ext = getPaperFileExtension(paper, false);
@@ -5880,33 +6247,44 @@
             }
 
             let downloadLinks = '';
-            if (mainPdf) {
-                const mainName = formatPdfDownloadName(paper, false);
-                downloadLinks += `<button class="btn btn-outline" onclick="openPdfViewer('${mainPdf}', '${paper.courseCode} - ${paper.topic || paper.type}', false)" style="padding:0.45rem 0.85rem; font-size:0.85rem;"><i class="fas ${viewMainIcon}"></i> ${viewMainText}</button>
-                                  <button type="button" onclick="forceDownloadFile('${mainPdf}', '${mainName}')" class="btn btn-primary" style="padding:0.45rem 0.85rem; font-size:0.85rem;"><i class="fas fa-download"></i> Download</button>`;
+            const storage = detectExternalStorage(mainPdf);
+            const isNote = type === 'Notes' || paper.materialType === 'note';
+
+            if (isNote && (storage.provider === 'google-drive' || storage.provider === 'onedrive' || storage.provider === 'dropbox' || storage.provider === 'box' || !mainPdf.includes('cloudinary.com'))) {
+                downloadLinks += `<button class="btn btn-outline" onclick="openFullBrowserViewerById('${paper.id}')" style="padding:0.45rem 0.85rem; font-size:0.85rem; font-weight:600;"><i class="fas fa-eye"></i> View Note</button>
+                                  <a href="${storage.originalUrl || mainPdf}" target="_blank" class="btn btn-primary" style="padding:0.45rem 0.85rem; font-size:0.85rem; background:linear-gradient(135deg, #10b981, #059669); border:none; display:inline-flex; align-items:center; gap:0.4rem; text-decoration:none;"><i class="${storage.icon}"></i> Open in ${storage.provider === 'google-drive' ? 'Drive' : storage.providerName}</a>`;
+            } else {
+                if (mainPdf) {
+                    const mainName = formatPdfDownloadName(paper, false);
+                    downloadLinks += `<button class="btn btn-outline" onclick="openPdfViewer('${mainPdf}', '${paper.course || paper.courseCode} - ${paper.title || paper.topic || paper.type}', false)" style="padding:0.45rem 0.85rem; font-size:0.85rem;"><i class="fas ${viewMainIcon}"></i> ${viewMainText}</button>
+                                      <button type="button" onclick="forceDownloadFile('${mainPdf}', '${mainName}')" class="btn btn-primary" style="padding:0.45rem 0.85rem; font-size:0.85rem;"><i class="fas fa-download"></i> Download</button>`;
+                }
             }
             if (solPdf) {
                 const solName = formatPdfDownloadName(paper, true);
-                downloadLinks += `<button class="btn btn-outline" onclick="openPdfViewer('${solPdf}', '${paper.courseCode} - Solution', true)" style="padding:0.45rem 0.85rem; font-size:0.85rem;"><i class="fas fa-eye"></i> View Solution</button>
+                downloadLinks += `<button class="btn btn-outline" onclick="openPdfViewer('${solPdf}', '${paper.course || paper.courseCode} - Solution', true)" style="padding:0.45rem 0.85rem; font-size:0.85rem;"><i class="fas fa-eye"></i> View Solution</button>
                                   <button type="button" onclick="forceDownloadFile('${solPdf}', '${solName}')" class="btn btn-primary" style="padding:0.45rem 0.85rem; font-size:0.85rem;"><i class="fas fa-download"></i> Download Solution</button>`;
             }
             if (type === 'Question' || type === 'Lab') {
                 const solBtnText = solPdf ? '<i class="fas fa-plus-circle"></i> Add Solution' : '<i class="fas fa-upload"></i> Upload Solution';
-                downloadLinks += `<button type="button" onclick="openSolutionUploadModal('${paper.id}', '${paper.courseCode}', '${paper.examType || 'Midterm'}', '${paper.semester}')" class="btn btn-outline" style="padding:0.45rem 0.85rem; font-size:0.85rem; color:var(--orange); border-color:var(--orange);" title="Upload a solution for this question paper">${solBtnText}</button>`;
+                downloadLinks += `<button type="button" onclick="openSolutionUploadModal('${paper.id}', '${paper.course || paper.courseCode}', '${paper.examType || 'Midterm'}', '${paper.semester}')" class="btn btn-outline" style="padding:0.45rem 0.85rem; font-size:0.85rem; color:var(--orange); border-color:var(--orange);" title="Upload a solution for this question paper">${solBtnText}</button>`;
             }
 
             let noteBadge = '';
-            if (type === 'Notes' || paper.materialType === 'note') {
-                const isUni = paper.noteCategory === 'university' || paper.noteType === 'university' || (paper.examType || '').includes('University') || (paper.topic || '').toLowerCase().includes('university');
-                if (isUni) {
-                    noteBadge = `<span class="pill" style="background:rgba(16,185,129,0.14); color:#059669; border:1px solid rgba(16,185,129,0.3); font-weight:600;"><i class="fas fa-university"></i> University's Notes</span>`;
-                } else {
-                    noteBadge = `<span class="pill" style="background:rgba(59,130,246,0.14); color:#2563eb; border:1px solid rgba(59,130,246,0.3); font-weight:600;"><i class="fas fa-chalkboard-teacher"></i> Faculty's Notes</span>`;
+            if (isNote) {
+                const noteTypeName = paper.noteType || paper.noteTypeName || "Lecture Notes";
+                const isUni = paper.noteCategory === 'university' || (paper.noteType || '').toLowerCase().includes('university') || (paper.examType || '').includes('University') || (paper.topic || '').toLowerCase().includes('university');
+                const badgeColor = isUni ? 'rgba(16,185,129,0.14); color:#059669; border:1px solid rgba(16,185,129,0.3);' : 'rgba(59,130,246,0.14); color:#2563eb; border:1px solid rgba(59,130,246,0.3);';
+                const badgeIcon = isUni ? 'fa-university' : 'fa-chalkboard-teacher';
+                noteBadge = `<span class="pill" style="background:${badgeColor} font-weight:600;"><i class="fas ${badgeIcon}"></i> ${noteTypeName}</span>`;
+                if (storage.provider === 'google-drive') {
+                    noteBadge += ` <span class="pill" style="background:rgba(16,185,129,0.12); color:#059669; border:1px solid rgba(16,185,129,0.3); font-weight:600;"><i class="fab fa-google-drive"></i> Drive</span>`;
                 }
             }
 
-            const cleanTopic = paper.topic ? String(paper.topic).replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') : '';
+            const cleanTopic = (paper.title || paper.topic) ? String(paper.title || paper.topic).replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') : '';
             const topicStr = cleanTopic ? `<div style="font-weight:600; font-size:0.92rem; color:var(--text-main); margin-top:0.35rem; margin-bottom:0.15rem;">${cleanTopic}</div>` : '';
+            const courseCodeDisplay = paper.course || paper.courseCode || 'CSE';
 
             return `
                 <div class="resource-card">
@@ -7774,14 +8152,27 @@
                         const examGrp = document.getElementById('examTypeGroup');
                         const noteTypeGrp = document.getElementById('noteTypeGroup');
                         const solGrp = document.getElementById('solutionFileGroup');
+                        const driveGrp = document.getElementById('upDriveLinkGroup');
+                        const mainGrp = document.getElementById('mainFileGroup');
                         const mainLabel = document.getElementById('upMainFileLabel');
                         const topicLabel = document.getElementById('upTopicLabel');
                         const topicInp = document.getElementById('upTopic');
+                        const upMainFileInput = document.getElementById('upMainFile');
 
                         if (examGrp) examGrp.style.display = (val === 'Question' || val === 'Solution') ? 'block' : 'none';
                         if (noteTypeGrp) noteTypeGrp.style.display = val === 'Notes' ? 'block' : 'none';
                         if (solGrp) solGrp.style.display = val === 'Question' ? 'block' : 'none';
                         
+                        if (val === 'Notes') {
+                            if (driveGrp) driveGrp.style.display = 'block';
+                            if (mainGrp) mainGrp.style.display = 'none';
+                            if (upMainFileInput) upMainFileInput.required = false;
+                        } else {
+                            if (driveGrp) driveGrp.style.display = 'none';
+                            if (mainGrp) mainGrp.style.display = 'block';
+                            if (upMainFileInput) upMainFileInput.required = true;
+                        }
+
                         if (mainLabel) {
                             if (val === 'Solution') {
                                 mainLabel.innerHTML = 'Solution File (PDF / Word / PPT / Excel / Image) <span style="font-size:0.8rem; color:var(--orange); font-weight:500;">(Max 5MB)</span>';
@@ -8264,6 +8655,75 @@
                     throw new Error('Please select a Faculty Member for this lab course before submitting.');
                 }
 
+                if (type === 'Notes') {
+                    const driveLink = document.getElementById('upDriveLink')?.value?.trim();
+                    if (!driveLink || !/^https?:\/\//i.test(driveLink)) {
+                        throw new Error('Please enter a valid Google Drive or supported cloud storage link for your note.');
+                    }
+                    if (!topic) {
+                        throw new Error('Please enter a topic or title for your notes.');
+                    }
+
+                    updateUploadProgress(50, 'Saving note metadata...');
+                    BackgroundUploadManager.updateTitle('[50%] Saving note metadata...');
+
+                    const storage = detectExternalStorage(driveLink);
+                    const noteTokens = Array.from(new Set([
+                        courseCode.toLowerCase(),
+                        courseCode.replace(/\s+/g, '').toLowerCase(),
+                        ...courseCode.toLowerCase().split(/\s+/),
+                        ...course.title.toLowerCase().split(/\s+/),
+                        ...topic.toLowerCase().split(/\s+/),
+                        semester.toLowerCase(),
+                        'note', 'notes',
+                        (noteTypeName || 'notes').toLowerCase()
+                    ].filter(t => t && t.length > 1)));
+
+                    const noteDoc = {
+                        course: courseCode.replace(/\s+/g, ' ').toUpperCase(),
+                        courseCode: courseCode.replace(/\s+/g, ' ').toUpperCase(),
+                        courseName: course.title,
+                        title: topic,
+                        topic: topic,
+                        facultyId: facultyId || null,
+                        facultyName: facultyName || '',
+                        facultyCode: facultyCode || '',
+                        isLab: isLabCourse(course),
+                        credits: course.credits,
+                        trimester: String(trimester),
+                        semester,
+                        noteType: noteTypeName || 'Lecture Notes',
+                        noteCategory: noteCategory || 'faculty',
+                        noteTypeName: noteTypeName || 'Lecture Notes',
+                        fileUrl: driveLink,
+                        pdfUrl: driveLink,
+                        externalProvider: storage.provider,
+                        externalProviderName: storage.providerName,
+                        embedUrl: storage.embedUrl,
+                        isExternalStorage: true,
+                        submitterName,
+                        submitterEmail,
+                        type: 'Notes',
+                        materialType: 'note',
+                        materialGroup: 'notes',
+                        examType: noteTypeName || 'Notes',
+                        status: 'pending',
+                        createdAt: new Date().toISOString(),
+                        searchTokens: noteTokens,
+                        courseSearch: `${courseCode} ${course.title} ${topic} ${facultyName} ${facultyCode}`.toLowerCase()
+                    };
+
+                    await addDoc(collection(db, QUESTION_COLLECTION), noteDoc);
+
+                    updateUploadProgress(100, 'Note submitted successfully!');
+                    BackgroundUploadManager.finish();
+                    showToast('Note submitted successfully for Admin review!', 'success');
+                    status.innerHTML = '<div style="color:var(--success); font-weight:600;"><i class="fas fa-check-circle"></i> Note submitted for review! It will appear once approved.</div>';
+                    document.getElementById('uploadForm').reset();
+                    nextStep(1);
+                    return;
+                }
+
                 const mainFile = document.getElementById('upMainFile').files[0];
                 const solFile = document.getElementById('upSolutionFile')?.files[0];
                 if (!mainFile) throw new Error('Please attach a file before submitting.');
@@ -8274,18 +8734,6 @@
                 }
                 if (solFile && solFile.size > MAX_FILE_SIZE) {
                     throw new Error(`The solution file "${solFile.name}" is ${(solFile.size / (1024 * 1024)).toFixed(2)}MB, which exceeds the 5MB limit. Please upload a file smaller than 5MB.`);
-                }
-
-                // In notes, detect topic as the file name if empty
-                if (type === 'Notes' && !topic && mainFile) {
-                    topic = extractNoteTopicFromFileName(mainFile.name);
-                    const topicInp = document.getElementById('upTopic');
-                    if (topicInp) topicInp.value = topic;
-                }
-
-                // Topic is required only for Notes; optional for Questions (Midterm, Final, Quiz, Assignment)
-                if (type === 'Notes' && !topic) {
-                    throw new Error('Please enter a topic or title for your notes.');
                 }
 
                 // Strictly forbid duplicate question papers for same course + exam + semester (Midterm / Final only)
@@ -8699,10 +9147,9 @@
             const activeTab = openViewerTabs[activeViewerTabIndex];
             if (!activeTab) return;
 
-            document.getElementById('qbViewerCourseCode').innerText = activeTab.paper.courseCode || 'CSE';
+            const courseDisplay = activeTab.paper.course || activeTab.paper.courseCode || 'CSE';
+            document.getElementById('qbViewerCourseCode').innerText = courseDisplay;
             document.getElementById('qbViewerDocTitle').innerText = activeTab.title;
-            document.getElementById('qbViewerOpenExternal').href = activeTab.pdfUrl || '#';
-            document.getElementById('qbMobileViewerOpenExternal').href = activeTab.pdfUrl || '#';
             document.getElementById('qbZoomLevelDisplay').innerText = `${Math.round(activeTab.zoom * 100)}%`;
 
             document.querySelectorAll('[data-solution-download-option]').forEach(option => {
@@ -8712,12 +9159,16 @@
             const wrapper = document.getElementById('qbMainCanvasWrapper');
             const iframeWrapper = document.getElementById('qbMainIframeWrapper');
             const iframe = document.getElementById('qbMainIframe');
+            const iframeBanner = document.getElementById('qbIframeTopBanner');
+            const bannerText = document.getElementById('qbIframeBannerText');
+            const bannerLink = document.getElementById('qbIframeBannerLink');
 
             // Immediately clear previous content so user never sees old tab's content
             wrapper.innerHTML = '';
             iframe.src = 'about:blank';
+            if (iframeBanner) iframeBanner.style.display = 'none';
 
-            const pdfUrl = activeTab.isShowingSolution && activeTab.solPdf ? activeTab.solPdf : activeTab.pdfUrl;
+            const pdfUrl = activeTab.isShowingSolution && activeTab.solPdf ? activeTab.solPdf : (activeTab.pdfUrl || activeTab.paper?.fileUrl || '');
 
             if (!pdfUrl) {
                 wrapper.style.display = 'flex';
@@ -8726,30 +9177,77 @@
                     <div style="color:white; padding:4rem 2rem; text-align:center; max-width:500px;">
                         <i class="fas fa-file-pdf" style="font-size:3rem; color:var(--orange); margin-bottom:1rem; opacity:0.8;"></i>
                         <h3 style="margin-bottom:0.5rem;">${activeTab.title}</h3>
-                        <p style="color:#94a3b8; font-size:0.9rem;">No direct PDF file link found for this question entry.</p>
+                        <p style="color:#94a3b8; font-size:0.9rem;">No direct PDF or file link found for this entry.</p>
                     </div>
                 `;
                 return;
             }
 
-            // If the document is a PowerPoint, Word, or Excel document, embed directly in iframe viewer
-            const isOfficeDoc = /\.(pptx?|docx?|xlsx?)($|\?)/i.test(pdfUrl) || (activeTab.paper && /\.(pptx?|docx?|xlsx?)$/i.test(activeTab.paper.originalFilename || ''));
-            if (isOfficeDoc) {
-                wrapper.style.display = 'none';
-                iframeWrapper.style.display = 'flex';
-                iframe.src = `https://docs.google.com/gview?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
-                activeTab.totalPages = 1;
-                document.getElementById('qbTotalPagesNum').innerText = '1';
-                document.getElementById('qbCurrentPageNum').innerText = '1';
-                return;
+            // Detect external storage provider (Google Drive, OneDrive, Dropbox, Box, Office, etc.)
+            const storage = detectExternalStorage(pdfUrl);
+            const extUrl = storage.originalUrl || pdfUrl;
+            const openExtBtn = document.getElementById('qbViewerOpenExternal');
+            const mobileOpenExtBtn = document.getElementById('qbMobileViewerOpenExternal');
+            if (openExtBtn) {
+                openExtBtn.href = extUrl;
+                openExtBtn.title = `Open on ${storage.provider === 'google-drive' ? 'Drive' : storage.providerName}`;
+            }
+            if (mobileOpenExtBtn) {
+                mobileOpenExtBtn.href = extUrl;
+                mobileOpenExtBtn.title = `Open on ${storage.provider === 'google-drive' ? 'Drive' : storage.providerName}`;
             }
 
-            // PDF.js high-performance canvas rendering
+            // Check if document is external cloud storage or office document
+            const isExternalDriveOrOffice = storage.provider === 'google-drive' || 
+                                           storage.provider === 'onedrive' || 
+                                           storage.provider === 'dropbox' || 
+                                           storage.provider === 'box' || 
+                                           storage.provider === 'office' ||
+                                           (/\.(pptx?|docx?|xlsx?)($|\?)/i.test(pdfUrl)) ||
+                                           (!pdfUrl.includes('cloudinary.com') && !/\.pdf($|\?)/i.test(pdfUrl));
+
+            if (isExternalDriveOrOffice) {
+                if (storage.canEmbed) {
+                    wrapper.style.display = 'none';
+                    iframeWrapper.style.display = 'flex';
+                    if (iframeBanner) {
+                        iframeBanner.style.display = 'flex';
+                        if (bannerText) {
+                            bannerText.innerHTML = `<i class="${storage.icon}" style="color:#10b981; font-size:1.15rem;"></i> <span>Hosted on <strong>${storage.providerName}</strong></span>`;
+                        }
+                        if (bannerLink) {
+                            bannerLink.href = extUrl;
+                            bannerLink.innerHTML = `<i class="fas fa-external-link-alt"></i> Open in ${storage.provider === 'google-drive' ? 'Drive' : storage.providerName}`;
+                        }
+                    }
+                    iframe.src = storage.embedUrl;
+                    activeTab.totalPages = 1;
+                    document.getElementById('qbTotalPagesNum').innerText = '1';
+                    document.getElementById('qbCurrentPageNum').innerText = '1';
+                    return;
+                } else {
+                    wrapper.style.display = 'flex';
+                    iframeWrapper.style.display = 'none';
+                    wrapper.innerHTML = `
+                        <div style="color:white; padding:4rem 2rem; text-align:center; max-width:550px;">
+                            <i class="${storage.icon}" style="font-size:3.5rem; color:#10b981; margin-bottom:1rem;"></i>
+                            <h3 style="margin-bottom:0.75rem;">${activeTab.title}</h3>
+                            <p style="color:#94a3b8; font-size:0.95rem; margin-bottom:1.5rem;">This note is hosted on ${storage.providerName}. Click below to view the original file.</p>
+                            <a href="${extUrl}" target="_blank" class="btn btn-primary" style="background:linear-gradient(135deg, #10b981, #059669); border:none; padding:0.65rem 1.5rem; font-size:1rem; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:0.5rem;">
+                                <i class="${storage.icon}"></i> Open on ${storage.providerName}
+                            </a>
+                        </div>
+                    `;
+                    return;
+                }
+            }
+
+            // PDF.js high-performance canvas rendering with selectable textLayer & annotations
             if (typeof pdfjsLib !== 'undefined') {
                 try {
                     wrapper.style.display = 'flex';
                     iframeWrapper.style.display = 'none';
-                    wrapper.innerHTML = `<div style="color:white; padding:2rem; display:flex; align-items:center; gap:0.6rem;"><i class="fas fa-spinner fa-spin"></i> Rendering ${activeTab.paper.courseCode} ${activeTab.paper.semester || ''} PDF...</div>`;
+                    wrapper.innerHTML = `<div style="color:white; padding:2rem; display:flex; align-items:center; gap:0.6rem;"><i class="fas fa-spinner fa-spin"></i> Rendering ${courseDisplay} ${activeTab.paper.semester || ''} PDF...</div>`;
 
                     let pdfDoc = loadedPdfDocs[pdfUrl];
                     if (!pdfDoc) {
@@ -8790,6 +9288,7 @@
                         const pageContainer = document.createElement('div');
                         pageContainer.className = 'qb-page-container';
                         pageContainer.dataset.pageNum = pageNum;
+                        pageContainer.dataset.displayScale = displayScale;
                         pageContainer.style.width = `${displayViewport.width}px`;
                         pageContainer.style.height = `${displayViewport.height}px`;
 
@@ -8800,6 +9299,14 @@
                         pdfCanvas.style.width = `${displayViewport.width}px`;
                         pdfCanvas.style.height = `${displayViewport.height}px`;
 
+                        // Selectable Text Layer (Adobe PDF Style)
+                        const textLayerDiv = document.createElement('div');
+                        textLayerDiv.className = 'qb-pdf-text-layer textLayer';
+                        textLayerDiv.dataset.pageNum = pageNum;
+                        textLayerDiv.style.width = `${displayViewport.width}px`;
+                        textLayerDiv.style.height = `${displayViewport.height}px`;
+
+                        // Annotation Overlay Canvas (Pen, Highlighter, Marks, Underline)
                         const annoCanvas = document.createElement('canvas');
                         annoCanvas.className = 'qb-anno-canvas';
                         annoCanvas.dataset.pageNum = pageNum;
@@ -8810,6 +9317,7 @@
                         annoCanvas.style.height = `${displayViewport.height}px`;
 
                         pageContainer.appendChild(pdfCanvas);
+                        pageContainer.appendChild(textLayerDiv);
                         pageContainer.appendChild(annoCanvas);
                         wrapper.appendChild(pageContainer);
 
@@ -8819,6 +9327,28 @@
                             viewport: viewport
                         };
                         await page.render(renderContext).promise;
+                        if (renderToken !== currentRenderToken) return;
+
+                        // Render selectable text layer
+                        try {
+                            const textContent = await page.getTextContent();
+                            if (renderToken !== currentRenderToken) return;
+                            if (typeof pdfjsLib.renderTextLayer === 'function') {
+                                const textLayerTask = pdfjsLib.renderTextLayer({
+                                    textContentSource: textContent,
+                                    textContent: textContent,
+                                    container: textLayerDiv,
+                                    viewport: displayViewport,
+                                    textDivs: []
+                                });
+                                if (textLayerTask && textLayerTask.promise) {
+                                    await textLayerTask.promise;
+                                }
+                            }
+                        } catch (txtErr) {
+                            console.warn('Text layer render notice:', txtErr);
+                        }
+
                         if (renderToken !== currentRenderToken) return;
 
                         // Setup annotation events on this page canvas
@@ -8964,6 +9494,8 @@
             });
 
             const annoCanvases = document.querySelectorAll('.qb-anno-canvas');
+            const textLayers = document.querySelectorAll('.qb-pdf-text-layer');
+
             annoCanvases.forEach(c => {
                 if (tool === 'select') {
                     c.style.cursor = 'default';
@@ -8982,6 +9514,10 @@
                     c.style.pointerEvents = 'auto';
                     c.style.touchAction = 'none';
                 }
+            });
+
+            textLayers.forEach(tl => {
+                tl.style.pointerEvents = (tool === 'select') ? 'auto' : 'none';
             });
         };
 
@@ -9122,6 +9658,40 @@
                     ctx.fillText(anno.text, anno.x * scale, anno.y * scale);
                 } else if (anno.type === 'stamp') {
                     drawStampIcon(ctx, anno.stampType, anno.x * scale, anno.y * scale, (anno.size || 24) * scale, anno.text);
+                } else if (anno.type === 'highlight-text' && Array.isArray(anno.rects)) {
+                    ctx.save();
+                    ctx.fillStyle = anno.color || '#fef08a';
+                    ctx.globalAlpha = 0.42;
+                    anno.rects.forEach(r => {
+                        ctx.fillRect(r.x * scale, r.y * scale, r.width * scale, r.height * scale);
+                    });
+                    ctx.restore();
+                } else if (anno.type === 'underline-text' && Array.isArray(anno.rects)) {
+                    ctx.save();
+                    ctx.strokeStyle = anno.color || '#ef4444';
+                    ctx.lineWidth = Math.max(2, (anno.width || 2) * scale);
+                    ctx.lineCap = 'round';
+                    anno.rects.forEach(r => {
+                        const y = (r.y + r.height) * scale - 1;
+                        ctx.beginPath();
+                        ctx.moveTo(r.x * scale, y);
+                        ctx.lineTo((r.x + r.width) * scale, y);
+                        ctx.stroke();
+                    });
+                    ctx.restore();
+                } else if (anno.type === 'strike-text' && Array.isArray(anno.rects)) {
+                    ctx.save();
+                    ctx.strokeStyle = anno.color || '#ef4444';
+                    ctx.lineWidth = Math.max(2, (anno.width || 2) * scale);
+                    ctx.lineCap = 'round';
+                    anno.rects.forEach(r => {
+                        const y = (r.y + (r.height / 2)) * scale;
+                        ctx.beginPath();
+                        ctx.moveTo(r.x * scale, y);
+                        ctx.lineTo((r.x + r.width) * scale, y);
+                        ctx.stroke();
+                    });
+                    ctx.restore();
                 }
 
                 ctx.restore();
@@ -9236,6 +9806,15 @@
                 return Math.hypot(px - anno.x, py - anno.y) <= size;
             }
 
+            if (['highlight-text', 'underline-text', 'strike-text'].includes(anno.type) && Array.isArray(anno.rects)) {
+                return anno.rects.some(r => {
+                    return px >= r.x - ERASER_RADIUS &&
+                           px <= r.x + r.width + ERASER_RADIUS &&
+                           py >= r.y - ERASER_RADIUS &&
+                           py <= r.y + r.height + ERASER_RADIUS;
+                });
+            }
+
             return false;
         }
 
@@ -9339,7 +9918,7 @@
                     if (currentAnnotationTool === 'highlighter') ctx.globalAlpha = 0.35;
                     ctx.fill();
                     ctx.restore();
-                } else if (['rectangle', 'circle', 'arrow', 'line'].includes(currentAnnotationTool)) {
+                } else if (['rectangle', 'circle', 'arrow', 'line', 'underline'].includes(currentAnnotationTool)) {
                     currentShapeStart = coords;
                 } else if (currentAnnotationTool.startsWith('stamp-')) {
                     const stampAnno = {
@@ -9419,7 +9998,7 @@
                         ctx.stroke();
                     }
                     ctx.restore();
-                } else if (['rectangle', 'circle', 'arrow', 'line'].includes(currentAnnotationTool) && currentShapeStart) {
+                } else if (['rectangle', 'circle', 'arrow', 'line', 'underline'].includes(currentAnnotationTool) && currentShapeStart) {
                     drawPageAnnotations(canvas, pageNum, scale);
                     const ctx = canvas.getContext('2d');
                     ctx.save();
@@ -9449,6 +10028,11 @@
                         ctx.stroke();
                     } else if (currentAnnotationTool === 'arrow') {
                         drawArrow(ctx, currentShapeStart.x * scale, currentShapeStart.y * scale, coords.x * scale, coords.y * scale, ctx.lineWidth);
+                    } else if (currentAnnotationTool === 'underline') {
+                        ctx.beginPath();
+                        ctx.moveTo(currentShapeStart.x * scale, coords.y * scale);
+                        ctx.lineTo(coords.x * scale, coords.y * scale);
+                        ctx.stroke();
                     }
                     ctx.restore();
                 } else if (currentAnnotationTool === 'eraser') {
@@ -9506,6 +10090,27 @@
                         persistAnnotations(currentTab.id, currentTab.annotations);
                     }
                     currentStrokePoints = [];
+                } else if (currentAnnotationTool === 'underline' && currentShapeStart) {
+                    const minX = Math.min(currentShapeStart.x, coords.x);
+                    const maxX = Math.max(currentShapeStart.x, coords.x);
+                    const underlineAnno = {
+                        type: 'underline-text',
+                        color: currentAnnotationColor,
+                        width: Math.max(2, currentAnnotationStrokeWidth),
+                        rects: [{
+                            x: minX,
+                            y: coords.y - 12,
+                            width: Math.max(8, maxX - minX),
+                            height: 12
+                        }],
+                        pageNum,
+                        savedScale: 1
+                    };
+                    currentTab.annotations.push(underlineAnno);
+                    currentTab.undoStack.push({ action: 'add', anno: underlineAnno });
+                    currentTab.redoStack = [];
+                    persistAnnotations(currentTab.id, currentTab.annotations);
+                    currentShapeStart = null;
                 } else if (['rectangle', 'circle', 'arrow', 'line'].includes(currentAnnotationTool) && currentShapeStart) {
                     const shapeAnno = {
                         type: currentAnnotationTool,
@@ -9877,16 +10482,43 @@
             const iframeWrapper = document.getElementById('qbSecondaryIframeWrapper');
             const iframe = document.getElementById('qbSecondaryIframe');
 
-            if (typeof pdfjsLib !== 'undefined' && tab.pdfUrl) {
+            wrapper.innerHTML = '';
+            iframe.src = 'about:blank';
+
+            const pdfUrl = tab.isShowingSolution && tab.solPdf ? tab.solPdf : (tab.pdfUrl || tab.paper?.fileUrl || '');
+            if (!pdfUrl) {
+                wrapper.style.display = 'flex';
+                iframeWrapper.style.display = 'none';
+                wrapper.innerHTML = `<div style="color:white; padding:2rem; text-align:center;">No document link found.</div>`;
+                return;
+            }
+
+            const storage = detectExternalStorage(pdfUrl);
+            const isExternalDriveOrOffice = storage.provider === 'google-drive' || 
+                                           storage.provider === 'onedrive' || 
+                                           storage.provider === 'dropbox' || 
+                                           storage.provider === 'box' || 
+                                           storage.provider === 'office' ||
+                                           (/\.(pptx?|docx?|xlsx?)($|\?)/i.test(pdfUrl)) ||
+                                           (!pdfUrl.includes('cloudinary.com') && !/\.pdf($|\?)/i.test(pdfUrl));
+
+            if (isExternalDriveOrOffice) {
+                wrapper.style.display = 'none';
+                iframeWrapper.style.display = 'flex';
+                iframe.src = storage.embedUrl;
+                return;
+            }
+
+            if (typeof pdfjsLib !== 'undefined' && pdfUrl) {
                 try {
                     wrapper.style.display = 'flex';
                     iframeWrapper.style.display = 'none';
                     wrapper.innerHTML = `<div style="color:white; padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>`;
 
-                    let pdfDoc = loadedPdfDocs[tab.pdfUrl];
+                    let pdfDoc = loadedPdfDocs[pdfUrl];
                     if (!pdfDoc) {
-                        pdfDoc = await pdfjsLib.getDocument(tab.pdfUrl).promise;
-                        loadedPdfDocs[tab.pdfUrl] = pdfDoc;
+                        pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+                        loadedPdfDocs[pdfUrl] = pdfDoc;
                     }
 
                     wrapper.innerHTML = '';
@@ -9898,6 +10530,8 @@
 
                         const pageContainer = document.createElement('div');
                         pageContainer.className = 'qb-page-container';
+                        pageContainer.dataset.pageNum = p;
+                        pageContainer.dataset.displayScale = 0.75;
                         pageContainer.style.width = `${dispViewport.width}px`;
                         pageContainer.style.height = `${dispViewport.height}px`;
 
@@ -9908,10 +10542,33 @@
                         pdfCanvas.style.width = `${dispViewport.width}px`;
                         pdfCanvas.style.height = `${dispViewport.height}px`;
 
+                        const textLayerDiv = document.createElement('div');
+                        textLayerDiv.className = 'qb-pdf-text-layer textLayer';
+                        textLayerDiv.dataset.pageNum = p;
+                        textLayerDiv.style.width = `${dispViewport.width}px`;
+                        textLayerDiv.style.height = `${dispViewport.height}px`;
+
                         pageContainer.appendChild(pdfCanvas);
+                        pageContainer.appendChild(textLayerDiv);
                         wrapper.appendChild(pageContainer);
 
                         await page.render({ canvasContext: pdfCanvas.getContext('2d'), viewport }).promise;
+
+                        try {
+                            const textContent = await page.getTextContent();
+                            if (typeof pdfjsLib.renderTextLayer === 'function') {
+                                const textLayerTask = pdfjsLib.renderTextLayer({
+                                    textContentSource: textContent,
+                                    textContent: textContent,
+                                    container: textLayerDiv,
+                                    viewport: dispViewport,
+                                    textDivs: []
+                                });
+                                if (textLayerTask && textLayerTask.promise) {
+                                    await textLayerTask.promise;
+                                }
+                            }
+                        } catch (_) {}
                     }
                     return;
                 } catch (e) {
@@ -9921,7 +10578,7 @@
 
             wrapper.style.display = 'none';
             iframeWrapper.style.display = 'flex';
-            iframe.src = `https://docs.google.com/gview?url=${encodeURIComponent(tab.pdfUrl)}&embedded=true`;
+            iframe.src = `https://docs.google.com/gview?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
         }
 
         // Keyboard Shortcuts for Teacher Studio
@@ -9939,6 +10596,205 @@
             if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
                 e.preventDefault();
                 redoAnnotation();
+            }
+        });
+
+        // ==========================================
+        // ADOBE PDF TEXT SELECTION & MARKING STUDIO
+        // ==========================================
+        function getSelectionRectsOnActivePage() {
+            const selection = window.getSelection();
+            if (!selection || selection.isCollapsed || selection.rangeCount === 0) return null;
+            const range = selection.getRangeAt(0);
+
+            let node = range.commonAncestorContainer;
+            if (node.nodeType !== 1) node = node.parentElement;
+            const textLayer = node ? node.closest('.qb-pdf-text-layer') : null;
+            if (!textLayer) return null;
+
+            const pageContainer = textLayer.closest('.qb-page-container');
+            if (!pageContainer) return null;
+
+            const pageNum = parseInt(pageContainer.dataset.pageNum, 10);
+            const displayScale = parseFloat(pageContainer.dataset.displayScale) || 1;
+            const containerRect = pageContainer.getBoundingClientRect();
+
+            const clientRects = Array.from(range.getClientRects());
+            if (clientRects.length === 0) return null;
+
+            const rects = clientRects.map(r => ({
+                x: (r.left - containerRect.left) / displayScale,
+                y: (r.top - containerRect.top) / displayScale,
+                width: r.width / displayScale,
+                height: r.height / displayScale
+            })).filter(r => r.width > 0 && r.height > 0);
+
+            return { pageNum, displayScale, rects };
+        }
+
+        window.copySelectedText = async function() {
+            const selection = window.getSelection();
+            const text = selection ? selection.toString() : '';
+            if (!text) return;
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast('Text copied to clipboard!', 'success');
+            } catch (_) {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showToast('Text copied to clipboard!', 'success');
+            }
+            const toolbar = document.getElementById('qbTextSelectionToolbar');
+            if (toolbar) toolbar.style.display = 'none';
+        };
+
+        window.highlightSelectedText = function() {
+            const data = getSelectionRectsOnActivePage();
+            if (!data || data.rects.length === 0) {
+                showToast('Please select text inside the document first.', 'info');
+                return;
+            }
+            const activeTab = openViewerTabs[activeViewerTabIndex];
+            if (!activeTab) return;
+            if (!activeTab.annotations) activeTab.annotations = [];
+            if (!activeTab.undoStack) activeTab.undoStack = [];
+
+            const anno = {
+                type: 'highlight-text',
+                rects: data.rects,
+                color: currentAnnotationColor || '#fef08a',
+                pageNum: data.pageNum,
+                savedScale: 1
+            };
+            activeTab.annotations.push(anno);
+            activeTab.undoStack.push({ action: 'add', anno });
+            activeTab.redoStack = [];
+            persistAnnotations(activeTab.id, activeTab.annotations);
+            redrawAllViewerCanvases();
+
+            window.getSelection()?.removeAllRanges();
+            const toolbar = document.getElementById('qbTextSelectionToolbar');
+            if (toolbar) toolbar.style.display = 'none';
+            showToast('Text highlighted', 'success');
+        };
+
+        window.underlineSelectedText = function() {
+            const data = getSelectionRectsOnActivePage();
+            if (!data || data.rects.length === 0) {
+                showToast('Please select text inside the document first.', 'info');
+                return;
+            }
+            const activeTab = openViewerTabs[activeViewerTabIndex];
+            if (!activeTab) return;
+            if (!activeTab.annotations) activeTab.annotations = [];
+            if (!activeTab.undoStack) activeTab.undoStack = [];
+
+            const anno = {
+                type: 'underline-text',
+                rects: data.rects,
+                color: currentAnnotationColor || '#ef4444',
+                width: 2,
+                pageNum: data.pageNum,
+                savedScale: 1
+            };
+            activeTab.annotations.push(anno);
+            activeTab.undoStack.push({ action: 'add', anno });
+            activeTab.redoStack = [];
+            persistAnnotations(activeTab.id, activeTab.annotations);
+            redrawAllViewerCanvases();
+
+            window.getSelection()?.removeAllRanges();
+            const toolbar = document.getElementById('qbTextSelectionToolbar');
+            if (toolbar) toolbar.style.display = 'none';
+            showToast('Text underlined', 'success');
+        };
+
+        window.strikeSelectedText = function() {
+            const data = getSelectionRectsOnActivePage();
+            if (!data || data.rects.length === 0) {
+                showToast('Please select text inside the document first.', 'info');
+                return;
+            }
+            const activeTab = openViewerTabs[activeViewerTabIndex];
+            if (!activeTab) return;
+            if (!activeTab.annotations) activeTab.annotations = [];
+            if (!activeTab.undoStack) activeTab.undoStack = [];
+
+            const anno = {
+                type: 'strike-text',
+                rects: data.rects,
+                color: currentAnnotationColor || '#ef4444',
+                width: 2,
+                pageNum: data.pageNum,
+                savedScale: 1
+            };
+            activeTab.annotations.push(anno);
+            activeTab.undoStack.push({ action: 'add', anno });
+            activeTab.redoStack = [];
+            persistAnnotations(activeTab.id, activeTab.annotations);
+            redrawAllViewerCanvases();
+
+            window.getSelection()?.removeAllRanges();
+            const toolbar = document.getElementById('qbTextSelectionToolbar');
+            if (toolbar) toolbar.style.display = 'none';
+            showToast('Strikethrough added', 'success');
+        };
+
+        function updateTextSelectionToolbar() {
+            const selToolbar = document.getElementById('qbTextSelectionToolbar');
+            if (!selToolbar) return;
+
+            const selection = window.getSelection();
+            if (!selection || selection.isCollapsed || !selection.toString().trim() || selection.rangeCount === 0) {
+                selToolbar.style.display = 'none';
+                return;
+            }
+
+            const range = selection.getRangeAt(0);
+            let node = range.commonAncestorContainer;
+            if (node.nodeType !== 1) node = node.parentElement;
+            const textLayer = node ? node.closest('.qb-pdf-text-layer') : null;
+            if (!textLayer) {
+                selToolbar.style.display = 'none';
+                return;
+            }
+
+            const rect = range.getBoundingClientRect();
+            if (!rect || (rect.width === 0 && rect.height === 0)) {
+                selToolbar.style.display = 'none';
+                return;
+            }
+
+            selToolbar.style.display = 'flex';
+            const tbWidth = selToolbar.offsetWidth || 260;
+            const tbHeight = selToolbar.offsetHeight || 38;
+
+            let left = rect.left + (rect.width / 2) - (tbWidth / 2);
+            let top = rect.top - tbHeight - 8;
+
+            if (left < 10) left = 10;
+            if (left + tbWidth > window.innerWidth - 10) left = window.innerWidth - tbWidth - 10;
+            if (top < 10) top = rect.bottom + 8;
+
+            selToolbar.style.left = `${left}px`;
+            selToolbar.style.top = `${top}px`;
+        }
+
+        document.addEventListener('selectionchange', () => {
+            const viewer = document.getElementById('fullBrowserViewer');
+            if (viewer && viewer.style.display === 'flex') {
+                updateTextSelectionToolbar();
+            }
+        });
+
+        document.addEventListener('mousedown', (e) => {
+            const selToolbar = document.getElementById('qbTextSelectionToolbar');
+            if (selToolbar && !e.target.closest('#qbTextSelectionToolbar') && !e.target.closest('.qb-pdf-text-layer')) {
+                selToolbar.style.display = 'none';
             }
         });
 
@@ -11216,27 +12072,316 @@
         }
 
         // =========================================================
+        // NOTES SUBMISSION (ZERO-UPLOAD GOOGLE DRIVE / CLOUD STORAGE)
+        // =========================================================
+        function initNotesUploadForm() {
+            const form = document.getElementById('notesUploadForm');
+            if (!form || form._initialized) return;
+            form._initialized = true;
+
+            // 1. Populate semesters dropdown
+            const semSelect = document.getElementById('notesSemesterSelect');
+            if (semSelect && typeof SEMESTERS !== 'undefined' && semSelect.options.length === 0) {
+                semSelect.innerHTML = SEMESTERS.map(s => `<option value="${s.code}">${s.label}</option>`).join('');
+            }
+
+            // 2. Course autocomplete from CURRICULUM
+            const searchInput = document.getElementById('notesCourseSearch');
+            const courseCodeHidden = document.getElementById('notesCourseCode');
+            const courseTitleHidden = document.getElementById('notesCourseTitle');
+            const dropdown = document.getElementById('notesCourseDropdown');
+            const card = document.getElementById('notesSelectedCourseCard');
+            const cardCode = document.getElementById('notesSelectedCourseCodeDisplay');
+            const cardTitle = document.getElementById('notesSelectedCourseTitleDisplay');
+            const clearBtn = document.getElementById('notesClearCourseBtn');
+
+            if (searchInput && dropdown && typeof CURRICULUM !== 'undefined') {
+                const allCourses = CURRICULUM.slice().sort((a,b) => {
+                    if (a.trimester === 0 && b.trimester === 0) return a.code.localeCompare(b.code);
+                    if (a.trimester === 0) return 1;
+                    if (b.trimester === 0) return -1;
+                    return a.trimester - b.trimester || a.code.localeCompare(b.code);
+                });
+
+                function renderNotesCourseResults(filter) {
+                    const q = (filter || '').toLowerCase().trim();
+                    const matches = q ? allCourses.filter(c => {
+                        const searchStr = `${c.code} ${c.title} ${(c.aliases||[]).join(' ')} ${c.track||''}`.toLowerCase();
+                        return searchStr.includes(q);
+                    }) : allCourses;
+
+                    if (matches.length === 0) {
+                        dropdown.innerHTML = '<div style="padding:0.75rem 1rem; color:var(--text-muted); font-size:0.85rem;">No courses found</div>';
+                    } else {
+                        dropdown.innerHTML = matches.slice(0, 30).map(c => {
+                            const trimLabel = c.trimester > 0 ? `T${c.trimester}` : (c.track || 'Elective');
+                            return `<div class="notes-course-search-item" data-code="${c.code}" data-title="${c.title}" style="padding:0.6rem 1rem; cursor:pointer; border-bottom:1px solid var(--border); transition:background 0.15s;">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span style="font-weight:600; color:var(--orange); font-size:0.85rem;">${c.code}</span>
+                                    <span style="font-size:0.7rem; padding:0.15rem 0.5rem; background:var(--surface); border-radius:1rem; color:var(--text-muted);">${trimLabel} · ${c.credits}cr</span>
+                                </div>
+                                <div style="font-size:0.85rem; color:var(--text); margin-top:0.15rem;">${c.title}</div>
+                            </div>`;
+                        }).join('');
+                    }
+                    dropdown.style.display = 'block';
+                }
+
+                searchInput.addEventListener('focus', () => renderNotesCourseResults(searchInput.value));
+                searchInput.addEventListener('input', () => renderNotesCourseResults(searchInput.value));
+
+                dropdown.addEventListener('click', (e) => {
+                    const item = e.target.closest('.notes-course-search-item');
+                    if (!item) return;
+                    const code = item.dataset.code;
+                    const title = item.dataset.title;
+
+                    courseCodeHidden.value = code;
+                    courseTitleHidden.value = title;
+                    searchInput.value = `${code} - ${title}`;
+                    searchInput.style.display = 'none';
+                    dropdown.style.display = 'none';
+
+                    if (card && cardCode && cardTitle) {
+                        cardCode.textContent = code;
+                        cardTitle.textContent = title;
+                        card.style.display = 'block';
+                    }
+                });
+
+                dropdown.addEventListener('mouseover', (e) => {
+                    const item = e.target.closest('.notes-course-search-item');
+                    if (item) item.style.background = 'var(--surface)';
+                });
+                dropdown.addEventListener('mouseout', (e) => {
+                    const item = e.target.closest('.notes-course-search-item');
+                    if (item) item.style.background = '';
+                });
+
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', () => {
+                        courseCodeHidden.value = '';
+                        courseTitleHidden.value = '';
+                        searchInput.value = '';
+                        searchInput.style.display = '';
+                        if (card) card.style.display = 'none';
+                        searchInput.focus();
+                    });
+                }
+
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('#notesCourseSearch') && !e.target.closest('#notesCourseDropdown')) {
+                        dropdown.style.display = 'none';
+                    }
+                });
+            }
+
+            // 3. Drive Link feedback & detection
+            const driveInput = document.getElementById('notesDriveLinkInput');
+            const driveIcon = document.getElementById('notesDriveLinkIcon');
+            const feedback = document.getElementById('notesProviderFeedback');
+
+            if (driveInput) {
+                driveInput.addEventListener('input', () => {
+                    const url = driveInput.value.trim();
+                    if (!url) {
+                        if (driveIcon) driveIcon.className = 'fab fa-google-drive';
+                        if (feedback) feedback.innerHTML = '<i class="fas fa-info-circle" style="color:var(--info);"></i> Make sure sharing is set to <strong>"Anyone with the link can view"</strong>.';
+                        return;
+                    }
+                    const storage = detectExternalStorage(url);
+                    if (driveIcon) driveIcon.className = storage.icon || 'fas fa-external-link-alt';
+
+                    if (storage.provider === 'google-drive') {
+                        if (feedback) feedback.innerHTML = '<span style="color:#10b981; font-weight:600;"><i class="fas fa-check-circle"></i> Google Drive detected. Embed preview supported!</span>';
+                    } else if (storage.provider === 'onedrive') {
+                        if (feedback) feedback.innerHTML = '<span style="color:#0284c7; font-weight:600;"><i class="fas fa-check-circle"></i> Microsoft OneDrive link detected.</span>';
+                    } else if (storage.provider === 'dropbox') {
+                        if (feedback) feedback.innerHTML = '<span style="color:#2563eb; font-weight:600;"><i class="fas fa-check-circle"></i> Dropbox link detected.</span>';
+                    } else if (storage.provider === 'box') {
+                        if (feedback) feedback.innerHTML = '<span style="color:#0284c7; font-weight:600;"><i class="fas fa-check-circle"></i> Box cloud link detected.</span>';
+                    } else if (storage.provider === 'pdf') {
+                        if (feedback) feedback.innerHTML = '<span style="color:#10b981; font-weight:600;"><i class="fas fa-check-circle"></i> Direct PDF link detected.</span>';
+                    } else {
+                        if (feedback) feedback.innerHTML = '<span style="color:var(--orange); font-weight:600;"><i class="fas fa-info-circle"></i> External link detected. File will open directly in external view.</span>';
+                    }
+                });
+            }
+
+            // 4. Academic email persistence
+            const emailInput = document.getElementById('notesSubmitterEmail');
+            if (emailInput) {
+                const saved = localStorage.getItem('user_academic_email') || '';
+                if (saved) emailInput.value = saved;
+                emailInput.addEventListener('input', (e) => {
+                    localStorage.setItem('user_academic_email', e.target.value.trim());
+                });
+            }
+
+            // 5. Cancel button
+            const cancelBtn = document.getElementById('notesBtnCancel');
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => {
+                    form.reset();
+                    if (card) card.style.display = 'none';
+                    if (searchInput) searchInput.style.display = '';
+                    setUploadMode('direct');
+                });
+            }
+
+            // 6. Form Submission - ZERO CLOUDINARY UPLOAD!
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const submitBtn = document.getElementById('notesBtnSubmit');
+                const statusEl = document.getElementById('notesStatusMessage');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+                if (statusEl) statusEl.innerHTML = '';
+
+                try {
+                    let courseCode = (courseCodeHidden ? courseCodeHidden.value : '').trim();
+                    if (!courseCode && searchInput) {
+                        const raw = searchInput.value.trim();
+                        const m = raw.match(/^([a-zA-Z]{2,4}\s*\d{3,4})/i);
+                        if (m) courseCode = m[1].replace(/\s+/g, ' ').toUpperCase();
+                    }
+                    if (!courseCode) {
+                        throw new Error('Please select a course from the list.');
+                    }
+
+                    const title = document.getElementById('notesTitleInput').value.trim();
+                    if (!title) throw new Error('Please enter a title for your note.');
+
+                    const semester = document.getElementById('notesSemesterSelect').value;
+                    const noteType = document.getElementById('notesNoteTypeSelect').value;
+                    const driveLink = document.getElementById('notesDriveLinkInput').value.trim();
+
+                    if (!driveLink || !/^https?:\/\//i.test(driveLink)) {
+                        throw new Error('Please paste a valid Google Drive or supported cloud storage link (starting with http:// or https://).');
+                    }
+
+                    const submitterName = document.getElementById('notesSubmitterName').value.trim();
+                    const submitterEmail = document.getElementById('notesSubmitterEmail').value.trim().toLowerCase();
+
+                    if (!/^[a-z0-9._%+-]+@[a-z0-9-]+\.uiu\.ac\.bd$/i.test(submitterEmail)) {
+                        throw new Error('Please use a UIU university email ending in .uiu.ac.bd.');
+                    }
+
+                    const courseObj = CURRICULUM.find(c => c.code.replace(/\s+/g,'').toUpperCase() === courseCode.replace(/\s+/g,'').toUpperCase()) || { title: courseCode, credits: 3 };
+                    const storage = detectExternalStorage(driveLink);
+
+                    const tokens = Array.from(new Set([
+                        courseCode.toLowerCase(),
+                        courseCode.replace(/\s+/g, '').toLowerCase(),
+                        ...courseCode.toLowerCase().split(/\s+/),
+                        ...courseObj.title.toLowerCase().split(/\s+/),
+                        ...title.toLowerCase().split(/\s+/),
+                        semester.toLowerCase(),
+                        'note', 'notes',
+                        noteType.toLowerCase(),
+                        noteType.toLowerCase().replace(/['\s]/g, '')
+                    ].filter(t => t && t.length > 1)));
+
+                    // Store metadata and external link directly - ZERO CLOUDINARY UPLOAD!
+                    const noteDoc = {
+                        course: courseCode,
+                        courseCode: courseCode,
+                        courseName: courseObj.title || '',
+                        title: title,
+                        topic: title,
+                        semester: semester,
+                        noteType: noteType,
+                        noteCategory: noteType.toLowerCase().includes('university') ? 'university' : 'faculty',
+                        noteTypeName: noteType,
+                        fileUrl: driveLink,
+                        pdfUrl: driveLink,
+                        externalProvider: storage.provider,
+                        externalProviderName: storage.providerName,
+                        embedUrl: storage.embedUrl,
+                        isExternalStorage: true,
+                        submitterName: submitterName,
+                        submitterEmail: submitterEmail,
+                        type: 'Notes',
+                        materialType: 'note',
+                        materialGroup: 'notes',
+                        examType: noteType,
+                        isLab: isLabCourse(courseObj),
+                        credits: courseObj.credits || 3,
+                        status: 'pending',
+                        createdAt: new Date().toISOString(),
+                        searchTokens: tokens,
+                        courseSearch: `${courseCode} ${courseObj.title} ${title} ${noteType}`.toLowerCase()
+                    };
+
+                    await addDoc(collection(db, QUESTION_COLLECTION), noteDoc);
+
+                    if (statusEl) {
+                        statusEl.innerHTML = `
+                            <div style="background:rgba(16,185,129,0.12); border:1px solid #10b981; border-radius:0.5rem; padding:1rem; color:#065f46; font-size:0.9rem;">
+                                <i class="fas fa-check-circle" style="color:#10b981; font-size:1.25rem;"></i>
+                                <strong style="margin-left:0.4rem;">Note Submitted Successfully!</strong>
+                                <p style="margin:0.5rem 0 0; color:var(--text-main); font-size:0.85rem;">
+                                    Your note for <strong>${courseCode} - ${title}</strong> has been received with its Google Drive link and sent for Admin review.
+                                </p>
+                            </div>
+                        `;
+                    }
+                    showToast('Note submitted successfully for Admin review!', 'success');
+                    form.reset();
+                    if (card) card.style.display = 'none';
+                    if (searchInput) searchInput.style.display = '';
+
+                } catch (err) {
+                    console.error('Note submission error:', err);
+                    if (statusEl) {
+                        statusEl.innerHTML = `
+                            <div style="background:rgba(239,68,68,0.1); border:1px solid #ef4444; border-radius:0.5rem; padding:0.85rem; color:#b91c1c; font-size:0.85rem;">
+                                <i class="fas fa-exclamation-circle"></i> ${err.message || 'Error submitting note. Please try again.'}
+                            </div>
+                        `;
+                    }
+                    showToast(err.message || 'Error submitting note', 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Note for Admin Review';
+                }
+            });
+        }
+
+        // =========================================================
         // DIRECT QUESTION UPLOADER (AUTO-DETECTION & MULTI-FILE)
         // =========================================================
         const btnModeDirect = document.getElementById('btn-mode-direct-upload');
+        const btnModeNotes = document.getElementById('btn-mode-notes-upload');
         const btnModeManual = document.getElementById('btn-mode-manual-upload');
         const directUploadSection = document.getElementById('direct-upload-section');
+        const notesUploadSection = document.getElementById('notes-upload-section');
         const manualUploadSection = document.getElementById('manual-upload-section');
 
-        if (btnModeDirect && btnModeManual) {
-            btnModeDirect.addEventListener('click', () => {
-                if (directUploadSection) directUploadSection.style.display = 'block';
-                if (manualUploadSection) manualUploadSection.style.display = 'none';
-                btnModeDirect.className = 'btn btn-primary';
-                btnModeManual.className = 'btn btn-outline';
-            });
-            btnModeManual.addEventListener('click', () => {
-                if (directUploadSection) directUploadSection.style.display = 'none';
-                if (manualUploadSection) manualUploadSection.style.display = 'block';
-                btnModeManual.className = 'btn btn-primary';
-                btnModeDirect.className = 'btn btn-outline';
-            });
+        function setUploadMode(mode) {
+            if (directUploadSection) directUploadSection.style.display = (mode === 'direct') ? 'block' : 'none';
+            if (notesUploadSection) notesUploadSection.style.display = (mode === 'notes') ? 'block' : 'none';
+            if (manualUploadSection) manualUploadSection.style.display = (mode === 'manual') ? 'block' : 'none';
+
+            if (btnModeDirect) btnModeDirect.className = (mode === 'direct') ? 'btn btn-primary' : 'btn btn-outline';
+            if (btnModeNotes) {
+                btnModeNotes.className = (mode === 'notes') ? 'btn btn-primary' : 'btn btn-outline';
+                btnModeNotes.style.background = (mode === 'notes') ? 'linear-gradient(135deg, #10b981, #059669)' : '';
+                btnModeNotes.style.borderColor = (mode === 'notes') ? '#059669' : '#10b981';
+                btnModeNotes.style.color = (mode === 'notes') ? '#ffffff' : '#059669';
+            }
+            if (btnModeManual) btnModeManual.className = (mode === 'manual') ? 'btn btn-primary' : 'btn btn-outline';
+
+            if (mode === 'notes') {
+                initNotesUploadForm();
+            } else if (mode === 'manual') {
+                populateUploadForm();
+            }
         }
+
+        if (btnModeDirect) btnModeDirect.addEventListener('click', () => setUploadMode('direct'));
+        if (btnModeNotes) btnModeNotes.addEventListener('click', () => setUploadMode('notes'));
+        if (btnModeManual) btnModeManual.addEventListener('click', () => setUploadMode('manual'));
 
         const directUploadAcademicEmail = document.getElementById('directUploadAcademicEmail');
         const userZipAcademicEmail = document.getElementById('userZipAcademicEmail');
