@@ -8566,6 +8566,11 @@
                 }, 3000);
             }
 
+            function finish(statusText = 'Upload Complete!') {
+                updateTitle(statusText);
+                stop();
+            }
+
             function updateTitle(statusText) {
                 if (activeUploadCount > 0 && statusText) {
                     document.title = `${statusText} · UIU Question Bank`;
@@ -8595,6 +8600,7 @@
             return {
                 start,
                 stop,
+                finish,
                 delay,
                 updateTitle,
                 isActive: () => activeUploadCount > 0
