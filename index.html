@@ -3549,18 +3549,21 @@
             z-index: 1;
         }
 
-        /* PDF.js Text Layer for Text Selectability, Copying, and Marking */
+        /* PDF.js Text Layer for High-Fidelity Text Selectability, Copying, and Marking */
         .qb-pdf-text-layer.textLayer {
             position: absolute;
+            text-align: initial;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
             width: 100%;
             height: 100%;
-            overflow: hidden;
+            overflow: clip;
             opacity: 1;
             line-height: 1;
+            text-size-adjust: none;
+            forced-color-adjust: none;
             transform-origin: 0 0;
             z-index: 2;
             pointer-events: auto;
@@ -3568,6 +3571,7 @@
             -webkit-user-select: text;
         }
 
+        .qb-pdf-text-layer.textLayer :is(span, br),
         .qb-pdf-text-layer.textLayer span,
         .qb-pdf-text-layer.textLayer br {
             color: transparent;
@@ -3578,13 +3582,13 @@
         }
 
         .qb-pdf-text-layer.textLayer ::selection {
-            background: rgba(37, 99, 235, 0.35);
-            color: transparent;
+            background: rgba(37, 99, 235, 0.38) !important;
+            color: transparent !important;
         }
 
         .qb-pdf-text-layer.textLayer ::-moz-selection {
-            background: rgba(37, 99, 235, 0.35);
-            color: transparent;
+            background: rgba(37, 99, 235, 0.38) !important;
+            color: transparent !important;
         }
 
         .qb-anno-canvas {
@@ -3605,12 +3609,12 @@
             z-index: 100080;
             display: none;
             align-items: center;
-            gap: 4px;
+            gap: 5px;
             background: rgba(17, 24, 39, 0.94);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.16);
             border-radius: 30px;
-            padding: 5px 10px;
+            padding: 5px 12px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
             color: #ffffff;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -3649,6 +3653,34 @@
             height: 16px;
             background: rgba(255, 255, 255, 0.2);
             margin: 0 2px;
+        }
+
+        .qb-sel-colors {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 0 2px;
+        }
+
+        .qb-sel-color-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.12s ease, border-color 0.12s ease;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+
+        .qb-sel-color-dot:hover {
+            transform: scale(1.3);
+        }
+
+        .qb-sel-color-dot.active {
+            border-color: #ffffff;
+            transform: scale(1.18);
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
         }
 
         @keyframes qbFadeInUp {
@@ -4572,6 +4604,21 @@
                             </select>
                         </div>
 
+                        <!-- Faculty Member (Optional / Recommended) -->
+                        <div class="input-group" id="notesFacultyGroup" style="margin-bottom:1rem; position:relative;">
+                            <label class="input-label" for="notesFacultySearch">
+                                Faculty Member <span id="notesFacultyHint" style="color:var(--text-muted);font-weight:400;">(Optional - Course Instructor / Notes Creator)</span>
+                            </label>
+                            <div style="position:relative; display:flex; align-items:center;">
+                                <input type="text" id="notesFacultySearch" class="input-control" placeholder="Search faculty by name or short code (e.g. AnHq, Anindya)..." autocomplete="off" style="padding-right:2.25rem;">
+                                <button type="button" id="notesFacultyClearBtn" style="position:absolute; right:0.6rem; background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem; line-height:1; display:none; padding:4px;" title="Clear selected faculty">&times;</button>
+                            </div>
+                            <input type="hidden" id="notesFacultyId" value="">
+                            <input type="hidden" id="notesFacultyName" value="">
+                            <input type="hidden" id="notesFacultyCode" value="">
+                            <div id="notesFacultyDropdown" class="autocomplete-dropdown" style="position:absolute; top:100%; left:0; right:0; max-height:220px; overflow-y:auto; z-index:1000; display:none;"></div>
+                        </div>
+
                         <!-- Drive Link -->
                         <div class="input-group" style="margin-bottom:1.25rem;">
                             <label class="input-label" for="notesDriveLinkInput">
@@ -5377,17 +5424,25 @@
 
             <!-- Adobe PDF Quick Selection Action Toolbar -->
             <div id="qbTextSelectionToolbar" class="qb-selection-toolbar">
-                <button type="button" class="qb-sel-btn" id="qbSelCopyBtn" onclick="copySelectedText()" title="Copy text (Ctrl+C)">
+                <button type="button" class="qb-sel-btn" id="qbSelCopyBtn" onclick="copySelectedText()" title="Copy clean text (Ctrl+C)">
                     <i class="fas fa-copy"></i> <span>Copy</span>
                 </button>
                 <div class="qb-sel-divider"></div>
-                <button type="button" class="qb-sel-btn" id="qbSelHighlightBtn" onclick="highlightSelectedText()" title="Highlight / Mark text">
-                    <i class="fas fa-highlighter" style="color:#eab308;"></i> <span>Highlight</span>
+                <button type="button" class="qb-sel-btn" id="qbSelHighlightBtn" onclick="highlightSelectedText()" title="Highlight selected text (H)">
+                    <i class="fas fa-highlighter" id="qbSelHighlightIcon" style="color:#eab308;"></i> <span>Highlight</span>
                 </button>
-                <button type="button" class="qb-sel-btn" id="qbSelUnderlineBtn" onclick="underlineSelectedText()" title="Underline text">
+                <div class="qb-sel-colors" id="qbSelColorPalette" title="Choose highlight color">
+                    <span class="qb-sel-color-dot active" data-color="#fef08a" style="background:#eab308;" onclick="setSelectionHighlightColor('#fef08a', '#eab308', this)" title="Yellow"></span>
+                    <span class="qb-sel-color-dot" data-color="#bbf7d0" style="background:#22c55e;" onclick="setSelectionHighlightColor('#bbf7d0', '#22c55e', this)" title="Green"></span>
+                    <span class="qb-sel-color-dot" data-color="#bae6fd" style="background:#0284c7;" onclick="setSelectionHighlightColor('#bae6fd', '#0284c7', this)" title="Cyan"></span>
+                    <span class="qb-sel-color-dot" data-color="#fbcfe8" style="background:#ec4899;" onclick="setSelectionHighlightColor('#fbcfe8', '#ec4899', this)" title="Pink"></span>
+                    <span class="qb-sel-color-dot" data-color="#fed7aa" style="background:#f97316;" onclick="setSelectionHighlightColor('#fed7aa', '#f97316', this)" title="Orange"></span>
+                </div>
+                <div class="qb-sel-divider"></div>
+                <button type="button" class="qb-sel-btn" id="qbSelUnderlineBtn" onclick="underlineSelectedText()" title="Underline text (U)">
                     <i class="fas fa-underline" style="color:#ef4444;"></i> <span>Underline</span>
                 </button>
-                <button type="button" class="qb-sel-btn" id="qbSelStrikeBtn" onclick="strikeSelectedText()" title="Strikethrough text">
+                <button type="button" class="qb-sel-btn" id="qbSelStrikeBtn" onclick="strikeSelectedText()" title="Strikethrough text (S)">
                     <i class="fas fa-strikethrough" style="color:#94a3b8;"></i> <span>Strike</span>
                 </button>
             </div>
@@ -9305,6 +9360,13 @@
                         textLayerDiv.dataset.pageNum = pageNum;
                         textLayerDiv.style.width = `${displayViewport.width}px`;
                         textLayerDiv.style.height = `${displayViewport.height}px`;
+                        textLayerDiv.style.setProperty('--scale-factor', displayViewport.scale);
+                        textLayerDiv.style.setProperty('--total-scale-factor', displayViewport.scale);
+                        textLayerDiv.style.setProperty('--viewport-scale-factor', '1');
+
+                        if (typeof pdfjsLib !== 'undefined' && typeof pdfjsLib.setLayerDimensions === 'function') {
+                            pdfjsLib.setLayerDimensions(textLayerDiv, displayViewport);
+                        }
 
                         // Annotation Overlay Canvas (Pen, Highlighter, Marks, Underline)
                         const annoCanvas = document.createElement('canvas');
@@ -9329,11 +9391,18 @@
                         await page.render(renderContext).promise;
                         if (renderToken !== currentRenderToken) return;
 
-                        // Render selectable text layer
+                        // Render high-precision selectable text layer (pdfjs-dist TextLayer / renderTextLayer)
                         try {
                             const textContent = await page.getTextContent();
                             if (renderToken !== currentRenderToken) return;
-                            if (typeof pdfjsLib.renderTextLayer === 'function') {
+                            if (typeof pdfjsLib.TextLayer === 'function') {
+                                const textLayer = new pdfjsLib.TextLayer({
+                                    textContentSource: textContent,
+                                    container: textLayerDiv,
+                                    viewport: displayViewport
+                                });
+                                await textLayer.render();
+                            } else if (typeof pdfjsLib.renderTextLayer === 'function') {
                                 const textLayerTask = pdfjsLib.renderTextLayer({
                                     textContentSource: textContent,
                                     textContent: textContent,
@@ -9661,9 +9730,19 @@
                 } else if (anno.type === 'highlight-text' && Array.isArray(anno.rects)) {
                     ctx.save();
                     ctx.fillStyle = anno.color || '#fef08a';
-                    ctx.globalAlpha = 0.42;
+                    ctx.globalAlpha = 0.44;
                     anno.rects.forEach(r => {
-                        ctx.fillRect(r.x * scale, r.y * scale, r.width * scale, r.height * scale);
+                        const rx = r.x * scale;
+                        const ry = r.y * scale;
+                        const rw = r.width * scale;
+                        const rh = r.height * scale;
+                        if (typeof ctx.roundRect === 'function') {
+                            ctx.beginPath();
+                            ctx.roundRect(rx, ry, rw, rh, Math.min(2.5 * scale, rh * 0.15));
+                            ctx.fill();
+                        } else {
+                            ctx.fillRect(rx, ry, rw, rh);
+                        }
                     });
                     ctx.restore();
                 } else if (anno.type === 'underline-text' && Array.isArray(anno.rects)) {
@@ -10547,6 +10626,13 @@
                         textLayerDiv.dataset.pageNum = p;
                         textLayerDiv.style.width = `${dispViewport.width}px`;
                         textLayerDiv.style.height = `${dispViewport.height}px`;
+                        textLayerDiv.style.setProperty('--scale-factor', dispViewport.scale);
+                        textLayerDiv.style.setProperty('--total-scale-factor', dispViewport.scale);
+                        textLayerDiv.style.setProperty('--viewport-scale-factor', '1');
+
+                        if (typeof pdfjsLib !== 'undefined' && typeof pdfjsLib.setLayerDimensions === 'function') {
+                            pdfjsLib.setLayerDimensions(textLayerDiv, dispViewport);
+                        }
 
                         pageContainer.appendChild(pdfCanvas);
                         pageContainer.appendChild(textLayerDiv);
@@ -10556,7 +10642,14 @@
 
                         try {
                             const textContent = await page.getTextContent();
-                            if (typeof pdfjsLib.renderTextLayer === 'function') {
+                            if (typeof pdfjsLib.TextLayer === 'function') {
+                                const textLayer = new pdfjsLib.TextLayer({
+                                    textContentSource: textContent,
+                                    container: textLayerDiv,
+                                    viewport: dispViewport
+                                });
+                                await textLayer.render();
+                            } else if (typeof pdfjsLib.renderTextLayer === 'function') {
                                 const textLayerTask = pdfjsLib.renderTextLayer({
                                     textContentSource: textContent,
                                     textContent: textContent,
@@ -10581,11 +10674,18 @@
             iframe.src = `https://docs.google.com/gview?url=${encodeURIComponent(pdfUrl)}&embedded=true`;
         }
 
-        // Keyboard Shortcuts for Teacher Studio
+        // Keyboard Shortcuts for Teacher Studio & Selection Marking
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeQuestionPickerModal();
                 if (document.getElementById('fullBrowserViewer')?.style.display === 'flex' && !document.fullscreenElement) {
+                    const sel = window.getSelection();
+                    if (sel && !sel.isCollapsed) {
+                        sel.removeAllRanges();
+                        const tb = document.getElementById('qbTextSelectionToolbar');
+                        if (tb) tb.style.display = 'none';
+                        return;
+                    }
                     closeFullBrowserViewer();
                 }
             }
@@ -10597,7 +10697,127 @@
                 e.preventDefault();
                 redoAnnotation();
             }
+
+            // Quick Selection Action Hotkeys when text is selected in PDF viewer
+            const viewer = document.getElementById('fullBrowserViewer');
+            if (viewer && viewer.style.display === 'flex' && !e.target.closest('input, textarea, select')) {
+                const sel = window.getSelection();
+                if (sel && !sel.isCollapsed && sel.toString().trim().length > 0) {
+                    if (e.key === 'h' || e.key === 'H') {
+                        e.preventDefault();
+                        highlightSelectedText();
+                    } else if (e.key === 'u' || e.key === 'U') {
+                        e.preventDefault();
+                        underlineSelectedText();
+                    } else if (e.key === 's' || e.key === 'S') {
+                        e.preventDefault();
+                        strikeSelectedText();
+                    }
+                }
+            }
         });
+
+        // Clean & normalize PDF text copied from text layers
+        window.cleanPdfText = function(rawText) {
+            if (!rawText) return '';
+            return rawText
+                .replace(/(\b[a-zA-Z]+)-\s*[\r\n]+\s*([a-zA-Z]+\b)/g, '$1$2')
+                .replace(/\u00AD/g, '')
+                .replace(/\r\n/g, '\n')
+                .replace(/[ \t]+$/gm, '')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
+        };
+
+        // Automatic copy interceptor for clean PDF copying
+        document.addEventListener('copy', (e) => {
+            const viewer = document.getElementById('fullBrowserViewer');
+            if (viewer && viewer.style.display === 'flex') {
+                const selection = window.getSelection();
+                if (selection && !selection.isCollapsed) {
+                    const text = selection.toString();
+                    if (text && text.trim()) {
+                        const cleaned = cleanPdfText(text);
+                        if (e.clipboardData) {
+                            e.clipboardData.setData('text/plain', cleaned);
+                            e.preventDefault();
+                            showToast('Text copied to clipboard!', 'success');
+                            const toolbar = document.getElementById('qbTextSelectionToolbar');
+                            if (toolbar) toolbar.style.display = 'none';
+                        }
+                    }
+                }
+            }
+        });
+
+        // Merge contiguous disjointed client rects into sleek Adobe-style line strips
+        function mergeLineRects(rects) {
+            if (!Array.isArray(rects) || rects.length === 0) return [];
+            const valid = rects.filter(r => r && r.width > 0.5 && r.height > 0.5);
+            if (valid.length <= 1) return valid;
+
+            // Sort by vertical position (y), then horizontal (x)
+            const sorted = valid.slice().sort((a, b) => a.y - b.y || a.x - b.x);
+
+            // Group into visual lines
+            const lines = [];
+            let currentLine = [sorted[0]];
+
+            for (let i = 1; i < sorted.length; i++) {
+                const r = sorted[i];
+                const prev = currentLine[currentLine.length - 1];
+
+                const prevCenterY = prev.y + prev.height / 2;
+                const rCenterY = r.y + r.height / 2;
+                const minHeight = Math.min(prev.height, r.height);
+                const isSameLine = Math.abs(prevCenterY - rCenterY) < minHeight * 0.55 ||
+                                   (Math.min(prev.y + prev.height, r.y + r.height) - Math.max(prev.y, r.y)) > minHeight * 0.45;
+
+                if (isSameLine) {
+                    currentLine.push(r);
+                } else {
+                    lines.push(currentLine);
+                    currentLine = [r];
+                }
+            }
+            if (currentLine.length > 0) lines.push(currentLine);
+
+            // Merge horizontally contiguous rects in each line
+            const merged = [];
+            for (const line of lines) {
+                line.sort((a, b) => a.x - b.x);
+                let cur = {
+                    x: line[0].x,
+                    y: line[0].y,
+                    width: line[0].width,
+                    height: line[0].height
+                };
+
+                for (let j = 1; j < line.length; j++) {
+                    const next = line[j];
+                    const gapTolerance = Math.max(14, cur.height * 0.65);
+                    const curRight = cur.x + cur.width;
+
+                    if (next.x <= curRight + gapTolerance) {
+                        const newRight = Math.max(curRight, next.x + next.width);
+                        cur.width = newRight - cur.x;
+                        cur.y = Math.min(cur.y, next.y);
+                        cur.height = Math.max(cur.height, next.height);
+                    } else {
+                        merged.push(cur);
+                        cur = {
+                            x: next.x,
+                            y: next.y,
+                            width: next.width,
+                            height: next.height
+                        };
+                    }
+                }
+                merged.push(cur);
+            }
+
+            return merged;
+        }
 
         // ==========================================
         // ADOBE PDF TEXT SELECTION & MARKING STUDIO
@@ -10622,26 +10842,32 @@
             const clientRects = Array.from(range.getClientRects());
             if (clientRects.length === 0) return null;
 
-            const rects = clientRects.map(r => ({
+            const rawRects = clientRects.map(r => ({
                 x: (r.left - containerRect.left) / displayScale,
                 y: (r.top - containerRect.top) / displayScale,
                 width: r.width / displayScale,
                 height: r.height / displayScale
-            })).filter(r => r.width > 0 && r.height > 0);
+            })).filter(r => r.width > 0.5 && r.height > 0.5);
 
+            if (rawRects.length === 0) return null;
+
+            const rects = mergeLineRects(rawRects);
             return { pageNum, displayScale, rects };
         }
 
         window.copySelectedText = async function() {
             const selection = window.getSelection();
-            const text = selection ? selection.toString() : '';
+            let text = selection ? selection.toString() : '';
             if (!text) return;
+            text = cleanPdfText(text);
             try {
                 await navigator.clipboard.writeText(text);
                 showToast('Text copied to clipboard!', 'success');
             } catch (_) {
                 const ta = document.createElement('textarea');
                 ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.left = '-9999px';
                 document.body.appendChild(ta);
                 ta.select();
                 document.execCommand('copy');
@@ -10652,7 +10878,21 @@
             if (toolbar) toolbar.style.display = 'none';
         };
 
-        window.highlightSelectedText = function() {
+        let activeSelectionHighlightColor = '#fef08a';
+
+        window.setSelectionHighlightColor = function(canvasColor, iconColor, dotEl) {
+            activeSelectionHighlightColor = canvasColor;
+            const icon = document.getElementById('qbSelHighlightIcon');
+            if (icon) icon.style.color = iconColor;
+            document.querySelectorAll('#qbSelColorPalette .qb-sel-color-dot').forEach(d => d.classList.remove('active'));
+            if (dotEl) dotEl.classList.add('active');
+            const sel = window.getSelection();
+            if (sel && !sel.isCollapsed && sel.toString().trim()) {
+                highlightSelectedText(canvasColor);
+            }
+        };
+
+        window.highlightSelectedText = function(colorOverride) {
             const data = getSelectionRectsOnActivePage();
             if (!data || data.rects.length === 0) {
                 showToast('Please select text inside the document first.', 'info');
@@ -10663,10 +10903,11 @@
             if (!activeTab.annotations) activeTab.annotations = [];
             if (!activeTab.undoStack) activeTab.undoStack = [];
 
+            const chosenColor = colorOverride || activeSelectionHighlightColor || currentAnnotationColor || '#fef08a';
             const anno = {
                 type: 'highlight-text',
                 rects: data.rects,
-                color: currentAnnotationColor || '#fef08a',
+                color: chosenColor,
                 pageNum: data.pageNum,
                 savedScale: 1
             };
@@ -12176,6 +12417,109 @@
                 });
             }
 
+            // 2.5 Faculty autocomplete from facultiesList
+            const notesFacultySearch = document.getElementById('notesFacultySearch');
+            const notesFacultyDropdown = document.getElementById('notesFacultyDropdown');
+            const notesFacultyClearBtn = document.getElementById('notesFacultyClearBtn');
+            const notesFacultyIdInp = document.getElementById('notesFacultyId');
+            const notesFacultyNameInp = document.getElementById('notesFacultyName');
+            const notesFacultyCodeInp = document.getElementById('notesFacultyCode');
+            const notesFacultyHint = document.getElementById('notesFacultyHint');
+            const noteTypeSelect = document.getElementById('notesNoteTypeSelect');
+
+            if (noteTypeSelect && notesFacultyHint) {
+                noteTypeSelect.addEventListener('change', () => {
+                    const val = noteTypeSelect.value;
+                    if (val === "Faculty's Notes") {
+                        notesFacultyHint.innerHTML = '<span style="color:var(--orange); font-weight:600;">(Recommended - Instructor who prepared these notes)</span>';
+                    } else if (val === "University's Notes") {
+                        notesFacultyHint.innerHTML = '<span style="color:var(--text-muted); font-weight:400;">(Faculty member using these slides/notes)</span>';
+                    } else {
+                        notesFacultyHint.innerHTML = '<span style="color:var(--text-muted); font-weight:400;">(Optional - Course Instructor / Notes Creator)</span>';
+                    }
+                });
+            }
+
+            if (notesFacultySearch && notesFacultyDropdown) {
+                function renderNotesFacultyResults(filter) {
+                    if (typeof facultiesList === 'undefined') return;
+                    const q = (filter || '').toLowerCase().trim();
+                    const matches = q ? facultiesList.filter(f => {
+                        const nameMatch = (f.name || '').toLowerCase().includes(q);
+                        const codeMatch = (f.code || '').toLowerCase().includes(q);
+                        const cleanNameMatch = (f.name || '').toLowerCase().replace(/[\s\(\)\.]/g, '').includes(q.replace(/[\s\(\)\.]/g, ''));
+                        return nameMatch || codeMatch || cleanNameMatch;
+                    }) : facultiesList;
+
+                    if (matches.length === 0) {
+                        notesFacultyDropdown.innerHTML = '<div style="padding:0.75rem 1rem; color:var(--text-muted); font-size:0.85rem; text-align:center;">No matching faculty found</div>';
+                    } else {
+                        notesFacultyDropdown.innerHTML = matches.slice(0, 30).map(f => `
+                            <div class="notes-faculty-search-item" data-id="${f.id}" data-name="${f.name}" data-code="${f.code}" style="padding:0.6rem 1rem; cursor:pointer; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; transition:background 0.15s;">
+                                <div>
+                                    <div style="font-weight:600; font-size:0.88rem; color:var(--text-main);">${f.name}</div>
+                                </div>
+                                <span class="pill" style="font-size:0.72rem; padding:0.15rem 0.5rem; background:rgba(255,145,77,0.15); color:var(--orange); border:1px solid rgba(255,145,77,0.3); font-weight:600;">${f.code}</span>
+                            </div>
+                        `).join('');
+                    }
+                    notesFacultyDropdown.style.display = 'block';
+                }
+
+                notesFacultySearch.addEventListener('focus', () => renderNotesFacultyResults(notesFacultySearch.value));
+                notesFacultySearch.addEventListener('input', () => {
+                    renderNotesFacultyResults(notesFacultySearch.value);
+                    if (!notesFacultySearch.value.trim()) {
+                        if (notesFacultyIdInp) notesFacultyIdInp.value = '';
+                        if (notesFacultyNameInp) notesFacultyNameInp.value = '';
+                        if (notesFacultyCodeInp) notesFacultyCodeInp.value = '';
+                        if (notesFacultyClearBtn) notesFacultyClearBtn.style.display = 'none';
+                    }
+                });
+
+                notesFacultyDropdown.addEventListener('click', (e) => {
+                    const item = e.target.closest('.notes-faculty-search-item');
+                    if (!item) return;
+                    const id = item.dataset.id;
+                    const name = item.dataset.name;
+                    const code = item.dataset.code;
+
+                    if (notesFacultyIdInp) notesFacultyIdInp.value = id;
+                    if (notesFacultyNameInp) notesFacultyNameInp.value = name;
+                    if (notesFacultyCodeInp) notesFacultyCodeInp.value = code;
+                    notesFacultySearch.value = name;
+                    notesFacultyDropdown.style.display = 'none';
+                    if (notesFacultyClearBtn) notesFacultyClearBtn.style.display = 'block';
+                });
+
+                notesFacultyDropdown.addEventListener('mouseover', (e) => {
+                    const item = e.target.closest('.notes-faculty-search-item');
+                    if (item) item.style.background = 'var(--surface)';
+                });
+                notesFacultyDropdown.addEventListener('mouseout', (e) => {
+                    const item = e.target.closest('.notes-faculty-search-item');
+                    if (item) item.style.background = '';
+                });
+
+                if (notesFacultyClearBtn) {
+                    notesFacultyClearBtn.addEventListener('click', () => {
+                        if (notesFacultyIdInp) notesFacultyIdInp.value = '';
+                        if (notesFacultyNameInp) notesFacultyNameInp.value = '';
+                        if (notesFacultyCodeInp) notesFacultyCodeInp.value = '';
+                        notesFacultySearch.value = '';
+                        notesFacultyClearBtn.style.display = 'none';
+                        notesFacultyDropdown.style.display = 'none';
+                        notesFacultySearch.focus();
+                    });
+                }
+
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('#notesFacultyGroup')) {
+                        notesFacultyDropdown.style.display = 'none';
+                    }
+                });
+            }
+
             // 3. Drive Link feedback & detection
             const driveInput = document.getElementById('notesDriveLinkInput');
             const driveIcon = document.getElementById('notesDriveLinkIcon');
@@ -12225,6 +12569,11 @@
                     form.reset();
                     if (card) card.style.display = 'none';
                     if (searchInput) searchInput.style.display = '';
+                    if (notesFacultyIdInp) notesFacultyIdInp.value = '';
+                    if (notesFacultyNameInp) notesFacultyNameInp.value = '';
+                    if (notesFacultyCodeInp) notesFacultyCodeInp.value = '';
+                    if (notesFacultyClearBtn) notesFacultyClearBtn.style.display = 'none';
+                    if (notesFacultyDropdown) notesFacultyDropdown.style.display = 'none';
                     setUploadMode('direct');
                 });
             }
@@ -12270,6 +12619,10 @@
                     const courseObj = CURRICULUM.find(c => c.code.replace(/\s+/g,'').toUpperCase() === courseCode.replace(/\s+/g,'').toUpperCase()) || { title: courseCode, credits: 3 };
                     const storage = detectExternalStorage(driveLink);
 
+                    const facId = (notesFacultyIdInp ? notesFacultyIdInp.value : '').trim();
+                    const facName = (notesFacultyNameInp ? notesFacultyNameInp.value : (notesFacultySearch ? notesFacultySearch.value : '')).trim();
+                    const facCode = (notesFacultyCodeInp ? notesFacultyCodeInp.value : '').trim();
+
                     const tokens = Array.from(new Set([
                         courseCode.toLowerCase(),
                         courseCode.replace(/\s+/g, '').toLowerCase(),
@@ -12279,7 +12632,9 @@
                         semester.toLowerCase(),
                         'note', 'notes',
                         noteType.toLowerCase(),
-                        noteType.toLowerCase().replace(/['\s]/g, '')
+                        noteType.toLowerCase().replace(/['\s]/g, ''),
+                        ...(facName ? [facName.toLowerCase(), ...facName.toLowerCase().split(/\s+/)] : []),
+                        ...(facCode ? [facCode.toLowerCase()] : [])
                     ].filter(t => t && t.length > 1)));
 
                     // Store metadata and external link directly - ZERO CLOUDINARY UPLOAD!
@@ -12293,6 +12648,9 @@
                         noteType: noteType,
                         noteCategory: noteType.toLowerCase().includes('university') ? 'university' : 'faculty',
                         noteTypeName: noteType,
+                        facultyId: facId ? (isNaN(facId) ? facId : Number(facId)) : null,
+                        facultyName: facName || '',
+                        facultyCode: facCode || '',
                         fileUrl: driveLink,
                         pdfUrl: driveLink,
                         externalProvider: storage.provider,
@@ -12310,7 +12668,7 @@
                         status: 'pending',
                         createdAt: new Date().toISOString(),
                         searchTokens: tokens,
-                        courseSearch: `${courseCode} ${courseObj.title} ${title} ${noteType}`.toLowerCase()
+                        courseSearch: `${courseCode} ${courseObj.title} ${title} ${noteType} ${facName} ${facCode}`.trim().toLowerCase()
                     };
 
                     await addDoc(collection(db, QUESTION_COLLECTION), noteDoc);
@@ -12330,6 +12688,11 @@
                     form.reset();
                     if (card) card.style.display = 'none';
                     if (searchInput) searchInput.style.display = '';
+                    if (notesFacultyIdInp) notesFacultyIdInp.value = '';
+                    if (notesFacultyNameInp) notesFacultyNameInp.value = '';
+                    if (notesFacultyCodeInp) notesFacultyCodeInp.value = '';
+                    if (notesFacultyClearBtn) notesFacultyClearBtn.style.display = 'none';
+                    if (notesFacultyDropdown) notesFacultyDropdown.style.display = 'none';
 
                 } catch (err) {
                     console.error('Note submission error:', err);

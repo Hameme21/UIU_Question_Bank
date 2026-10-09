@@ -1,0 +1,12 @@
+{
+  "name": "uiu-question-bank",
+  "version": "1.0.0",
+  "description": "UIU CSE Question Bank - Past Papers, Solutions & Notes",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "dependencies": {
+    "pdfjs-dist": "^6.4.299"
+  }
+}
