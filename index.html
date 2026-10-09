@@ -4619,18 +4619,55 @@
                             <div id="notesFacultyDropdown" class="autocomplete-dropdown" style="position:absolute; top:100%; left:0; right:0; max-height:220px; overflow-y:auto; z-index:1000; display:none;"></div>
                         </div>
 
-                        <!-- Drive Link -->
+                        <!-- Note Material (Direct File Upload < 5MB, or Drive Link if > 5MB) -->
                         <div class="input-group" style="margin-bottom:1.25rem;">
-                            <label class="input-label" for="notesDriveLinkInput">
-                                Drive Link <span style="color:var(--danger);font-weight:700">*</span>
-                                <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">(Google Drive or supported cloud storage link)</span>
-                            </label>
-                            <div style="position:relative;">
-                                <input type="url" id="notesDriveLinkInput" class="input-control" placeholder="https://drive.google.com/file/d/.../view or share link" required style="padding-left:2.5rem;">
-                                <i id="notesDriveLinkIcon" class="fab fa-google-drive" style="position:absolute; left:0.85rem; top:50%; transform:translateY(-50%); color:#10b981; font-size:1.15rem;"></i>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; flex-wrap:wrap; gap:0.5rem;">
+                                <label class="input-label" style="margin:0;">
+                                    Note Material <span style="color:var(--danger);font-weight:700">*</span>
+                                </label>
+                                <!-- Method Switcher -->
+                                <div style="display:inline-flex; background:var(--surface-2); border:1px solid var(--border); border-radius:20px; padding:2px; gap:2px;">
+                                    <button type="button" id="notesMethodFileBtn" style="border:none; background:linear-gradient(135deg, #10b981, #059669); color:#fff; border-radius:16px; padding:3px 12px; font-size:0.75rem; font-weight:600; cursor:pointer; transition:all 0.15s;" onclick="setNotesSubmissionMethod('file')">
+                                        <i class="fas fa-file-upload"></i> Upload File (&lt; 5MB)
+                                    </button>
+                                    <button type="button" id="notesMethodLinkBtn" style="border:none; background:transparent; color:var(--text-muted); border-radius:16px; padding:3px 12px; font-size:0.75rem; font-weight:600; cursor:pointer; transition:all 0.15s;" onclick="setNotesSubmissionMethod('link')">
+                                        <i class="fab fa-google-drive"></i> Drive Link (&gt; 5MB)
+                                    </button>
+                                </div>
                             </div>
-                            <div id="notesProviderFeedback" style="font-size:0.8rem; margin-top:0.4rem; color:var(--text-muted); display:flex; align-items:center; gap:0.4rem;">
-                                <i class="fas fa-info-circle" style="color:var(--info);"></i> Make sure sharing is set to <strong>"Anyone with the link can view"</strong>.
+
+                            <!-- Option A: Direct File Upload (< 5MB) -->
+                            <div id="notesDirectFileSection">
+                                <div class="file-drop-area" id="notesFileDropzone" style="padding:1.25rem; border:2px dashed var(--border); border-radius:var(--radius-md); text-align:center; cursor:pointer; background:var(--surface-2); transition:all 0.2s;">
+                                    <input type="file" id="notesFileInput" accept=".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.txt,.rtf,.png,.jpg,.jpeg,.zip" style="display:none;">
+                                    <div id="notesFileDropContent">
+                                        <i class="fas fa-cloud-upload-alt" style="font-size:2.2rem; color:#10b981; margin-bottom:0.4rem;"></i>
+                                        <div style="font-weight:600; font-size:0.9rem; color:var(--text-main);">Drag &amp; drop note file here or <span style="color:#10b981; text-decoration:underline;">browse</span></div>
+                                        <div style="font-size:0.78rem; color:var(--text-muted); margin-top:0.25rem;">
+                                            Supports <strong>PPT, PPTX, PDF, DOC, DOCX, XLS, XLSX, TXT, Images</strong> (<span style="color:var(--danger); font-weight:600;">Max 5MB</span>)
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="notesFileSizeWarning" style="display:none; margin-top:0.6rem; padding:0.65rem 0.85rem; background:rgba(239,68,68,0.1); border:1px solid #ef4444; border-radius:6px; font-size:0.8rem; color:#b91c1c; align-items:center; justify-content:space-between; gap:0.5rem;">
+                                    <div style="display:flex; align-items:center; gap:0.4rem;">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <span id="notesFileSizeWarningText">File exceeds 5MB limit. Please upload to Drive and paste link below.</span>
+                                    </div>
+                                    <a href="https://drive.google.com" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="padding:0.2rem 0.6rem; font-size:0.72rem; color:#059669; border-color:#059669; white-space:nowrap; text-decoration:none;">
+                                        <i class="fab fa-google-drive"></i> Open Drive
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Option B: Drive Link -->
+                            <div id="notesDriveLinkSection" style="display:none; margin-top:0.5rem;">
+                                <div style="position:relative;">
+                                    <input type="url" id="notesDriveLinkInput" class="input-control" placeholder="https://drive.google.com/file/d/.../view or share link" style="padding-left:2.5rem;">
+                                    <i id="notesDriveLinkIcon" class="fab fa-google-drive" style="position:absolute; left:0.85rem; top:50%; transform:translateY(-50%); color:#10b981; font-size:1.15rem;"></i>
+                                </div>
+                                <div id="notesProviderFeedback" style="font-size:0.78rem; margin-top:0.4rem; color:var(--text-muted); display:flex; align-items:center; gap:0.4rem;">
+                                    <i class="fas fa-info-circle" style="color:var(--info);"></i> Make sure sharing is set to <strong>"Anyone with the link can view"</strong>. (Recommended for files &gt; 5MB)
+                                </div>
                             </div>
                         </div>
 
@@ -6120,6 +6157,33 @@
             return 'pdf';
         }
 
+        function getMaterialFileIcon(filenameOrUrl) {
+            if (!filenameOrUrl) return { icon: 'fa-file', color: '#6b7280', label: 'File' };
+            const s = String(filenameOrUrl).toLowerCase();
+            if (/\.(pptx?|ppsx?)($|\?)/i.test(s) || s.includes('presentation') || s.includes('slides')) {
+                return { icon: 'fa-file-powerpoint', color: '#ea580c', label: 'PowerPoint' };
+            }
+            if (/\.(docx?|rtf)($|\?)/i.test(s) || s.includes('document')) {
+                return { icon: 'fa-file-word', color: '#2563eb', label: 'Word Document' };
+            }
+            if (/\.(xlsx?|csv)($|\?)/i.test(s) || s.includes('sheet')) {
+                return { icon: 'fa-file-excel', color: '#16a34a', label: 'Excel Spreadsheet' };
+            }
+            if (/\.(png|jpe?g|webp|gif)($|\?)/i.test(s)) {
+                return { icon: 'fa-file-image', color: '#8b5cf6', label: 'Image' };
+            }
+            if (/\.(zip|rar|7z|tar|gz)($|\?)/i.test(s)) {
+                return { icon: 'fa-file-archive', color: '#d97706', label: 'Archive' };
+            }
+            if (/\.txt($|\?)/i.test(s)) {
+                return { icon: 'fa-file-alt', color: '#64748b', label: 'Text Document' };
+            }
+            if (/\.pdf($|\?)/i.test(s)) {
+                return { icon: 'fa-file-pdf', color: '#ef4444', label: 'PDF Document' };
+            }
+            return { icon: 'fa-file', color: '#6b7280', label: 'File' };
+        }
+
         function extractNoteTopicFromFileName(name) {
             if (!name) return '';
             let base = String(name).replace(/^.*[\\\/]/, '');
@@ -6216,11 +6280,41 @@
             }
 
             // 5. Office docs via Google Docs Viewer
-            if (/\.(pptx?|docx?|xlsx?)($|\?)/i.test(u)) {
+            if (/\.(pptx?|ppsx?)($|\?)/i.test(u)) {
                 return {
                     provider: 'office',
-                    providerName: 'Office Document',
+                    providerName: 'PowerPoint Presentation',
+                    icon: 'fas fa-file-powerpoint',
+                    embedUrl: `https://docs.google.com/gview?url=${encodeURIComponent(u)}&embedded=true`,
+                    originalUrl: u,
+                    canEmbed: true
+                };
+            }
+            if (/\.(docx?|rtf)($|\?)/i.test(u)) {
+                return {
+                    provider: 'office',
+                    providerName: 'Word Document',
                     icon: 'fas fa-file-word',
+                    embedUrl: `https://docs.google.com/gview?url=${encodeURIComponent(u)}&embedded=true`,
+                    originalUrl: u,
+                    canEmbed: true
+                };
+            }
+            if (/\.(xlsx?|csv)($|\?)/i.test(u)) {
+                return {
+                    provider: 'office',
+                    providerName: 'Excel Spreadsheet',
+                    icon: 'fas fa-file-excel',
+                    embedUrl: `https://docs.google.com/gview?url=${encodeURIComponent(u)}&embedded=true`,
+                    originalUrl: u,
+                    canEmbed: true
+                };
+            }
+            if (/\.txt($|\?)/i.test(u)) {
+                return {
+                    provider: 'office',
+                    providerName: 'Text Document',
+                    icon: 'fas fa-file-alt',
                     embedUrl: `https://docs.google.com/gview?url=${encodeURIComponent(u)}&embedded=true`,
                     originalUrl: u,
                     canEmbed: true
@@ -8220,7 +8314,7 @@
                         
                         if (val === 'Notes') {
                             if (driveGrp) driveGrp.style.display = 'block';
-                            if (mainGrp) mainGrp.style.display = 'none';
+                            if (mainGrp) mainGrp.style.display = 'block';
                             if (upMainFileInput) upMainFileInput.required = false;
                         } else {
                             if (driveGrp) driveGrp.style.display = 'none';
@@ -8232,7 +8326,7 @@
                             if (val === 'Solution') {
                                 mainLabel.innerHTML = 'Solution File (PDF / Word / PPT / Excel / Image) <span style="font-size:0.8rem; color:var(--orange); font-weight:500;">(Max 5MB)</span>';
                             } else if (val === 'Notes') {
-                                mainLabel.innerHTML = 'Main Notes File (PDF / Word / PPT / Excel / Image) <span style="font-size:0.8rem; color:var(--orange); font-weight:500;">(Max 5MB)</span>';
+                                mainLabel.innerHTML = 'Note File (PDF, PPT, DOC, XLS, TXT, Image) <span style="font-size:0.8rem; color:var(--orange); font-weight:500;">(Max 5MB • or use Drive link below if &gt; 5MB)</span>';
                             } else {
                                 mainLabel.innerHTML = 'Main Question File (PDF / Image) <span style="font-size:0.8rem; color:var(--orange); font-weight:500;">(Max 5MB)</span>';
                             }
@@ -8287,6 +8381,18 @@
                     return;
                 }
 
+                // Check file size against 5MB limit
+                if (file.size > 5 * 1024 * 1024) {
+                    const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                    alert(`The file "${file.name}" is ${sizeMB}MB, which exceeds the 5MB limit. Please upload files larger than 5MB to Google Drive and paste the share link in the Drive link section.`);
+                    window.resetDropzone(dropzoneId, inputId, contentId);
+                    const driveGrp = document.getElementById('upDriveLinkGroup');
+                    const driveInp = document.getElementById('upDriveLink');
+                    if (driveGrp) driveGrp.style.display = 'block';
+                    if (driveInp) driveInp.focus();
+                    return;
+                }
+
                 // In notes, detect topic as the file name
                 if (inputId === 'upMainFile') {
                     const selType = document.querySelector('input[name="materialType"]:checked')?.value;
@@ -8301,21 +8407,17 @@
                 }
 
                 const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-                const ext = (file.name.split('.').pop() || '').toLowerCase();
-                let iconClass = 'fa-file-pdf';
-                let iconColor = 'var(--orange)';
-                if (['ppt', 'pptx'].includes(ext)) { iconClass = 'fa-file-powerpoint'; iconColor = '#ea580c'; }
-                else if (['doc', 'docx'].includes(ext)) { iconClass = 'fa-file-word'; iconColor = '#2563eb'; }
-                else if (['xls', 'xlsx'].includes(ext)) { iconClass = 'fa-file-excel'; iconColor = '#16a34a'; }
-                else if (['png', 'jpg', 'jpeg'].includes(ext)) { iconClass = 'fa-file-image'; iconColor = '#8b5cf6'; }
+                const fileIconObj = getMaterialFileIcon(file.name);
+                const iconClass = fileIconObj.icon;
+                const iconColor = fileIconObj.color;
 
                 content.innerHTML = `
                     <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; text-align:left; width:100%;">
                         <div style="display:flex; align-items:center; gap:0.75rem; overflow:hidden;">
-                            <i class="fas ${iconClass}" style="font-size:1.8rem; color:${iconColor}; flex-shrink:0;"></i>
+                            <i class="${iconClass.startsWith('fa') ? 'fas ' + iconClass : iconClass}" style="font-size:1.8rem; color:${iconColor}; flex-shrink:0;"></i>
                             <div style="overflow:hidden;">
                                 <div style="font-weight:600; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; color:var(--text-main); font-size:0.9rem;">${file.name}</div>
-                                <div style="font-size:0.75rem; color:var(--text-muted);">${sizeMB} MB • Ready for upload</div>
+                                <div style="font-size:0.75rem; color:var(--text-muted);">${sizeMB} MB • Ready (&lt; 5MB)</div>
                             </div>
                         </div>
                         <button type="button" class="btn btn-outline" style="padding:0.25rem 0.65rem; font-size:0.75rem; color:var(--danger); border-color:var(--danger); flex-shrink:0; cursor:pointer;" onclick="event.preventDefault(); event.stopPropagation(); window.resetDropzone('${dropzoneId}','${inputId}','${contentId}');">
@@ -8717,18 +8819,13 @@
                 }
 
                 if (type === 'Notes') {
+                    const mainFile = document.getElementById('upMainFile')?.files[0];
                     const driveLink = document.getElementById('upDriveLink')?.value?.trim();
-                    if (!driveLink || !/^https?:\/\//i.test(driveLink)) {
-                        throw new Error('Please enter a valid Google Drive or supported cloud storage link for your note.');
-                    }
+
                     if (!topic) {
                         throw new Error('Please enter a topic or title for your notes.');
                     }
 
-                    updateUploadProgress(50, 'Saving note metadata...');
-                    BackgroundUploadManager.updateTitle('[50%] Saving note metadata...');
-
-                    const storage = detectExternalStorage(driveLink);
                     const noteTokens = Array.from(new Set([
                         courseCode.toLowerCase(),
                         courseCode.replace(/\s+/g, '').toLowerCase(),
@@ -8740,49 +8837,126 @@
                         (noteTypeName || 'notes').toLowerCase()
                     ].filter(t => t && t.length > 1)));
 
-                    const noteDoc = {
-                        course: courseCode.replace(/\s+/g, ' ').toUpperCase(),
-                        courseCode: courseCode.replace(/\s+/g, ' ').toUpperCase(),
-                        courseName: course.title,
-                        title: topic,
-                        topic: topic,
-                        facultyId: facultyId || null,
-                        facultyName: facultyName || '',
-                        facultyCode: facultyCode || '',
-                        isLab: isLabCourse(course),
-                        credits: course.credits,
-                        trimester: String(trimester),
-                        semester,
-                        noteType: noteTypeName || 'Lecture Notes',
-                        noteCategory: noteCategory || 'faculty',
-                        noteTypeName: noteTypeName || 'Lecture Notes',
-                        fileUrl: driveLink,
-                        pdfUrl: driveLink,
-                        externalProvider: storage.provider,
-                        externalProviderName: storage.providerName,
-                        embedUrl: storage.embedUrl,
-                        isExternalStorage: true,
-                        submitterName,
-                        submitterEmail,
-                        type: 'Notes',
-                        materialType: 'note',
-                        materialGroup: 'notes',
-                        examType: noteTypeName || 'Notes',
-                        status: 'pending',
-                        createdAt: new Date().toISOString(),
-                        searchTokens: noteTokens,
-                        courseSearch: `${courseCode} ${course.title} ${topic} ${facultyName} ${facultyCode}`.toLowerCase()
-                    };
+                    if (mainFile) {
+                        if (mainFile.size > 5 * 1024 * 1024) {
+                            throw new Error(`The file "${mainFile.name}" is ${(mainFile.size / (1024 * 1024)).toFixed(2)}MB, which exceeds the 5MB limit. Please upload to Google Drive and submit via Drive link.`);
+                        }
+                        updateUploadProgress(30, 'Uploading note file...');
+                        BackgroundUploadManager.updateTitle('[30%] Uploading note file...');
+                        const mainAsset = await uploadToCloudinary('note', mainFile, courseCode, topic, (p) => {
+                            updateUploadProgress(30 + Math.round(p * 0.5), `Uploading note file (${p}%)...`);
+                            BackgroundUploadManager.updateTitle(`[${30 + Math.round(p * 0.5)}%] Uploading note file...`);
+                        });
 
-                    await addDoc(collection(db, QUESTION_COLLECTION), noteDoc);
+                        updateUploadProgress(85, 'Saving note metadata...');
+                        BackgroundUploadManager.updateTitle('[85%] Saving note metadata...');
 
-                    updateUploadProgress(100, 'Note submitted successfully!');
-                    BackgroundUploadManager.finish();
-                    showToast('Note submitted successfully for Admin review!', 'success');
-                    status.innerHTML = '<div style="color:var(--success); font-weight:600;"><i class="fas fa-check-circle"></i> Note submitted for review! It will appear once approved.</div>';
-                    document.getElementById('uploadForm').reset();
-                    nextStep(1);
-                    return;
+                        const noteDoc = {
+                            course: courseCode.replace(/\s+/g, ' ').toUpperCase(),
+                            courseCode: courseCode.replace(/\s+/g, ' ').toUpperCase(),
+                            courseName: course.title,
+                            title: topic,
+                            topic: topic,
+                            facultyId: facultyId || null,
+                            facultyName: facultyName || '',
+                            facultyCode: facultyCode || '',
+                            isLab: isLabCourse(course),
+                            credits: course.credits,
+                            trimester: String(trimester),
+                            semester,
+                            noteType: noteTypeName || 'Lecture Notes',
+                            noteCategory: noteCategory || 'faculty',
+                            noteTypeName: noteTypeName || 'Lecture Notes',
+                            fileUrl: mainAsset.pdfUrl,
+                            pdfUrl: mainAsset.pdfUrl,
+                            cloudinaryPublicId: mainAsset.cloudinaryPublicId || '',
+                            cloudinaryResourceType: mainAsset.cloudinaryResourceType || 'auto',
+                            cloudinaryAssetId: mainAsset.cloudinaryAssetId || '',
+                            originalFilename: mainAsset.originalFilename || mainFile.name,
+                            fileSize: mainFile.size,
+                            externalProvider: 'cloudinary',
+                            externalProviderName: 'Question Bank Storage',
+                            embedUrl: mainAsset.pdfUrl,
+                            isExternalStorage: false,
+                            submitterName,
+                            submitterEmail,
+                            type: 'Notes',
+                            materialType: 'note',
+                            materialGroup: 'notes',
+                            examType: noteTypeName || 'Notes',
+                            status: 'pending',
+                            createdAt: new Date().toISOString(),
+                            searchTokens: noteTokens,
+                            courseSearch: `${courseCode} ${course.title} ${topic} ${facultyName} ${facultyCode}`.toLowerCase()
+                        };
+
+                        await addDoc(collection(db, QUESTION_COLLECTION), noteDoc);
+
+                        updateUploadProgress(100, 'Note submitted successfully!');
+                        BackgroundUploadManager.finish();
+                        showToast('Note submitted successfully for Admin review!', 'success');
+                        status.innerHTML = '<div style="color:var(--success); font-weight:600;"><i class="fas fa-check-circle"></i> Note submitted for review! It will appear once approved.</div>';
+                        document.getElementById('uploadForm').reset();
+                        window.resetDropzone('mainFileDropzone', 'upMainFile', 'mainFileDropContent');
+                        nextStep(1);
+                        return;
+                    } else if (driveLink) {
+                        if (!/^https?:\/\//i.test(driveLink)) {
+                            throw new Error('Please enter a valid Google Drive or supported cloud storage link (starting with http:// or https://) for your note.');
+                        }
+
+                        updateUploadProgress(50, 'Saving note metadata...');
+                        BackgroundUploadManager.updateTitle('[50%] Saving note metadata...');
+
+                        const storage = detectExternalStorage(driveLink);
+
+                        const noteDoc = {
+                            course: courseCode.replace(/\s+/g, ' ').toUpperCase(),
+                            courseCode: courseCode.replace(/\s+/g, ' ').toUpperCase(),
+                            courseName: course.title,
+                            title: topic,
+                            topic: topic,
+                            facultyId: facultyId || null,
+                            facultyName: facultyName || '',
+                            facultyCode: facultyCode || '',
+                            isLab: isLabCourse(course),
+                            credits: course.credits,
+                            trimester: String(trimester),
+                            semester,
+                            noteType: noteTypeName || 'Lecture Notes',
+                            noteCategory: noteCategory || 'faculty',
+                            noteTypeName: noteTypeName || 'Lecture Notes',
+                            fileUrl: driveLink,
+                            pdfUrl: driveLink,
+                            externalProvider: storage.provider,
+                            externalProviderName: storage.providerName,
+                            embedUrl: storage.embedUrl,
+                            isExternalStorage: true,
+                            submitterName,
+                            submitterEmail,
+                            type: 'Notes',
+                            materialType: 'note',
+                            materialGroup: 'notes',
+                            examType: noteTypeName || 'Notes',
+                            status: 'pending',
+                            createdAt: new Date().toISOString(),
+                            searchTokens: noteTokens,
+                            courseSearch: `${courseCode} ${course.title} ${topic} ${facultyName} ${facultyCode}`.toLowerCase()
+                        };
+
+                        await addDoc(collection(db, QUESTION_COLLECTION), noteDoc);
+
+                        updateUploadProgress(100, 'Note submitted successfully!');
+                        BackgroundUploadManager.finish();
+                        showToast('Note submitted successfully for Admin review!', 'success');
+                        status.innerHTML = '<div style="color:var(--success); font-weight:600;"><i class="fas fa-check-circle"></i> Note submitted for review! It will appear once approved.</div>';
+                        document.getElementById('uploadForm').reset();
+                        window.resetDropzone('mainFileDropzone', 'upMainFile', 'mainFileDropContent');
+                        nextStep(1);
+                        return;
+                    } else {
+                        throw new Error('Please attach a note file (< 5MB) or enter a Google Drive link (> 5MB).');
+                    }
                 }
 
                 const mainFile = document.getElementById('upMainFile').files[0];
@@ -12526,7 +12700,149 @@
                 });
             }
 
-            // 3. Drive Link feedback & detection
+            // 3. Notes Submission Method Switcher & File Dropzone
+            window.setNotesSubmissionMethod = function(method) {
+                const fileBtn = document.getElementById('notesMethodFileBtn');
+                const linkBtn = document.getElementById('notesMethodLinkBtn');
+                const fileSec = document.getElementById('notesDirectFileSection');
+                const linkSec = document.getElementById('notesDriveLinkSection');
+                const driveInp = document.getElementById('notesDriveLinkInput');
+                if (form) form.dataset.notesMethod = method;
+
+                if (method === 'file') {
+                    if (fileBtn) {
+                        fileBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                        fileBtn.style.color = '#fff';
+                    }
+                    if (linkBtn) {
+                        linkBtn.style.background = 'transparent';
+                        linkBtn.style.color = 'var(--text-muted)';
+                    }
+                    if (fileSec) fileSec.style.display = 'block';
+                    if (linkSec) linkSec.style.display = 'none';
+                    if (driveInp) driveInp.required = false;
+                } else {
+                    if (linkBtn) {
+                        linkBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                        linkBtn.style.color = '#fff';
+                    }
+                    if (fileBtn) {
+                        fileBtn.style.background = 'transparent';
+                        fileBtn.style.color = 'var(--text-muted)';
+                    }
+                    if (fileSec) fileSec.style.display = 'none';
+                    if (linkSec) linkSec.style.display = 'block';
+                    if (driveInp) {
+                        driveInp.required = true;
+                        driveInp.focus();
+                    }
+                }
+            };
+
+            const notesDropzone = document.getElementById('notesFileDropzone');
+            const notesFileInput = document.getElementById('notesFileInput');
+            const notesDropContent = document.getElementById('notesFileDropContent');
+            const notesWarnBox = document.getElementById('notesFileSizeWarning');
+            const notesWarnText = document.getElementById('notesFileSizeWarningText');
+            const defaultNotesDropHTML = notesDropContent ? notesDropContent.innerHTML : '';
+
+            function resetNotesFilePreview() {
+                if (notesFileInput) notesFileInput.value = '';
+                if (notesDropzone) notesDropzone.classList.remove('has-file', 'dragover');
+                if (notesDropContent) notesDropContent.innerHTML = defaultNotesDropHTML;
+                if (notesWarnBox) notesWarnBox.style.display = 'none';
+            }
+            window.resetNotesFilePreview = resetNotesFilePreview;
+
+            function handleNotesFileSelect(file) {
+                if (!file) {
+                    resetNotesFilePreview();
+                    return;
+                }
+
+                const MAX_NOTE_SIZE = 5 * 1024 * 1024; // 5MB limit
+                if (file.size > MAX_NOTE_SIZE) {
+                    const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                    if (notesWarnText) {
+                        notesWarnText.innerHTML = `<strong>${file.name}</strong> (${sizeMB}MB) exceeds the 5MB limit. Please upload it to Google Drive and paste the share link below.`;
+                    }
+                    if (notesWarnBox) notesWarnBox.style.display = 'flex';
+                    resetNotesFilePreview();
+                    setNotesSubmissionMethod('link');
+                    if (typeof showToast === 'function') {
+                        showToast(`"${file.name}" is ${sizeMB}MB (> 5MB). Please upload to Google Drive and submit via link.`, 'warning');
+                    }
+                    return;
+                }
+
+                if (notesWarnBox) notesWarnBox.style.display = 'none';
+                const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                const iconInfo = getMaterialFileIcon(file.name);
+
+                if (notesDropContent) {
+                    notesDropContent.innerHTML = `
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; text-align:left; width:100%;">
+                            <div style="display:flex; align-items:center; gap:0.75rem; overflow:hidden;">
+                                <i class="${iconInfo.icon.startsWith('fa') ? 'fas ' + iconInfo.icon : iconInfo.icon}" style="font-size:2.2rem; color:${iconInfo.color}; flex-shrink:0;"></i>
+                                <div style="overflow:hidden;">
+                                    <div style="font-weight:600; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; color:var(--text-main); font-size:0.9rem;">${file.name}</div>
+                                    <div style="font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; gap:0.4rem; margin-top:2px;">
+                                        <span>${sizeMB} MB</span>
+                                        <span class="pill" style="font-size:0.7rem; padding:1px 6px; background:rgba(16,185,129,0.15); color:#10b981; font-weight:600;">&lt; 5MB Ready</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline" style="padding:0.25rem 0.65rem; font-size:0.75rem; color:var(--danger); border-color:var(--danger); flex-shrink:0; cursor:pointer;" onclick="event.preventDefault(); event.stopPropagation(); resetNotesFilePreview();">
+                                <i class="fas fa-times"></i> Change
+                            </button>
+                        </div>
+                    `;
+                }
+                if (notesDropzone) notesDropzone.classList.add('has-file');
+
+                const titleInp = document.getElementById('notesTitleInput');
+                if (titleInp && !titleInp.value.trim()) {
+                    const detected = extractNoteTopicFromFileName(file.name);
+                    if (detected) titleInp.value = detected;
+                }
+            }
+
+            if (notesDropzone && notesFileInput) {
+                notesDropzone.addEventListener('click', (e) => {
+                    if (e.target.closest('button')) return;
+                    notesFileInput.click();
+                });
+
+                ['dragenter', 'dragover'].forEach(n => {
+                    notesDropzone.addEventListener(n, (e) => {
+                        e.preventDefault(); e.stopPropagation();
+                        notesDropzone.classList.add('dragover');
+                    });
+                });
+
+                ['dragleave', 'drop'].forEach(n => {
+                    notesDropzone.addEventListener(n, (e) => {
+                        e.preventDefault(); e.stopPropagation();
+                        notesDropzone.classList.remove('dragover');
+                    });
+                });
+
+                notesDropzone.addEventListener('drop', (e) => {
+                    const dt = e.dataTransfer;
+                    if (dt && dt.files && dt.files.length > 0) {
+                        notesFileInput.files = dt.files;
+                        handleNotesFileSelect(dt.files[0]);
+                    }
+                });
+
+                notesFileInput.addEventListener('change', () => {
+                    if (notesFileInput.files && notesFileInput.files.length > 0) {
+                        handleNotesFileSelect(notesFileInput.files[0]);
+                    }
+                });
+            }
+
+            // Drive Link feedback & detection
             const driveInput = document.getElementById('notesDriveLinkInput');
             const driveIcon = document.getElementById('notesDriveLinkIcon');
             const feedback = document.getElementById('notesProviderFeedback');
@@ -12573,6 +12889,8 @@
             if (cancelBtn) {
                 cancelBtn.addEventListener('click', () => {
                     form.reset();
+                    resetNotesFilePreview();
+                    setNotesSubmissionMethod('file');
                     if (card) card.style.display = 'none';
                     if (searchInput) searchInput.style.display = '';
                     if (notesFacultyIdInp) notesFacultyIdInp.value = '';
@@ -12584,7 +12902,7 @@
                 });
             }
 
-            // 6. Form Submission - ZERO CLOUDINARY UPLOAD!
+            // 6. Form Submission (Direct upload for <= 5MB or Drive Link for > 5MB)
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const submitBtn = document.getElementById('notesBtnSubmit');
@@ -12609,11 +12927,6 @@
 
                     const semester = document.getElementById('notesSemesterSelect').value;
                     const noteType = document.getElementById('notesNoteTypeSelect').value;
-                    const driveLink = document.getElementById('notesDriveLinkInput').value.trim();
-
-                    if (!driveLink || !/^https?:\/\//i.test(driveLink)) {
-                        throw new Error('Please paste a valid Google Drive or supported cloud storage link (starting with http:// or https://).');
-                    }
 
                     const submitterName = document.getElementById('notesSubmitterName').value.trim();
                     const submitterEmail = document.getElementById('notesSubmitterEmail').value.trim().toLowerCase();
@@ -12623,7 +12936,6 @@
                     }
 
                     const courseObj = CURRICULUM.find(c => c.code.replace(/\s+/g,'').toUpperCase() === courseCode.replace(/\s+/g,'').toUpperCase()) || { title: courseCode, credits: 3 };
-                    const storage = detectExternalStorage(driveLink);
 
                     const facId = (notesFacultyIdInp ? notesFacultyIdInp.value : '').trim();
                     const facName = (notesFacultyNameInp ? notesFacultyNameInp.value : (notesFacultySearch ? notesFacultySearch.value : '')).trim();
@@ -12643,55 +12955,123 @@
                         ...(facCode ? [facCode.toLowerCase()] : [])
                     ].filter(t => t && t.length > 1)));
 
-                    // Store metadata and external link directly - ZERO CLOUDINARY UPLOAD!
-                    const noteDoc = {
-                        course: courseCode,
-                        courseCode: courseCode,
-                        courseName: courseObj.title || '',
-                        title: title,
-                        topic: title,
-                        semester: semester,
-                        noteType: noteType,
-                        noteCategory: noteType.toLowerCase().includes('university') ? 'university' : 'faculty',
-                        noteTypeName: noteType,
-                        facultyId: facId ? (isNaN(facId) ? facId : Number(facId)) : null,
-                        facultyName: facName || '',
-                        facultyCode: facCode || '',
-                        fileUrl: driveLink,
-                        pdfUrl: driveLink,
-                        externalProvider: storage.provider,
-                        externalProviderName: storage.providerName,
-                        embedUrl: storage.embedUrl,
-                        isExternalStorage: true,
-                        submitterName: submitterName,
-                        submitterEmail: submitterEmail,
-                        type: 'Notes',
-                        materialType: 'note',
-                        materialGroup: 'notes',
-                        examType: noteType,
-                        isLab: isLabCourse(courseObj),
-                        credits: courseObj.credits || 3,
-                        status: 'pending',
-                        createdAt: new Date().toISOString(),
-                        searchTokens: tokens,
-                        courseSearch: `${courseCode} ${courseObj.title} ${title} ${noteType} ${facName} ${facCode}`.trim().toLowerCase()
-                    };
+                    const currentMethod = form.dataset.notesMethod || 'file';
+                    let noteDoc = null;
+
+                    if (currentMethod === 'file') {
+                        const noteFile = notesFileInput?.files[0];
+                        if (!noteFile) {
+                            throw new Error('Please select a note file (< 5MB) or switch to Drive Link.');
+                        }
+                        if (noteFile.size > 5 * 1024 * 1024) {
+                            throw new Error(`The file "${noteFile.name}" is ${(noteFile.size / (1024 * 1024)).toFixed(2)}MB, which exceeds the 5MB limit. Please upload to Google Drive and submit via Drive link.`);
+                        }
+
+                        if (statusEl) {
+                            statusEl.innerHTML = '<div style="color:var(--primary); font-size:0.85rem;"><i class="fas fa-spinner fa-spin"></i> Uploading note file to Question Bank storage...</div>';
+                        }
+
+                        const mainAsset = await uploadToCloudinary('note', noteFile, courseCode, title, (pct) => {
+                            submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Uploading (${pct}%)...`;
+                        });
+
+                        noteDoc = {
+                            course: courseCode,
+                            courseCode: courseCode,
+                            courseName: courseObj.title || '',
+                            title: title,
+                            topic: title,
+                            semester: semester,
+                            noteType: noteType,
+                            noteCategory: noteType.toLowerCase().includes('university') ? 'university' : 'faculty',
+                            noteTypeName: noteType,
+                            facultyId: facId ? (isNaN(facId) ? facId : Number(facId)) : null,
+                            facultyName: facName || '',
+                            facultyCode: facCode || '',
+                            fileUrl: mainAsset.pdfUrl,
+                            pdfUrl: mainAsset.pdfUrl,
+                            cloudinaryPublicId: mainAsset.cloudinaryPublicId || '',
+                            cloudinaryResourceType: mainAsset.cloudinaryResourceType || 'auto',
+                            cloudinaryAssetId: mainAsset.cloudinaryAssetId || '',
+                            originalFilename: mainAsset.originalFilename || noteFile.name,
+                            fileSize: noteFile.size,
+                            externalProvider: 'cloudinary',
+                            externalProviderName: 'Question Bank Storage',
+                            embedUrl: mainAsset.pdfUrl,
+                            isExternalStorage: false,
+                            submitterName: submitterName,
+                            submitterEmail: submitterEmail,
+                            type: 'Notes',
+                            materialType: 'note',
+                            materialGroup: 'notes',
+                            examType: noteType,
+                            isLab: isLabCourse(courseObj),
+                            credits: courseObj.credits || 3,
+                            status: 'pending',
+                            createdAt: new Date().toISOString(),
+                            searchTokens: tokens,
+                            courseSearch: `${courseCode} ${courseObj.title} ${title} ${noteType} ${facName} ${facCode}`.trim().toLowerCase()
+                        };
+                    } else {
+                        // Drive link submission
+                        const driveLink = document.getElementById('notesDriveLinkInput').value.trim();
+                        if (!driveLink || !/^https?:\/\//i.test(driveLink)) {
+                            throw new Error('Please paste a valid Google Drive or supported cloud storage link (starting with http:// or https://).');
+                        }
+                        const storage = detectExternalStorage(driveLink);
+
+                        noteDoc = {
+                            course: courseCode,
+                            courseCode: courseCode,
+                            courseName: courseObj.title || '',
+                            title: title,
+                            topic: title,
+                            semester: semester,
+                            noteType: noteType,
+                            noteCategory: noteType.toLowerCase().includes('university') ? 'university' : 'faculty',
+                            noteTypeName: noteType,
+                            facultyId: facId ? (isNaN(facId) ? facId : Number(facId)) : null,
+                            facultyName: facName || '',
+                            facultyCode: facCode || '',
+                            fileUrl: driveLink,
+                            pdfUrl: driveLink,
+                            externalProvider: storage.provider,
+                            externalProviderName: storage.providerName,
+                            embedUrl: storage.embedUrl,
+                            isExternalStorage: true,
+                            submitterName: submitterName,
+                            submitterEmail: submitterEmail,
+                            type: 'Notes',
+                            materialType: 'note',
+                            materialGroup: 'notes',
+                            examType: noteType,
+                            isLab: isLabCourse(courseObj),
+                            credits: courseObj.credits || 3,
+                            status: 'pending',
+                            createdAt: new Date().toISOString(),
+                            searchTokens: tokens,
+                            courseSearch: `${courseCode} ${courseObj.title} ${title} ${noteType} ${facName} ${facCode}`.trim().toLowerCase()
+                        };
+                    }
 
                     await addDoc(collection(db, QUESTION_COLLECTION), noteDoc);
 
                     if (statusEl) {
+                        const isDirectUpload = currentMethod === 'file';
                         statusEl.innerHTML = `
                             <div style="background:rgba(16,185,129,0.12); border:1px solid #10b981; border-radius:0.5rem; padding:1rem; color:#065f46; font-size:0.9rem;">
                                 <i class="fas fa-check-circle" style="color:#10b981; font-size:1.25rem;"></i>
                                 <strong style="margin-left:0.4rem;">Note Submitted Successfully!</strong>
                                 <p style="margin:0.5rem 0 0; color:var(--text-main); font-size:0.85rem;">
-                                    Your note for <strong>${courseCode} - ${title}</strong> has been received with its Google Drive link and sent for Admin review.
+                                    Your note for <strong>${courseCode} - ${title}</strong> has been received (${isDirectUpload ? 'uploaded file' : 'Google Drive link'}) and sent for Admin review.
                                 </p>
                             </div>
                         `;
                     }
                     showToast('Note submitted successfully for Admin review!', 'success');
                     form.reset();
+                    resetNotesFilePreview();
+                    setNotesSubmissionMethod('file');
                     if (card) card.style.display = 'none';
                     if (searchInput) searchInput.style.display = '';
                     if (notesFacultyIdInp) notesFacultyIdInp.value = '';
