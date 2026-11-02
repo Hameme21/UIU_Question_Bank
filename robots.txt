@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://uiu-question-bank.vercel.app/sitemap.xml
+Sitemap: https://uiuqbank.runs-on.dev/sitemap.xml
+Host: https://uiuqbank.runs-on.dev
