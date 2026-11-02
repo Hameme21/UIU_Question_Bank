@@ -1,6 +1,6 @@
 {
-  "name": "UIU Question Bank",
-  "short_name": "UIU Question Bank",
+  "name": "UIU CSE Question Bank",
+  "short_name": "UIU CSE QB",
   "description": "United International University (UIU) CSE past question papers, verified solutions, lecture notes & curriculum resources.",
   "start_url": "/",
   "display": "standalone",
