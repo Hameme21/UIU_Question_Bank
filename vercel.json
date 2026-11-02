@@ -1,0 +1,15 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "uiu-question-bank.vercel.app"
+        }
+      ],
+      "destination": "https://uiuqbank.runs-on.dev/:path*",
+      "permanent": true
+    }
+  ]
+}
