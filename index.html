@@ -2401,6 +2401,7 @@
 
         .qb-section-title-wrap {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
             gap: 0.75rem;
             flex: 1;
@@ -2460,6 +2461,17 @@
             align-items: center;
             gap: 0.6rem;
             flex-wrap: wrap;
+        }
+
+        .qb-section-solution-badge {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: #047857;
+            white-space: nowrap;
+        }
+
+        [data-theme="dark"] .qb-section-solution-badge {
+            color: #4ade80;
         }
 
         .qb-section-dl-btn {
@@ -7913,6 +7925,7 @@
                                     <span class="qb-section-dot" style="background: ${dotColor}; box-shadow: 0 0 8px ${dotColor}88;"></span>
                                     <h3 class="qb-section-title">${title}</h3>
                                     <span class="qb-section-badge">${questions.length} ${isExamSection ? (questions.length === 1 ? 'question' : 'questions') : (questions.length === 1 ? 'item' : 'items')}</span>
+                                    ${solutions.length > 0 ? `<span class="qb-section-badge qb-section-solution-badge">Solutions (${solutions.length})</span>` : ''}
                                 </div>
                                 <div class="qb-section-actions">
                                     <select class="qb-sort-select" onclick="event.stopPropagation()" onchange="sortSectionQuestions('${key}', this.value, '${course.code}')" title="Sort order">
