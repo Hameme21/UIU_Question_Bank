@@ -2741,6 +2741,48 @@
             border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
+        .qb-exam-solutions {
+            margin-top: 1.25rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--surface);
+        }
+
+        .qb-exam-solutions > summary {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.85rem 1rem;
+            color: var(--success);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .qb-exam-solutions > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .qb-exam-solutions[open] > summary .fa-chevron-right {
+            transform: rotate(90deg);
+        }
+
+        .qb-exam-solutions > .qb-box-grid,
+        .qb-exam-solutions > p {
+            margin: 0;
+            padding: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .qb-exam-solutions .qb-question-box {
+            padding-top: 2.5rem;
+        }
+
+        [data-theme="dark"] .qb-exam-solutions > summary {
+            color: #4ade80;
+        }
+
         /* =========================================================
            FULL BROWSER QUESTION VIEWER & MULTI-TAB STUDIO
            ========================================================= */
@@ -5859,7 +5901,7 @@
                 }))
                 : [];
             const legacyAssets = [
-                paper.cloudinaryPublicId || paper.pdfUrl ? { assetType: 'question', pdfUrl: paper.pdfUrl || paper.fileUrl || '', originalFilename: paper.originalFilename || '', topic: paper.topic || '' } : null,
+                paper.cloudinaryPublicId || paper.pdfUrl || paper.fileUrl ? { assetType: isStandaloneSolution(paper) ? 'solution' : 'question', pdfUrl: paper.pdfUrl || paper.fileUrl || '', originalFilename: paper.originalFilename || '', topic: paper.topic || '' } : null,
                 paper.solutionCloudinaryPublicId || paper.solutionPdfUrl || paper.solutionUrl ? { assetType: 'solution', pdfUrl: paper.solutionPdfUrl || paper.solutionUrl || '', originalFilename: paper.solutionOriginalFilename || '', topic: paper.topic || '' } : null,
                 paper.noteCloudinaryPublicId || paper.notePdfUrl ? { assetType: 'note', pdfUrl: paper.notePdfUrl || '', originalFilename: paper.noteOriginalFilename || '', topic: paper.topic || '' } : null
             ].filter(Boolean);
@@ -5879,6 +5921,79 @@
             if (assets.some(a => a.assetType === 'note')) return 'note';
             return 'question';
         }
+
+        function isStandaloneSolution(paper) {
+            return paper.type === 'Solution' || paper.materialType === 'solution' || paper.materialGroup === 'solutions';
+        }
+
+        function findQuestionForSolution(solution) {
+            if (solution.targetQuestionId) {
+                return approvedPapers.find(p => p.id === solution.targetQuestionId && !isStandaloneSolution(p) && getMaterialType(p) === 'question');
+            }
+
+            const normalize = value => String(value || '').replace(/\s+/g, '').toLowerCase();
+            if (!solution.courseCode || !solution.examType || !(solution.semester || solution.trimester)) return;
+            const matches = approvedPapers.filter(p =>
+                normalize(p.courseCode) === normalize(solution.courseCode) &&
+                normalize(p.examType) === normalize(solution.examType) &&
+                normalize(p.semester || p.trimester) === normalize(solution.semester || solution.trimester) &&
+                (!solution.facultyName || normalize(p.facultyName) === normalize(solution.facultyName)) &&
+                !isStandaloneSolution(p) && getMaterialType(p) === 'question'
+            );
+            if (matches.length === 1) return matches[0];
+        }
+
+        function getQuestionSolutions(paper) {
+            const sources = isStandaloneSolution(paper)
+                ? [paper]
+                : [paper, ...approvedPapers.filter(p =>
+                    isStandaloneSolution(p) &&
+                    (!p.targetQuestionId || p.targetQuestionId === paper.id) &&
+                    findQuestionForSolution(p)?.id === paper.id
+                )];
+            const seen = new Set();
+            return sources.flatMap(source => {
+                const assets = getAssets(source).filter(a => a.assetType === 'solution');
+                if (isStandaloneSolution(source) && assets.length === 0 && (source.pdfUrl || source.fileUrl)) {
+                    assets.push({ assetType: 'solution', pdfUrl: source.pdfUrl || source.fileUrl, originalFilename: source.originalFilename || '' });
+                }
+                return assets;
+            }).filter(asset => {
+                if (!asset.pdfUrl || seen.has(asset.pdfUrl)) return false;
+                seen.add(asset.pdfUrl);
+                return true;
+            });
+        }
+
+        function getCourseQuestionPapers(courseCode) {
+            const normalizedCode = courseCode.replace(/\s+/g, '').toLowerCase();
+            return approvedPapers.filter(p =>
+                (p.courseCode || '').replace(/\s+/g, '').toLowerCase() === normalizedCode &&
+                (!isStandaloneSolution(p) || !findQuestionForSolution(p))
+            );
+        }
+
+        window.openQuestionSolution = function(paperId, solutionIndex, download = false) {
+            const paper = approvedPapers.find(p => p.id === paperId);
+            if (!paper) return;
+            const solution = getQuestionSolutions(paper)[solutionIndex];
+            if (!solution) return;
+            const solutionPaper = {
+                ...paper,
+                id: `${paper.id}_solution_${solutionIndex}`,
+                pdfUrl: solution.pdfUrl,
+                solutionPdfUrl: solution.pdfUrl,
+                originalFilename: solution.originalFilename,
+                solutionOriginalFilename: solution.originalFilename,
+                materialAssets: [solution]
+            };
+            if (download) {
+                const fileName = formatPdfDownloadName(solutionPaper, true).replace(/(\.[^.]+)$/, `_${solutionIndex + 1}$1`);
+                forceDownloadFile(solution.pdfUrl, fileName);
+                return;
+            }
+            openFullBrowserViewer(solutionPaper, true);
+        };
 
         function getCourseStats(code) {
             const papers = approvedPapers.filter(p => (p.courseCode || '').replace(/\s+/g,'').toLowerCase() === code.replace(/\s+/g,'').toLowerCase());
@@ -7462,22 +7577,29 @@
         // ==========================================
         // PHOTO-MATCHED QUESTION CARD GENERATOR
         // ==========================================
-        function createPhotoMatchedQuestionBox(paper, isSolution = false) {
+        function createPhotoMatchedQuestionBox(paper, isSolution = false, solutionIndex = null) {
             const semObj = decodeSemester(paper.semester || paper.trimester);
             const codePill = paper.semester || (paper.trimester ? `${paper.trimester}` : '261');
             const semName = semObj.label;
             const mainPdf = paper.pdfUrl || paper.fileUrl || paper.notePdfUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType !== 'solution')?.pdfUrl) || (paper.materialAssets && paper.materialAssets[0]?.pdfUrl) || '';
-            const solPdf = paper.solutionPdfUrl || paper.solutionUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType === 'solution')?.pdfUrl) || '';
-            
+            const solution = solutionIndex === null ? null : getQuestionSolutions(paper)[solutionIndex];
+            const solPdf = solution?.pdfUrl || paper.solutionPdfUrl || paper.solutionUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType === 'solution')?.pdfUrl) || '';
             const targetPdf = isSolution ? (solPdf || mainPdf) : mainPdf;
-            const downloadName = formatPdfDownloadName(paper, isSolution);
+            const downloadPaper = solution ? { ...paper, originalFilename: solution.originalFilename, solutionPdfUrl: solPdf } : paper;
+            const downloadName = formatPdfDownloadName(downloadPaper, isSolution);
             const hasSol = Boolean(solPdf);
+            const viewAction = solution
+                ? `openQuestionSolution('${paper.id}', ${solutionIndex})`
+                : `openFullBrowserViewerById('${paper.id}', ${isSolution})`;
+            const downloadAction = solution
+                ? `openQuestionSolution('${paper.id}', ${solutionIndex}, true)`
+                : `forceDownloadFile('${targetPdf}', '${downloadName}')`;
 
             const cardClass = isSolution ? 'qb-question-box is-solution' : 'qb-question-box';
             const actionTitle = isSolution ? `Click to view Solution for ${paper.courseCode} ${semName}` : `Click to open ${paper.courseCode} ${semName} in Full Browser Viewer`;
             const dlBtnTitle = isSolution ? 'Download Solution File' : 'Download File';
 
-            const ext = getPaperFileExtension(paper, isSolution);
+            const ext = getPaperFileExtension(downloadPaper, isSolution);
             let docTypeBadge = '';
             if (['ppt', 'pptx'].includes(ext)) {
                 docTypeBadge = `<span class="qb-doc-type-pill" style="position:absolute; top:8px; left:8px; background:rgba(234, 88, 12, 0.15); color:#ea580c; border:1px solid rgba(234, 88, 12, 0.35); font-size:0.68rem; font-weight:700; padding:0.12rem 0.45rem; border-radius:4px; z-index:2;"><i class="fas fa-file-powerpoint"></i> PPT</span>`;
@@ -7498,11 +7620,11 @@
             }
 
             return `
-                <div class="${cardClass}" onclick="openFullBrowserViewerById('${paper.id}', ${isSolution})" title="${actionTitle}">
+                <div class="${cardClass}" onclick="${viewAction}" title="${actionTitle}">
                     ${docTypeBadge}
                     ${noteTypeBadge}
-                    ${isSolution ? `<span class="qb-sol-pill"><i class="fas fa-check-circle"></i> Solution</span>` : (hasSol ? `<span class="qb-card-sol-indicator" title="Solution Included"><i class="fas fa-check"></i></span>` : '')}
-                    <button type="button" class="qb-card-dl-btn" onclick="event.stopPropagation(); forceDownloadFile('${targetPdf}', '${downloadName}')" title="${dlBtnTitle}">
+                    ${isSolution ? `<span class="qb-sol-pill"><i class="fas fa-check-circle"></i> Solution${solution ? ` ${solutionIndex + 1}` : ''}</span>` : (hasSol ? `<span class="qb-card-sol-indicator" title="Solution Included"><i class="fas fa-check"></i></span>` : '')}
+                    <button type="button" class="qb-card-dl-btn" onclick="event.stopPropagation(); ${downloadAction}" title="${dlBtnTitle}">
                         <i class="fas fa-download"></i>
                     </button>
                     <div class="qb-trimester-badge">${codePill}</div>
@@ -7564,42 +7686,32 @@
             const course = CURRICULUM.find(c => c.code.replace(/\s+/g,'').toLowerCase() === courseCode.replace(/\s+/g,'').toLowerCase());
             if (!course) return;
 
-            let papers = approvedPapers.filter(p => p.courseCode.replace(/\s+/g,'').toLowerCase() === course.code.replace(/\s+/g,'').toLowerCase());
+            let papers = getCourseQuestionPapers(course.code).filter(p => !isStandaloneSolution(p));
             const semFilter = document.getElementById('courseSemesterFilter');
             const examFilter = document.getElementById('courseExamTypeFilter');
             if (semFilter && semFilter.value !== 'all') papers = papers.filter(p => p.semester === semFilter.value);
             if (examFilter && examFilter.value !== 'all') papers = papers.filter(p => p.examType === examFilter.value);
 
-            const isSolutionSection = sectionKey === 'solutions';
             let targetList = [];
 
             if (sectionKey === 'midterm') {
-                targetList = papers.filter(p => (p.examType === 'Midterm' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('mid'))) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
+                targetList = papers.filter(p => (p.examType === 'Midterm' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('mid'))) && p.type !== 'Notes' && p.type !== 'Lab');
             } else if (sectionKey === 'final') {
-                targetList = papers.filter(p => (p.examType === 'Final' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('fin'))) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
-            } else if (sectionKey === 'solutions') {
-                targetList = papers.filter(p => p.type === 'Solution' || Boolean(p.solutionPdfUrl || p.solutionUrl || (p.materialAssets && p.materialAssets.some(a => a.assetType === 'solution'))));
+                targetList = papers.filter(p => (p.examType === 'Final' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('fin'))) && p.type !== 'Notes' && p.type !== 'Lab');
             } else if (sectionKey === 'notes') {
                 targetList = papers.filter(p => p.type === 'Notes' || p.materialType === 'note');
             } else if (sectionKey === 'labs') {
                 targetList = papers.filter(p => p.type === 'Lab');
             } else if (sectionKey === 'other') {
-                const mid = papers.filter(p => (p.examType === 'Midterm' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('mid'))) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
-                const fin = papers.filter(p => (p.examType === 'Final' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('fin'))) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
-                targetList = papers.filter(p => p.type === 'Question' && !mid.includes(p) && !fin.includes(p) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
+                const mid = papers.filter(p => (p.examType === 'Midterm' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('mid'))) && p.type !== 'Notes' && p.type !== 'Lab');
+                const fin = papers.filter(p => (p.examType === 'Final' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('fin'))) && p.type !== 'Notes' && p.type !== 'Lab');
+                targetList = papers.filter(p => (p.type === 'Question' || isStandaloneSolution(p)) && !mid.includes(p) && !fin.includes(p) && p.type !== 'Notes' && p.type !== 'Lab');
             }
 
             const fileItems = [];
             targetList.forEach(paper => {
-                let url = '';
-                let fileName = '';
-                if (isSolutionSection) {
-                    url = paper.solutionPdfUrl || paper.solutionUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType === 'solution')?.pdfUrl) || paper.pdfUrl || paper.fileUrl || '';
-                    fileName = formatPdfDownloadName(paper, true);
-                } else {
-                    url = paper.pdfUrl || paper.fileUrl || paper.notePdfUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType !== 'solution')?.pdfUrl) || (paper.materialAssets && paper.materialAssets[0]?.pdfUrl) || '';
-                    fileName = formatPdfDownloadName(paper, false);
-                }
+                const url = paper.pdfUrl || paper.fileUrl || paper.notePdfUrl || (paper.materialAssets && paper.materialAssets.find(a => a.assetType !== 'solution')?.pdfUrl) || (paper.materialAssets && paper.materialAssets[0]?.pdfUrl) || '';
+                const fileName = formatPdfDownloadName(paper, false);
                 if (url && url !== '#' && url !== 'null') {
                     fileItems.push({ url, fileName, paper });
                 }
@@ -7747,7 +7859,7 @@
                 const sVal = semFilter.value;
                 const eVal = examFilter.value;
 
-                let papers = approvedPapers.filter(p => p.courseCode.replace(/\s+/g,'').toLowerCase() === course.code.replace(/\s+/g,'').toLowerCase());
+                let papers = getCourseQuestionPapers(course.code);
                 
                 if (sVal !== 'all') papers = papers.filter(p => p.semester === sVal);
                 if (eVal !== 'all') papers = papers.filter(p => p.examType === eVal);
@@ -7765,21 +7877,33 @@
                 }
 
                 // Categorize papers matching UI layout
-                const midterms = papers.filter(p => (p.examType === 'Midterm' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('mid'))) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
-                const finals = papers.filter(p => (p.examType === 'Final' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('fin'))) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
-                const otherQuestions = papers.filter(p => p.type === 'Question' && !midterms.includes(p) && !finals.includes(p) && p.type !== 'Notes' && p.type !== 'Lab' && p.type !== 'Solution');
-                
-                // Dedicated Solutions section: questions that have solutions attached OR standalone solutions
-                const solutions = papers.filter(p => p.type === 'Solution' || Boolean(p.solutionPdfUrl || p.solutionUrl || (p.materialAssets && p.materialAssets.some(a => a.assetType === 'solution'))));
+                const midterms = papers.filter(p => (p.examType === 'Midterm' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('mid'))) && p.type !== 'Notes' && p.type !== 'Lab');
+                const finals = papers.filter(p => (p.examType === 'Final' || (p.type === 'Question' && (p.topic || '').toLowerCase().includes('fin'))) && p.type !== 'Notes' && p.type !== 'Lab');
+                const otherQuestions = papers.filter(p => (p.type === 'Question' || isStandaloneSolution(p)) && !midterms.includes(p) && !finals.includes(p) && p.type !== 'Notes' && p.type !== 'Lab');
                 
                 const notes = papers.filter(p => p.type === 'Notes' || p.materialType === 'note');
                 const labs = papers.filter(p => p.type === 'Lab');
 
-                function renderBoxSection(title, key, list, dotColor = '#3b82f6', isSolutionSection = false) {
+                function renderBoxSection(title, key, list, dotColor = '#3b82f6') {
                     if (list.length === 0) return '';
                     const sortOrder = courseSectionSortOrders[key] || 'newest';
                     const sortedList = sortPapers(list, sortOrder);
                     const isCollapsed = isSectionCollapsed(course.code, key);
+                    const isExamSection = ['midterm', 'final', 'other'].includes(key);
+                    const questions = sortedList.filter(p => !isStandaloneSolution(p));
+                    const solutions = isExamSection ? sortedList.flatMap(paper =>
+                        getQuestionSolutions(paper).map((solution, index) => ({ paper, index }))
+                    ) : [];
+                    const solutionsHtml = isExamSection ? `
+                        <details class="qb-exam-solutions" id="qbSolutions_${key}">
+                            <summary><i class="fas fa-chevron-right"></i> Solutions (${solutions.length})</summary>
+                            ${solutions.length > 0 ? `
+                                <div class="qb-box-grid">
+                                    ${solutions.map(({ paper, index }) => createPhotoMatchedQuestionBox(paper, true, index)).join('')}
+                                </div>
+                            ` : '<p class="text-muted">No solutions available for these exams yet.</p>'}
+                        </details>
+                    ` : '';
 
                     return `
                         <div class="qb-section-wrapper" id="qbSection_${key}">
@@ -7788,34 +7912,34 @@
                                     <i class="fas fa-chevron-down qb-section-chevron ${isCollapsed ? '' : 'rotated'}"></i>
                                     <span class="qb-section-dot" style="background: ${dotColor}; box-shadow: 0 0 8px ${dotColor}88;"></span>
                                     <h3 class="qb-section-title">${title}</h3>
-                                    <span class="qb-section-badge">${list.length} ${list.length === 1 ? 'item' : 'items'}</span>
+                                    <span class="qb-section-badge">${questions.length} ${isExamSection ? (questions.length === 1 ? 'question' : 'questions') : (questions.length === 1 ? 'item' : 'items')}</span>
                                 </div>
                                 <div class="qb-section-actions">
                                     <select class="qb-sort-select" onclick="event.stopPropagation()" onchange="sortSectionQuestions('${key}', this.value, '${course.code}')" title="Sort order">
                                         <option value="newest" ${sortOrder === 'newest' ? 'selected' : ''}>⇅ Newest First</option>
                                         <option value="oldest" ${sortOrder === 'oldest' ? 'selected' : ''}>⇅ Oldest First</option>
                                     </select>
-                                    <button type="button" class="qb-section-dl-btn" id="qbDlBtn_${key}" onclick="event.stopPropagation(); downloadAllSectionFiles('${key}', '${course.code}')" title="Download all ${list.length} files in this section as ZIP">
-                                        <i class="fas fa-file-archive"></i> Download All (${list.length})
-                                    </button>
+                                    ${questions.length > 0 ? `<button type="button" class="qb-section-dl-btn" id="qbDlBtn_${key}" onclick="event.stopPropagation(); downloadAllSectionFiles('${key}', '${course.code}')" title="Download all ${questions.length} files in this section as ZIP">
+                                        <i class="fas fa-file-archive"></i> Download All (${questions.length})
+                                    </button>` : ''}
                                 </div>
                             </div>
                             <div class="qb-section-body" style="display: ${isCollapsed ? 'none' : 'block'};">
-                                <div class="qb-box-grid">
-                                    ${sortedList.map(p => createPhotoMatchedQuestionBox(p, isSolutionSection)).join('')}
-                                </div>
+                                ${questions.length > 0 ? `<div class="qb-box-grid">
+                                    ${questions.map(p => createPhotoMatchedQuestionBox(p)).join('')}
+                                </div>` : ''}
+                                ${solutionsHtml}
                             </div>
                         </div>
                     `;
                 }
 
                 let sectionsHtml = '';
-                if (midterms.length > 0) sectionsHtml += renderBoxSection('Mid-Term Questions', 'midterm', midterms, '#3b82f6', false);
-                if (finals.length > 0) sectionsHtml += renderBoxSection('Final Questions', 'final', finals, '#6366f1', false);
-                if (solutions.length > 0) sectionsHtml += renderBoxSection('Solutions', 'solutions', solutions, '#10b981', true);
-                if (notes.length > 0) sectionsHtml += renderBoxSection('Class Notes', 'notes', notes, '#f59e0b', false);
-                if (labs.length > 0) sectionsHtml += renderBoxSection('Lab Materials', 'labs', labs, '#8b5cf6', false);
-                if (otherQuestions.length > 0) sectionsHtml += renderBoxSection('Other Questions & Quizzes', 'other', otherQuestions, '#06b6d4', false);
+                if (midterms.length > 0) sectionsHtml += renderBoxSection('Mid-Term Questions', 'midterm', midterms, '#3b82f6');
+                if (finals.length > 0) sectionsHtml += renderBoxSection('Final Questions', 'final', finals, '#6366f1');
+                if (notes.length > 0) sectionsHtml += renderBoxSection('Class Notes', 'notes', notes, '#f59e0b');
+                if (labs.length > 0) sectionsHtml += renderBoxSection('Lab Materials', 'labs', labs, '#8b5cf6');
+                if (otherQuestions.length > 0) sectionsHtml += renderBoxSection('Other Questions & Quizzes', 'other', otherQuestions, '#06b6d4');
 
                 if (!sectionsHtml) {
                     container.innerHTML = `
