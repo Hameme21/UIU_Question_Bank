@@ -1675,6 +1675,77 @@
             transform: translate(2px, -2px);
         }
 
+        .about-me-support {
+            margin-bottom: 1rem;
+            border: 1px solid rgba(226, 19, 110, 0.25);
+            border-radius: 0.75rem;
+            background: var(--surface-2);
+        }
+
+        .about-me-support > summary {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            padding: 0.85rem 0.95rem;
+            color: var(--text-main);
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .about-me-support > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .about-me-support > summary .fa-heart {
+            color: #e2136e;
+        }
+
+        .about-me-support > summary .fa-chevron-down {
+            margin-left: auto;
+            color: var(--text-muted);
+            transition: transform 0.2s ease;
+        }
+
+        .about-me-support[open] > summary .fa-chevron-down {
+            transform: rotate(180deg);
+        }
+
+        .about-me-support-body {
+            padding: 0 0.95rem 0.95rem;
+        }
+
+        .about-me-support-body p {
+            margin: 0 0 0.75rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+
+        .about-me-support-qr {
+            display: block;
+            margin-bottom: 0.75rem;
+        }
+
+        .about-me-support-qr img {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 0.6rem;
+            background: #ffffff;
+        }
+
+        .about-me-support-number {
+            color: var(--text-main);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .about-me-support-save {
+            width: 100%;
+            font-size: 0.8rem;
+        }
+
         .about-me-footer {
             text-align: center;
             font-size: 0.75rem;
@@ -5213,6 +5284,18 @@
                     <i class="fas fa-arrow-up-right-from-square about-me-link-arrow"></i>
                 </a>
             </div>
+
+            <details class="about-me-support">
+                <summary><i class="fas fa-heart" aria-hidden="true"></i> Support Me <i class="fas fa-chevron-down" aria-hidden="true"></i></summary>
+                <div class="about-me-support-body">
+                    <p>Scan with bKash or your banking app to support my work. Tap the QR to open it at full size.</p>
+                    <a href="./support-payment-qr.jpg" target="_blank" rel="noopener noreferrer" class="about-me-support-qr" aria-label="Open payment QR code at full size">
+                        <img src="./support-payment-qr.jpg" alt="bKash Bangla QR payment code for 01960698875" width="1148" height="1820">
+                    </a>
+                    <p>bKash &middot; <strong class="about-me-support-number">01960698875</strong></p>
+                    <a href="./support-payment-qr.jpg" download="UIU-Question-Bank-Payment-QR.jpg" class="btn btn-outline about-me-support-save"><i class="fas fa-download" aria-hidden="true"></i> Save QR</a>
+                </div>
+            </details>
 
             <div class="about-me-footer">
                 <div style="margin-bottom: 0.4rem;">Built with ❤️ for the UIU CSE Student Community</div>
