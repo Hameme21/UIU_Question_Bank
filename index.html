@@ -6084,6 +6084,13 @@
             );
         }
 
+        function getSolutionEntries(papers = approvedPapers) {
+            return papers.flatMap(paper => getAssets(paper)
+                .filter(asset => asset.assetType === 'solution' && asset.pdfUrl)
+                .map((asset, index) => ({ paper, index }))
+            );
+        }
+
         window.openQuestionSolution = function(paperId, solutionIndex, download = false) {
             const paper = approvedPapers.find(p => p.id === paperId);
             if (!paper) return;
@@ -6108,17 +6115,16 @@
 
         function getCourseStats(code) {
             const papers = approvedPapers.filter(p => (p.courseCode || '').replace(/\s+/g,'').toLowerCase() === code.replace(/\s+/g,'').toLowerCase());
-            let questions = 0, solutions = 0, notes = 0, labs = 0;
+            let questions = 0, notes = 0, labs = 0;
             papers.forEach(p => {
                 const assets = getAssets(p);
                 assets.forEach(a => {
                     if (a.assetType === 'question') questions++;
-                    else if (a.assetType === 'solution') solutions++;
                     else if (a.assetType === 'note') notes++;
                 });
                 if (p.type === 'Lab') labs++;
             });
-            return { questions, solutions, notes, labs };
+            return { questions, solutions: getSolutionEntries(papers).length, notes, labs };
         }
 
         window.toggleFavoriteCourse = toggleFavoriteCourse;
@@ -6693,7 +6699,7 @@
             // Stats
             document.getElementById('stat-courses').innerText = CURRICULUM.length;
             document.getElementById('stat-questions').innerText = approvedPapers.filter(p => p.type === 'Question' || !p.type).length;
-            document.getElementById('stat-solutions').innerText = approvedPapers.filter(p => p.solutionUrl || p.solutionPdfUrl).length;
+            document.getElementById('stat-solutions').innerText = getSolutionEntries().length;
             document.getElementById('stat-notes').innerText = approvedPapers.filter(p => p.type === 'Notes').length;
             
             const uniqueGmails = new Set(approvedPapers.map(p => (p.submitterEmail || p.contactEmail || '').toLowerCase().trim()).filter(e => e.includes('@'))).size;
@@ -6783,12 +6789,10 @@
                 c.papers.push(paper);
                 if (paper.type === 'Notes') {
                     c.notes++;
-                } else {
+                } else if (!isStandaloneSolution(paper)) {
                     c.questions++;
                 }
-                if (paper.solutionUrl || paper.solutionPdfUrl) {
-                    c.solutions++;
-                }
+                c.solutions += getSolutionEntries([paper]).length;
             });
 
             const list = Array.from(contribMap.values());
@@ -6800,7 +6804,7 @@
             const contributorsCount = getStatsContributorsData().length;
             const coursesCount = CURRICULUM.length;
             const questionsCount = approvedPapers.filter(p => p.type === 'Question' || !p.type).length;
-            const solutionsCount = approvedPapers.filter(p => p.solutionUrl || p.solutionPdfUrl).length;
+            const solutionsCount = getSolutionEntries().length;
             const notesCount = approvedPapers.filter(p => p.type === 'Notes').length;
 
             const elContrib = document.getElementById('modalStatCountContributors');
@@ -7207,7 +7211,7 @@
             } else if (currentStatsModalFilter === 'final') {
                 list = list.filter(p => (p.examType || '').toLowerCase() === 'final');
             } else if (currentStatsModalFilter === 'has_sol') {
-                list = list.filter(p => Boolean(p.solutionUrl || p.solutionPdfUrl));
+                list = list.filter(p => getQuestionSolutions(p).length > 0);
             }
 
             if (summaryEl) summaryEl.innerText = `Showing ${list.length} question paper${list.length === 1 ? '' : 's'}`;
@@ -7231,12 +7235,12 @@
         }
 
         function renderSolutionsList(contentArea, summaryEl, actionContainer) {
-            let list = approvedPapers.filter(p => Boolean(p.solutionUrl || p.solutionPdfUrl));
+            let list = getSolutionEntries();
             const q = currentStatsModalSearch;
 
             if (q) {
                 const cleanQ = q.replace(/\s+/g, '');
-                list = list.filter(p => {
+                list = list.filter(({ paper: p }) => {
                     const code = (p.courseCode || '').replace(/\s+/g, '').toLowerCase();
                     const topic = (p.topic || '').toLowerCase();
                     const sem = p.semester ? decodeSemester(p.semester).label.toLowerCase() : '';
@@ -7246,9 +7250,9 @@
             }
 
             if (currentStatsModalFilter === 'mid') {
-                list = list.filter(p => (p.examType || '').toLowerCase() === 'midterm');
+                list = list.filter(({ paper }) => (paper.examType || '').toLowerCase() === 'midterm');
             } else if (currentStatsModalFilter === 'final') {
-                list = list.filter(p => (p.examType || '').toLowerCase() === 'final');
+                list = list.filter(({ paper }) => (paper.examType || '').toLowerCase() === 'final');
             }
 
             if (summaryEl) summaryEl.innerText = `Showing ${list.length} solution${list.length === 1 ? '' : 's'}`;
@@ -7272,7 +7276,7 @@
                 return;
             }
 
-            contentArea.innerHTML = `<div class="resource-list">${list.map(p => createResourceCard(p)).join('')}</div>`;
+            contentArea.innerHTML = `<div class="qb-box-grid">${list.map(({ paper, index }) => createPhotoMatchedQuestionBox(paper, true, index)).join('')}</div>`;
         }
 
         function renderNotesList(contentArea, summaryEl, actionContainer) {
