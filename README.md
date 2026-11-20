@@ -3,7 +3,7 @@
 A single-page web app where UIU CSE students can search, browse, and download past exam questions, solutions, and notes — organized by semester and course.
 
 **Live:** *[UIU CSE Question Bank](https://uiuqbank.runs-on.dev/)*
-**Backend:** [`question-bank-x5pu.onrender.com`](https://question-bank-x5pu.onrender.com)
+**Backend:** [`uiuquestionbank-production.up.railway.app`](https://uiuquestionbank-production.up.railway.app)
 
 ## Features
 
@@ -20,7 +20,7 @@ A single-page web app where UIU CSE students can search, browse, and download pa
 - **Frontend:** Vanilla HTML/CSS/JS — single-file architecture (`index.html`)
 - **Auth & Database:** Firebase (Firestore)
 - **File storage:** Cloudinary (signed uploads via backend)
-- **Backend API:** Node.js service hosted on Render, used for Cloudinary signing and presence/heartbeat tracking
+- **Backend API:** Node.js service hosted on Railway, used for Cloudinary signing and presence/heartbeat tracking
 
 ## Getting Started
 

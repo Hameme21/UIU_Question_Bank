@@ -25,7 +25,7 @@ const adminEmails = (process.env.ADMIN_EMAILS || 'hamimasir5@gmail.com,ahamim251
     .filter(Boolean);
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '*')
     .split(',')
-    .map(origin => origin.trim())
+    .map(origin => origin.trim().replace(/\/+$/, ''))
     .filter(Boolean);
 
 const mimeTypes = {
@@ -58,16 +58,16 @@ function sendJson(response, statusCode, payload, requestOrigin = '') {
 
 function getCorsHeaders(requestOrigin = '') {
     const allowAll = allowedOrigins.includes('*');
-    const originAllowed = allowAll || allowedOrigins.includes(requestOrigin);
 
-    if (!originAllowed && requestOrigin) {
-        return {};
+    if (!allowAll && (!requestOrigin || !allowedOrigins.includes(requestOrigin))) {
+        return { Vary: 'Origin' };
     }
 
     return {
         'Access-Control-Allow-Origin': allowAll ? '*' : requestOrigin,
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Authorization, Content-Type'
+        'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+        ...(allowAll ? {} : { Vary: 'Origin' })
     };
 }
 
@@ -793,7 +793,7 @@ const server = http.createServer((request, response) => {
         <p>Backend API Server is active and operational. Connected to Firebase & Cloudinary storage.</p>
         <div class="info-box">
             <div><strong>Status:</strong> 200 OK (Server is Running)</div>
-            <div><strong>Backend:</strong> https://question-bank-x5pu.onrender.com</div>
+            <div><strong>Backend:</strong> https://uiuquestionbank-production.up.railway.app</div>
             <div><strong>Frontend:</strong> https://uiuqbank.runs-on.dev/</div>
         </div>
         <a href="https://uiuqbank.runs-on.dev/#upload" class="btn">Go to Upload Page 🚀</a>
@@ -825,7 +825,7 @@ const server = http.createServer((request, response) => {
     });
 });
 
-server.listen(port, () => {
+server.listen(port, '0.0.0.0', () => {
     console.log(`UIU Toolkits backend running at http://localhost:${port}`);
     console.log(`Dashboard: http://localhost:${port}/dashboard.html`);
     console.log(`Upload: http://localhost:${port}/upload.html`);

@@ -2,8 +2,8 @@
 
 The API server that powers the [UIU Question Bank](https://github.com/Hameme21/UIU_Question_Bank) frontend. It handles signed file uploads, Firebase-authenticated admin actions, and email notifications for student submissions.
 
-**Live:** [`question-bank-x5pu.onrender.com`](https://question-bank-x5pu.onrender.com)
-**Frontend:** [UIU CSE Question Bank](https://question-bank-orpin-psi.vercel.app/)
+**Live:** [`uiuquestionbank-production.up.railway.app`](https://uiuquestionbank-production.up.railway.app)
+**Frontend:** [UIU CSE Question Bank](https://uiuqbank.runs-on.dev/)
 
 ## What it does
 
@@ -35,7 +35,7 @@ Admin-only routes require an `Authorization: Bearer <Firebase ID token>` header,
 - **Auth:** Firebase Identity Toolkit (token verification)
 - **File storage:** Cloudinary (signed uploads, tagging, deletion)
 - **Email:** Nodemailer over SMTP
-- **Hosting:** Render
+- **Hosting:** Railway
 
 ## Environment Variables
 
@@ -47,7 +47,7 @@ CLOUDINARY_API_SECRET=
 CLOUDINARY_UPLOAD_FOLDER=uiu-toolkits/question-bank
 FIREBASE_WEB_API_KEY=
 ADMIN_EMAILS=admin1@uiu.ac.bd,admin2@uiu.ac.bd
-ALLOWED_ORIGINS=*
+ALLOWED_ORIGINS=https://uiuqbank.runs-on.dev
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=
@@ -66,6 +66,16 @@ npm start
 ```
 
 The server starts on `http://localhost:4175` by default.
+
+## Railway Deployment
+
+When deploying this repository, set the Railway service's **Root Directory** to `/backend` and its **Start Command** to `npm start`. Railway installs the dependencies from `backend/package.json`. If deploying the backend as its own repository, use that repository's root instead.
+
+The server listens on `0.0.0.0` and uses Railway's injected `PORT`. Set the service's **Healthcheck Path** to `/api/health`.
+
+Keep Cloudinary, Firebase, admin, and SMTP values in Railway's service variables. Set `ALLOWED_ORIGINS` to a comma-separated list of frontend origins, for example `https://uiuqbank.runs-on.dev,http://localhost:3000`. Trailing slashes are accepted. `*` also works if all origins should be allowed.
+
+The static frontend uses `BACKEND_URL` in `index.html`, currently `https://uiuquestionbank-production.up.railway.app`. Redeploy the frontend after changing this value. Check `/api/health` and `/api/cloudinary/config` on the backend to verify connectivity and upload configuration.
 
 ## Related Projects
 
