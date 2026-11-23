@@ -900,6 +900,7 @@
         .stat-number {
             font-size: 2.5rem;
             font-weight: 700;
+            font-variant-numeric: tabular-nums;
             color: var(--orange);
             margin-bottom: 0.35rem;
         }
@@ -4358,27 +4359,27 @@
 
             <section class="stats-grid" id="dashboardStats">
                 <div class="stat-card stat-card-contributors" id="stat-card-contributors" role="button" tabindex="0" onclick="openStatsListModal('contributors')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openStatsListModal('contributors');}" title="Click to view all contributors">
-                    <div class="stat-number" id="stat-contributors">...</div>
+                    <div class="stat-number" id="stat-contributors">0</div>
                     <div class="text-muted">Contributors</div>
                     <div class="stat-card-cta"><i class="fas fa-users"></i> View list <i class="fas fa-chevron-right" style="font-size:0.65rem;"></i></div>
                 </div>
                 <div class="stat-card" id="stat-card-courses" role="button" tabindex="0" onclick="openStatsListModal('courses')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openStatsListModal('courses');}" title="Click to view all courses">
-                    <div class="stat-number" id="stat-courses">...</div>
+                    <div class="stat-number" id="stat-courses">0</div>
                     <div class="text-muted">Courses</div>
                     <div class="stat-card-cta"><i class="fas fa-graduation-cap"></i> View list <i class="fas fa-chevron-right" style="font-size:0.65rem;"></i></div>
                 </div>
                 <div class="stat-card" id="stat-card-questions" role="button" tabindex="0" onclick="openStatsListModal('questions')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openStatsListModal('questions');}" title="Click to view all questions">
-                    <div class="stat-number" id="stat-questions">...</div>
+                    <div class="stat-number" id="stat-questions">0</div>
                     <div class="text-muted">Questions</div>
                     <div class="stat-card-cta"><i class="fas fa-file-alt"></i> View list <i class="fas fa-chevron-right" style="font-size:0.65rem;"></i></div>
                 </div>
                 <div class="stat-card" id="stat-card-solutions" role="button" tabindex="0" onclick="openStatsListModal('solutions')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openStatsListModal('solutions');}" title="Click to view all solutions">
-                    <div class="stat-number" id="stat-solutions">...</div>
+                    <div class="stat-number" id="stat-solutions">0</div>
                     <div class="text-muted">Solutions</div>
                     <div class="stat-card-cta"><i class="fas fa-check-circle"></i> View list <i class="fas fa-chevron-right" style="font-size:0.65rem;"></i></div>
                 </div>
                 <div class="stat-card" id="stat-card-notes" role="button" tabindex="0" onclick="openStatsListModal('notes')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openStatsListModal('notes');}" title="Click to view all lecture notes">
-                    <div class="stat-number" id="stat-notes">...</div>
+                    <div class="stat-number" id="stat-notes">0</div>
                     <div class="text-muted">Notes</div>
                     <div class="stat-card-cta"><i class="fas fa-book-open"></i> View list <i class="fas fa-chevron-right" style="font-size:0.65rem;"></i></div>
                 </div>
@@ -5974,6 +5975,9 @@
         // STATE & HELPERS
         // ==========================================
         let approvedPapers = [];
+        let dashboardStatsReady = false;
+        let appLoaderDismissed = false;
+        const dashboardStatAnimations = new Map();
         let currentRoute = { page: 'dashboard', param: null };
 
         function getFavorites() { return JSON.parse(localStorage.getItem('qb_favorites') || '{"courses":[],"resources":[]}'); }
@@ -6302,6 +6306,7 @@
                     const timeB = b.submittedAt ? b.submittedAt.toMillis() : 0;
                     return timeB - timeA;
                 });
+                dashboardStatsReady = true;
                 renderCurrentPage();
             }
 
@@ -6695,16 +6700,47 @@
             `;
         }
 
-        function renderDashboard() {
-            // Stats
-            document.getElementById('stat-courses').innerText = CURRICULUM.length;
-            document.getElementById('stat-questions').innerText = approvedPapers.filter(p => p.type === 'Question' || !p.type).length;
-            document.getElementById('stat-solutions').innerText = getSolutionEntries().length;
-            document.getElementById('stat-notes').innerText = approvedPapers.filter(p => p.type === 'Notes').length;
-            
+        function animateDashboardStat(id, target) {
+            const element = document.getElementById(id);
+            if (!element) return;
+
+            const previous = dashboardStatAnimations.get(id);
+            if (previous?.target === target) return;
+            if (previous) cancelAnimationFrame(previous.frame);
+
+            const startValue = Number(element.textContent) || 0;
+            const animation = { target, frame: null };
+            dashboardStatAnimations.set(id, animation);
+
+            if (startValue === target || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                element.textContent = String(target);
+                return;
+            }
+
+            const startedAt = performance.now();
+            function tick(now) {
+                const progress = Math.min((now - startedAt) / 1200, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                element.textContent = String(Math.round(startValue + (target - startValue) * eased));
+                if (progress < 1) animation.frame = requestAnimationFrame(tick);
+            }
+            animation.frame = requestAnimationFrame(tick);
+        }
+
+        function renderDashboardStats() {
+            // Start together only once the loader has faded out and both collections are ready.
+            if (!appLoaderDismissed || !dashboardStatsReady) return;
+
             const uniqueGmails = new Set(approvedPapers.map(p => (p.submitterEmail || p.contactEmail || '').toLowerCase().trim()).filter(e => e.includes('@'))).size;
-            const contribEl = document.getElementById('stat-contributors');
-            if (contribEl) contribEl.innerText = uniqueGmails || (approvedPapers.length > 0 ? 1 : 0);
+            animateDashboardStat('stat-contributors', uniqueGmails || (approvedPapers.length > 0 ? 1 : 0));
+            animateDashboardStat('stat-courses', CURRICULUM.length);
+            animateDashboardStat('stat-questions', approvedPapers.filter(p => p.type === 'Question' || !p.type).length);
+            animateDashboardStat('stat-solutions', getSolutionEntries().length);
+            animateDashboardStat('stat-notes', approvedPapers.filter(p => p.type === 'Notes').length);
+        }
+
+        function renderDashboard() {
+            renderDashboardStats();
 
             if (typeof updateStatsModalTabCounters === 'function') {
                 updateStatsModalTabCounters();
@@ -14058,8 +14094,15 @@
         if (appLoader) {
             setTimeout(() => {
                 appLoader.classList.add('hidden');
-                setTimeout(() => appLoader.remove(), 150);
+                setTimeout(() => {
+                    appLoader.remove();
+                    appLoaderDismissed = true;
+                    if (currentRoute.page === 'dashboard') renderDashboardStats();
+                }, 150);
             }, 50);
+        } else {
+            appLoaderDismissed = true;
+            if (currentRoute.page === 'dashboard') renderDashboardStats();
         }
 
     </script>
